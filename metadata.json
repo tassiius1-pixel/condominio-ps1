@@ -1,0 +1,5 @@
+{
+  "name": "Condomínio Porto Seguro 1",
+  "description": "An application for condominium residents to report and track maintenance issues. Residents can create, edit, and comment on tasks, while a management team can update task statuses and manage users.",
+  "requestFramePermissions": []
+}
