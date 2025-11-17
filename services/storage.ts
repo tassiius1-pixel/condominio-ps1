@@ -1,15 +1,24 @@
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { app } from "./firebase";
-
-const storage = getStorage(app);
+import { supabase } from "./supabase";
 
 export async function uploadPhoto(file: File): Promise<string> {
-  // Pasta "photos" + timestamp + nome original
-  const fileRef = ref(storage, `photos/${Date.now()}-${file.name}`);
+  const fileName = `${Date.now()}-${file.name}`;
 
-  // Envia para o Storage
-  await uploadBytes(fileRef, file);
+  const { data, error } = await supabase.storage
+    .from("photos")               // nome do bucket
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
 
-  // Pega URL pública
-  return await getDownloadURL(fileRef);
+  if (error) {
+    console.error("Erro ao fazer upload:", error);
+    throw new Error("Falha ao enviar foto.");
+  }
+
+  // URL pública
+  const { data: publicUrlData } = supabase.storage
+    .from("photos")
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
 }
