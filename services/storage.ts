@@ -1,9 +1,9 @@
 import { supabase } from "./supabase";
 
 export async function uploadPhoto(file: File): Promise<string> {
-  const filePath = `${Date.now()}-${file.name}`;
+  const filePath = `pendencias/${Date.now()}-${file.name}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from("pendencias")
     .upload(filePath, file, {
       cacheControl: "3600",
@@ -15,9 +15,10 @@ export async function uploadPhoto(file: File): Promise<string> {
     throw error;
   }
 
-  const { data: publicUrl } = supabase.storage
+  // Gera a URL pública
+  const { data } = supabase.storage
     .from("pendencias")
     .getPublicUrl(filePath);
 
-  return publicUrl.publicUrl;
+  return data.publicUrl;
 }
