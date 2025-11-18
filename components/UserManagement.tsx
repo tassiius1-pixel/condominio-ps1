@@ -16,15 +16,26 @@ const UserManagement: React.FC = () => {
     updateUserRole(userId, newRole);
   };
 
-  const handleDeleteUser = (user: User) => {
-    if (user.role === Role.ADMIN) {
+  const handleDeleteUser = async (user: User) => {
+    try {
+      if (user.role === Role.ADMIN) {
         alert("Não é possível excluir o usuário administrador.");
         return;
+      }
+
+      if (!window.confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
+        return;
+      }
+
+      // 🔥 Correção: garantir await + tratamento correto de erro
+      await deleteUser(user.id);
+
+      alert("Usuário excluído com sucesso.");
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      alert("Ocorreu um erro ao excluir o usuário.");
     }
-    if (window.confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
-        deleteUser(user.id);
-    }
-  }
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">

@@ -20,8 +20,13 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
 
   if (!currentUser) return null;
 
-  const userNotifications = notifications.filter(n => n.userId === currentUser.id);
-  const unreadCount = userNotifications.filter(n => !n.read).length;
+  // ⚠️ AGORA NOTIFICAÇÕES SÃO GERAIS, NÃO POR userId
+  const userNotifications = notifications;
+
+  // ⚠️ Lógica nova: readBy
+  const unreadCount = userNotifications.filter(
+    n => !n.readBy.includes(currentUser.id)
+  ).length;
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -30,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
     }
   };
 
-  // LOGO Fallback para usar a URL fixa do Supabase
+  // LOGO fallback
   const logoURL = condoLogo || 
     "https://hjrhipbzuzkxrzlffwlb.supabase.co/storage/v1/object/public/logotipos/WhatsApp%20Image%202025-11-17%20at%2011.06.58.jpeg";
 
@@ -120,13 +125,14 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
                 )}
             </nav>
 
-            {/* NOTIFICAÇÕES */}
+            {/* 🔔 NOTIFICAÇÕES */}
             <div className="relative">
                 <button 
                   onClick={() => setShowNotifications(prev => !prev)} 
                   className="p-2 rounded-full text-gray-500 hover:bg-gray-100"
                 >
                     <BellIcon className="h-6 w-6" />
+
                     {unreadCount > 0 && (
                         <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white 
                                          rounded-full text-xs flex items-center justify-center">
@@ -136,9 +142,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
                 </button>
 
                 {showNotifications && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-40">
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-40 animate-slideFadeIn">
                         <div className="p-3 flex justify-between items-center border-b">
                             <h4 className="font-semibold">Notificações</h4>
+
                             {unreadCount > 0 && (
                                 <button 
                                   onClick={() => markAllNotificationsAsRead(currentUser.id)} 
@@ -151,8 +158,11 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
 
                         <ul className="max-h-80 overflow-y-auto">
                             {userNotifications.length > 0 ? userNotifications.map(n => (
-                                <li key={n.id} className={`p-3 border-b ${!n.read ? 'bg-indigo-50' : ''}`}>
-                                    <p className="text-sm">{n.text}</p>
+                                <li 
+                                  key={n.id} 
+                                  className={`p-3 border-b ${!n.readBy.includes(currentUser.id) ? 'bg-indigo-50' : ''}`}
+                                >
+                                    <p className="text-sm">{n.message}</p>
                                     <p className="text-xs text-gray-500 mt-1">
                                       {new Date(n.createdAt).toLocaleString('pt-BR')}
                                     </p>

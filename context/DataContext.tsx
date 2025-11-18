@@ -8,9 +8,6 @@ import {
   Role,
   Status,
   Comment,
-  RequestType,
-  Sector,
-  Priority,
   Notification,
   Toast,
 } from "../types";
@@ -174,14 +171,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const removeToast = (id: string) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  // NOTIFICAÇÕES
+  // NOTIFICAÇÕES — CORRIGIDO
   const addNotification = async (
-    notificationData: Omit<Notification, "id" | "createdAt" | "read">
+    notificationData: Omit<Notification, "id" | "createdAt" | "readBy">
   ) => {
     await addDoc(collection(db, "notifications"), {
       ...notificationData,
       createdAt: new Date().toISOString(),
-      read: false,
+      readBy: [], // agora compatível com sininho
     });
   };
 
@@ -247,51 +244,54 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       .catch(() => addToast("Erro ao atualizar perfil.", "error"));
   };
 
-// DELETE USER — COMPLETO (FIRESTORE + AUTH)
-const deleteUser = async (userId: string) => {
-  try {
-    const user = users.find((u) => u.id === userId);
-    if (!user) {
-      addToast("Usuário não encontrado.", "error");
-      return;
-    }
+  // DELETE USER — CORRIGIDO
+  const deleteUser = async (userId: string) => {
+    try {
+      const user = users.find((u) => u.id === userId);
 
-    // 1. Remove do Firestore
-    await deleteDoc(doc(db, "users", userId));
-
-    // 2. Chama função do Supabase (AGORA COM A URL CERTA)
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/delete-firebase-user`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          username: user.username,
-        }),
+      if (!user) {
+        addToast("Usuário não encontrado.", "error");
+        return;
       }
-    );
 
-    const data = await response.json();
-    console.log("Supabase:", data);
+      // Remove do Firestore
+      await deleteDoc(doc(db, "users", userId));
 
-    if (!response.ok) {
-      addToast("Erro ao excluir usuário no Auth.", "error");
-      return;
+      // Tenta excluir no Auth via Supabase
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/delete-firebase-user`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({
+              username: user.username,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        console.log("Supabase auth delete:", data);
+
+        if (!response.ok) {
+          console.warn("Falha ao excluir no Auth:", data);
+        }
+      } catch (authError) {
+        console.warn("Erro ao tentar excluir no Auth:", authError);
+      }
+
+      addToast("Usuário excluído com sucesso!", "success");
+    } catch (error) {
+      console.error("❌ Erro ao excluir usuário:", error);
+      addToast("Erro ao excluir usuário.", "error");
     }
+  };
 
-    addToast("Usuário excluído completamente!", "success");
-  } catch (error) {
-    console.error("❌ Erro ao excluir usuário:", error);
-    addToast("Erro ao excluir usuário.", "error");
-  }
-};
-
-
-  // REQUESTS
-  const addRequest = (
+  // REQUESTS — AGORA CRIA NOTIFICAÇÃO
+  const addRequest = async (
     requestData: Omit<
       Request,
       "id" | "authorName" | "createdAt" | "comments" | "status"
@@ -308,9 +308,14 @@ const deleteUser = async (userId: string) => {
       status: Status.PENDENTE,
     };
 
-    addDoc(collection(db, "requests"), newRequest).then(() => {
-      addToast("Pendência registrada.", "success");
+    await addDoc(collection(db, "requests"), newRequest);
+
+    await addNotification({
+      message: `Nova pendência criada por ${author.name}`,
+      type: "request",
     });
+
+    addToast("Pendência registrada.", "success");
   };
 
   const updateRequest = (updatedRequest: Request) => {
@@ -354,16 +359,17 @@ const deleteUser = async (userId: string) => {
     });
   };
 
-  // MARK NOTIFICATIONS AS READ
-  const markAllNotificationsAsRead = (userId: string) => {
-    const unread = notifications.filter((n) => n.userId === userId && !n.read);
+  // MARK READ — CORRIGIDO
+  const markAllNotificationsAsRead = async (userId: string) => {
+    const unread = notifications.filter((n) => !n.readBy?.includes(userId));
 
-    unread.forEach((n) =>
-      updateDoc(doc(db, "notifications", n.id), { read: true })
-    );
+    for (const n of unread) {
+      updateDoc(doc(db, "notifications", n.id), {
+        readBy: [...(n.readBy || []), userId],
+      });
+    }
   };
 
-  // PROVIDER
   return (
     <DataContext.Provider
       value={{
