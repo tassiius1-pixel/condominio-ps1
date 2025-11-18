@@ -190,9 +190,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   try {
     await deleteDoc(doc(db, "notifications", notificationId));
 
-    if (showToast) {
-      addToast("Notificação removida.", "info");
-    }
+    
   } catch (error) {
     console.error("Erro ao excluir notificação:", error);
     addToast("Erro ao remover notificação.", "error");
