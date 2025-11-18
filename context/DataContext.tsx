@@ -56,6 +56,7 @@ interface DataContextType {
   ) => void;
 
   markAllNotificationsAsRead: (userId: string) => void;
+  deleteNotification: (notificationId: string) => void;
 
   addToast: (message: string, type: "success" | "error" | "info") => void;
 }
@@ -64,9 +65,7 @@ export const DataContext = createContext<DataContextType | undefined>(
   undefined
 );
 
-export const DataProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
@@ -171,15 +170,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const removeToast = (id: string) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  // NOTIFICAÇÕES — CORRIGIDO
+  // NOTIFICAÇÕES (MODELO CORRETO)
   const addNotification = async (
     notificationData: Omit<Notification, "id" | "createdAt" | "readBy">
   ) => {
     await addDoc(collection(db, "notifications"), {
       ...notificationData,
       createdAt: new Date().toISOString(),
-      readBy: [], // agora compatível com sininho
+      readBy: [], // cada usuário marcará a sua
     });
+  };
+
+  // DELETAR NOTIFICAÇÃO (LIMPAR INDIVIDUAL)
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await deleteDoc(doc(db, "notifications", notificationId));
+      addToast("Notificação removida.", "info");
+    } catch (error) {
+      console.error("Erro ao excluir notificação:", error);
+      addToast("Erro ao remover notificação.", "error");
+    }
   };
 
   // FIND USER
@@ -244,7 +254,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       .catch(() => addToast("Erro ao atualizar perfil.", "error"));
   };
 
-  // DELETE USER — CORRIGIDO
+  // DELETE USER
   const deleteUser = async (userId: string) => {
     try {
       const user = users.find((u) => u.id === userId);
@@ -254,10 +264,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      // Remove do Firestore
       await deleteDoc(doc(db, "users", userId));
 
-      // Tenta excluir no Auth via Supabase
       try {
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/delete-firebase-user`,
@@ -275,10 +283,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 
         const data = await response.json();
         console.log("Supabase auth delete:", data);
-
-        if (!response.ok) {
-          console.warn("Falha ao excluir no Auth:", data);
-        }
       } catch (authError) {
         console.warn("Erro ao tentar excluir no Auth:", authError);
       }
@@ -290,7 +294,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // REQUESTS — AGORA CRIA NOTIFICAÇÃO
+  // REQUESTS
   const addRequest = async (
     requestData: Omit<
       Request,
@@ -310,10 +314,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 
     await addDoc(collection(db, "requests"), newRequest);
 
+    // cria notificação global
     await addNotification({
-      message: `Nova pendência criada por ${author.name}`,
-      type: "request",
-    });
+  message: `Nova pendência criada por ${author.name}`,
+  userId: "all",
+  requestId: "",
+});
 
     addToast("Pendência registrada.", "success");
   };
@@ -359,7 +365,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
-  // MARK READ — CORRIGIDO
+  // MARCAR COMO LIDAS
   const markAllNotificationsAsRead = async (userId: string) => {
     const unread = notifications.filter((n) => !n.readBy?.includes(userId));
 
@@ -390,6 +396,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         addComment,
         markAllNotificationsAsRead,
         addToast,
+        deleteNotification,
       }}
     >
       {children}
