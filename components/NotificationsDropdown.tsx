@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { useData } from "../hooks/useData";
 import { useAuth } from "../hooks/useAuth";
 import { Notification } from "../types";
+import { db } from "../services/firebase";
+import { doc, writeBatch } from "firebase/firestore";
 
 interface Props {
   open: boolean;
@@ -9,7 +11,7 @@ interface Props {
 }
 
 const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
-  const { notifications, deleteNotification, markAllNotificationsAsRead } =
+  const { notifications, deleteNotification, markAllNotificationsAsRead, addToast } =
     useData();
   const { currentUser } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -50,6 +52,25 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
     (n) => n.userId === "all" || n.userId === userId
   );
 
+  // 🔥 EXCLUIR TODAS – sem vários toasts!
+  const handleDeleteAll = async () => {
+    try {
+      const batch = writeBatch(db);
+
+      filtered.forEach((n) => {
+        const ref = doc(db, "notifications", n.id);
+        batch.delete(ref);
+      });
+
+      await batch.commit();
+
+      addToast("Todas as notificações foram removidas.", "info");
+    } catch (err) {
+      console.error("Erro ao excluir todas:", err);
+      addToast("Erro ao excluir todas notificações.", "error");
+    }
+  };
+
   return (
     <div
       ref={dropdownRef}
@@ -76,17 +97,42 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
         `}
       </style>
 
-      <h4
+      {/* Título + botão excluir todas */}
+      <div
         style={{
-          margin: "0 0 8px 0",
           padding: "0 16px",
-          fontSize: "15px",
-          fontWeight: "600",
-          color: "#444",
+          marginBottom: "8px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        Notificações
-      </h4>
+        <h4
+          style={{
+            margin: 0,
+            fontSize: "15px",
+            fontWeight: "600",
+            color: "#444",
+          }}
+        >
+          Notificações
+        </h4>
+
+        {filtered.length > 0 && (
+          <button
+            onClick={handleDeleteAll}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#d00",
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            Excluir todas
+          </button>
+        )}
+      </div>
 
       {filtered.length === 0 && (
         <p
