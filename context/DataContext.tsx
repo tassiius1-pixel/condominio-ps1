@@ -59,7 +59,11 @@ interface DataContextType {
   deleteNotification: (notificationId: string) => void;
 
   addToast: (message: string, type: "success" | "error" | "info") => void;
+
+  /** 👉 ADICIONE ESTA LINHA AQUI */
+  deleteAllNotifications: () => void;
 }
+
 
 export const DataContext = createContext<DataContextType | undefined>(
   undefined
@@ -182,15 +186,36 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // DELETAR NOTIFICAÇÃO (LIMPAR INDIVIDUAL)
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      await deleteDoc(doc(db, "notifications", notificationId));
+  const deleteNotification = async (notificationId: string, showToast = true) => {
+  try {
+    await deleteDoc(doc(db, "notifications", notificationId));
+
+    if (showToast) {
       addToast("Notificação removida.", "info");
-    } catch (error) {
-      console.error("Erro ao excluir notificação:", error);
-      addToast("Erro ao remover notificação.", "error");
     }
-  };
+  } catch (error) {
+    console.error("Erro ao excluir notificação:", error);
+    addToast("Erro ao remover notificação.", "error");
+  }
+};
+
+const deleteAllNotifications = async () => {
+  try {
+    const batchIds = notifications.map((n) => n.id);
+
+    // exclui sem mostrar toast individual
+    for (const id of batchIds) {
+      await deleteNotification(id, false);
+    }
+
+    // mostra apenas UM toast
+    addToast("Todas as notificações foram removidas.", "info");
+  } catch (error) {
+    console.error("Erro ao excluir todas:", error);
+    addToast("Erro ao remover notificações.", "error");
+  }
+};
+
 
   // FIND USER
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
@@ -397,6 +422,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         markAllNotificationsAsRead,
         addToast,
         deleteNotification,
+        deleteAllNotifications,
       }}
     >
       {children}
