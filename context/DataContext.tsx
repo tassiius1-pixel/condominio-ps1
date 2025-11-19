@@ -48,7 +48,16 @@ interface DataContextType {
 
   updateRequest: (updatedRequest: Request) => void;
   deleteRequest: (requestId: string) => void;
+
   updateRequestStatus: (requestId: string, newStatus: Status) => void;
+
+  updateRequestStatusWithComment: (
+    requestId: string,
+    oldStatus: Status,
+    newStatus: Status,
+    justification: string,
+    currentUser: User
+  ) => void;
 
   addComment: (
     requestId: string,
@@ -57,13 +66,10 @@ interface DataContextType {
 
   markAllNotificationsAsRead: (userId: string) => void;
   deleteNotification: (notificationId: string) => void;
+  deleteAllNotifications: () => void;
 
   addToast: (message: string, type: "success" | "error" | "info") => void;
-
-  /** 👉 ADICIONE ESTA LINHA AQUI */
-  deleteAllNotifications: () => void;
 }
-
 
 export const DataContext = createContext<DataContextType | undefined>(
   undefined
@@ -77,7 +83,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [adminSeeded, setAdminSeeded] = useState(false);
 
-  // LISTENERS EM TEMPO REAL
+  // LISTENERS
   useEffect(() => {
     const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
       const loadedUsers: User[] = snapshot.docs.map((d) => ({
@@ -174,51 +180,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const removeToast = (id: string) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  // NOTIFICAÇÕES (MODELO CORRETO)
-  const addNotification = async (
-    notificationData: Omit<Notification, "id" | "createdAt" | "readBy">
-  ) => {
-    await addDoc(collection(db, "notifications"), {
-      ...notificationData,
-      createdAt: new Date().toISOString(),
-      readBy: [], // cada usuário marcará a sua
-    });
+  // NOTIFICAÇÕES
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await deleteDoc(doc(db, "notifications", notificationId));
+    } catch (error) {
+      addToast("Erro ao remover notificação.", "error");
+    }
   };
 
-  // DELETAR NOTIFICAÇÃO (LIMPAR INDIVIDUAL)
-  const deleteNotification = async (notificationId: string, showToast = true) => {
-  try {
-    await deleteDoc(doc(db, "notifications", notificationId));
-
-    
-  } catch (error) {
-    console.error("Erro ao excluir notificação:", error);
-    addToast("Erro ao remover notificação.", "error");
-  }
-};
-
-const deleteAllNotifications = async () => {
-  try {
-    const batchIds = notifications.map((n) => n.id);
-
-    // exclui sem mostrar toast individual
-    for (const id of batchIds) {
-      await deleteNotification(id, false);
+  const deleteAllNotifications = async () => {
+    try {
+      const ids = notifications.map((n) => n.id);
+      for (const id of ids) await deleteNotification(id);
+      addToast("Todas notificações removidas.", "info");
+    } catch {
+      addToast("Erro ao remover notificações.", "error");
     }
+  };
 
-    // mostra apenas UM toast
-    addToast("Todas as notificações foram removidas.", "info");
-  } catch (error) {
-    console.error("Erro ao excluir todas:", error);
-    addToast("Erro ao remover notificações.", "error");
-  }
-};
-
-
-  // FIND USER
+  // CRUD USERS
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
 
-  // ADD USER
   const addUser = async (
     userData: Omit<User, "id" | "role">
   ): Promise<User | null> => {
@@ -233,16 +216,7 @@ const deleteAllNotifications = async () => {
     }
 
     if (users.some((u) => u.username === userData.username)) {
-      addToast("Nome de usuário já existe.", "error");
-      return null;
-    }
-
-    if (
-      users.some(
-        (u) => u.houseNumber === userData.houseNumber && u.houseNumber !== 0
-      )
-    ) {
-      addToast("Número da casa já cadastrado.", "error");
+      addToast("Usuário já existe.", "error");
       return null;
     }
 
@@ -262,57 +236,25 @@ const deleteAllNotifications = async () => {
         email,
       };
 
-      addToast("Usuário cadastrado com sucesso!", "success");
+      addToast("Usuário cadastrado.", "success");
       return newUser;
-    } catch (e) {
+    } catch {
       addToast("Erro ao cadastrar usuário.", "error");
       return null;
     }
   };
 
-  // UPDATE ROLE
   const updateUserRole = (userId: string, role: Role) => {
     updateDoc(doc(db, "users", userId), { role })
       .then(() => addToast("Perfil atualizado.", "success"))
       .catch(() => addToast("Erro ao atualizar perfil.", "error"));
   };
 
-  // DELETE USER
   const deleteUser = async (userId: string) => {
     try {
-      const user = users.find((u) => u.id === userId);
-
-      if (!user) {
-        addToast("Usuário não encontrado.", "error");
-        return;
-      }
-
       await deleteDoc(doc(db, "users", userId));
-
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/delete-firebase-user`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-            },
-            body: JSON.stringify({
-              username: user.username,
-            }),
-          }
-        );
-
-        const data = await response.json();
-        console.log("Supabase auth delete:", data);
-      } catch (authError) {
-        console.warn("Erro ao tentar excluir no Auth:", authError);
-      }
-
-      addToast("Usuário excluído com sucesso!", "success");
-    } catch (error) {
-      console.error("❌ Erro ao excluir usuário:", error);
+      addToast("Usuário excluído.", "success");
+    } catch {
       addToast("Erro ao excluir usuário.", "error");
     }
   };
@@ -337,12 +279,13 @@ const deleteAllNotifications = async () => {
 
     await addDoc(collection(db, "requests"), newRequest);
 
-    // cria notificação global
-    await addNotification({
-  message: `Nova pendência criada por ${author.name}`,
-  userId: "all",
-  requestId: "",
-});
+    await addDoc(collection(db, "notifications"), {
+      userId: "all",
+      requestId: "",
+      message: `Nova pendência criada por ${author.name}`,
+      createdAt: new Date().toISOString(),
+      readBy: [],
+    });
 
     addToast("Pendência registrada.", "success");
   };
@@ -361,40 +304,80 @@ const deleteAllNotifications = async () => {
     );
   };
 
+  // ❗ FUNÇÃO ANTIGA (mantida)
   const updateRequestStatus = (requestId: string, newStatus: Status) => {
     updateDoc(doc(db, "requests", requestId), { status: newStatus }).then(() =>
       addToast("Status atualizado.", "info")
     );
   };
 
-  // COMMENTS
-  const addComment = (
+  // ✅ FUNÇÃO NOVA — COMENTÁRIO + TIMELINE PREMIUM
+  const updateRequestStatusWithComment = async (
     requestId: string,
-    commentData: Omit<Comment, "id" | "createdAt">
+    oldStatus: Status,
+    newStatus: Status,
+    justification: string,
+    currentUser: User
   ) => {
-    const request = requests.find((r) => r.id === requestId);
-    if (!request) return;
+    try {
+      const request = requests.find((r) => r.id === requestId);
+      if (!request) return;
 
-    const newComment: Comment = {
-      ...commentData,
-      id: `comment-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
+      const newComment: Comment = {
+        id: `comment-${Date.now()}`,
+        authorId: currentUser.id,
+        authorName: currentUser.name,
+        text: justification,
+        createdAt: new Date().toISOString(),
+        type: "status-change",
+        fromStatus: oldStatus,
+        toStatus: newStatus,
+      };
 
-    const updatedComments = [...request.comments, newComment];
+      const updatedComments = [...request.comments, newComment];
 
-    updateDoc(doc(db, "requests", requestId), {
-      comments: updatedComments,
-    });
+      await updateDoc(doc(db, "requests", requestId), {
+        status: newStatus,
+        comments: updatedComments,
+      });
+
+      addToast("Status atualizado com justificativa.", "success");
+    } catch {
+      addToast("Erro ao atualizar status.", "error");
+    }
   };
 
-  // MARCAR COMO LIDAS
+  // COMMENTS
+ // COMMENTS
+const addComment = async (
+  requestId: string,
+  commentData: Omit<Comment, "id" | "createdAt">
+) => {
+  const request = requests.find((r) => r.id === requestId);
+  if (!request) return;
+
+  const newComment: Comment = {
+    ...commentData,
+    id: `comment-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  const updatedComments = [...request.comments, newComment];
+
+  await updateDoc(doc(db, "requests", requestId), {
+    comments: updatedComments,
+  });
+};
+
+
+
+  // MARCAR NOTIFICAÇÕES COMO LIDAS
   const markAllNotificationsAsRead = async (userId: string) => {
     const unread = notifications.filter((n) => !n.readBy?.includes(userId));
 
     for (const n of unread) {
       updateDoc(doc(db, "notifications", n.id), {
-        readBy: [...(n.readBy || []), userId],
+        readBy: [...n.readBy, userId],
       });
     }
   };
@@ -407,15 +390,20 @@ const deleteAllNotifications = async () => {
         notifications,
         toasts,
         loading,
+
         removeToast,
         findUserByCpf,
         addUser,
         updateUserRole,
         deleteUser,
         addRequest,
+
         updateRequest,
         deleteRequest,
+
         updateRequestStatus,
+        updateRequestStatusWithComment,
+
         addComment,
         markAllNotificationsAsRead,
         addToast,

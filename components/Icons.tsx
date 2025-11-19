@@ -1,162 +1,224 @@
-import React from 'react';
+import React from "react";
 
-export const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
+// Helper genérico para criar ícones minimalistas estilo Lucide
+const Icon = ({ path, className }: { path: string; className?: string }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    viewBox="0 0 24 24"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d={path} />
   </svg>
 );
 
-export const EditIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-  </svg>
+/* ============================
+   ÍCONES USADOS NO HEADER
+============================ */
+
+export const LayoutDashboardIcon = (props: any) => (
+  <Icon {...props} path="M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 12h7v9H3z" />
 );
 
-export const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <line x1="10" y1="11" x2="10" y2="17"></line>
-    <line x1="14" y1="11" x2="14" y2="17"></line>
-  </svg>
+export const EditIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
+  />
 );
 
-export const LogOutIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-    <polyline points="16 17 21 12 16 7"></polyline>
-    <line x1="21" y1="12" x2="9" y2="12"></line>
-  </svg>
+export const BarChartIcon = (props: any) => (
+  <Icon {...props} path="M12 20V10M18 20V4M6 20v-6" />
 );
 
-export const UsersIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
+export const UsersIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M17 21v-2a4 4 0 0 0-3-3.87M9 21v-2a4 4 0 0 1 3-3.87M7 7a4 4 0 1 1 8 0M5.5 20a6 6 0 0 1 13 0"
+  />
 );
 
-export const BarChartIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <line x1="12" y1="20" x2="12" y2="10"></line>
-        <line x1="18" y1="20" x2="18" y2="4"></line>
-        <line x1="6" y1="20" x2="6" y2="16"></line>
-    </svg>
+export const BellIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
+  />
 );
 
-export const LayoutDashboardIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect x="3" y="3" width="7" height="7"></rect>
-        <rect x="14" y="3" width="7" height="7"></rect>
-        <rect x="14" y="14" width="7" height="7"></rect>
-        <rect x="3" y="14" width="7" height="7"></rect>
-    </svg>
+export const LogOutIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 7-4-4m4 4-4 4m4-4H9"
+  />
 );
 
-export const XIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
+export const UploadIcon = (props: any) => (
+  <Icon {...props} path="M4 17v2h16v-2M12 12V3m0 0 4 4m-4-4L8 7" />
 );
 
-export const ImageIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-        <polyline points="21 15 16 10 5 21"></polyline>
-    </svg>
+export const TrashIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M3 6h18M8 6V4h8v2m-9 3v9m5-9v9m5-9v9"
+  />
 );
 
-// New Icons
-export const BellIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-  </svg>
+export const XIcon = (props: any) => (
+  <Icon {...props} path="M18 6 6 18M6 6l12 12" />
 );
 
-export const SunIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m4.93 19.07 1.41-1.41"></path><path d="m17.66 6.34 1.41-1.41"></path></svg>
+/* ============================
+   ÍCONES DE PRIORIDADE / STATUS
+============================ */
+
+export const LoaderCircleIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 2a10 10 0 1 1-7.07 17.07"
+  />
 );
 
-export const MoonIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+export const StatusChangeIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 5v14m7-7H5"
+  />
 );
 
-export const ChevronLeftIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15 18-6-6 6-6"></path></svg>
+export const CommentIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 1 1 11.5 2v0a8.38 8.38 0 0 1 3.8.9L22 2z"
+  />
 );
 
-export const ChevronRightIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"></path></svg>
+export const PlusIcon = (props: any) => (
+  <Icon {...props} path="M12 5v14m7-7H5" />
 );
 
-export const BoltIcon: React.FC<{ className?: string }> = ({ className }) => ( // Elétrica
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+/* ============================
+   ÍCONES DO CARD (TIPOS)
+============================ */
+
+// Elétrica
+export const BoltIcon = (props: any) => (
+  <Icon {...props} path="M13 2 3 14h7l-1 8 10-12h-7z" />
 );
 
-export const DropletIcon: React.FC<{ className?: string }> = ({ className }) => ( // Hidráulica
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-2-1-2H6s-1 0-1 2a7 7 0 0 0 7 7z"></path></svg>
+// Hidráulica
+export const DropletIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 2.5C12 2.5 6 9 6 13.5a6 6 0 0 0 12 0C18 9 12 2.5 12 2.5z"
+  />
 );
 
-export const WrenchScrewdriverIcon: React.FC<{ className?: string }> = ({ className }) => ( // Predial
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18.8 3.2a2.3 2.3 0 0 0-3.2 0l-1.2 1.2a1 1 0 0 0 0 1.4l5 5a1 1 0 0 0 1.4 0l1.2-1.2a2.3 2.3 0 0 0 0-3.2Z"></path><path d="m2 22 7-7"></path><path d="M15 8 3.5 19.5a2.3 2.3 0 0 1-3.2 0l-1.2-1.2a2.3 2.3 0 0 1 0-3.2Z"></path></svg>
+// Predial
+export const WrenchScrewdriverIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M14.7 6.3 9 12l3 3 5.7-5.7a4 4 0 1 0-3-3Z M2 22l6-6"
+  />
 );
 
-export const ShieldCheckIcon: React.FC<{ className?: string }> = ({ className }) => ( // Segurança
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+// Segurança
+export const ShieldCheckIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 2 4 5v6c0 5 3.4 9.8 8 11 4.6-1.2 8-6 8-11V5z M9 12l2 2 4-4"
+  />
 );
 
-export const FlameIcon: React.FC<{ className?: string }> = ({ className }) => ( // Incêndio
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+// Incêndio
+export const FlameIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 2C8 6 6 9 6 12a6 6 0 0 0 12 0c0-3-2-6-6-10z"
+  />
 );
 
-export const WindIcon: React.FC<{ className?: string }> = ({ className }) => ( // Ar Condicionado
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.7 7.7a2.5 2.5 0 1 0-3.2-3.2"></path><path d="M9.6 12.6a2.5 2.5 0 1 0-3.2-3.2"></path><path d="M12.6 19.4a2.5 2.5 0 1 0-3.2-3.2"></path><path d="M2 12h7.6"></path><path d="M17.7 16.3a2.5 2.5 0 1 1-3.2 3.2"></path><path d="M22 12h-7.6"></path></svg>
+// Ar condicionado
+export const WindIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M3 12h13a3 3 0 1 0 0-6M3 18h9a3 3 0 1 1 0-6"
+  />
 );
 
-export const LeafIcon: React.FC<{ className?: string }> = ({ className }) => ( // Jardinagem
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 20A7 7 0 0 1 4 13V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M15.2 12.3a2.5 2.5 0 0 0-3.5 0"></path><path d="M12 18a2.5 2.5 0 0 0 3.5 0"></path></svg>
+// Jardinagem
+export const LeafIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M4 20s6-2 10-6 6-8 4-10-6 0-10 4-6 10-4 12z"
+  />
 );
 
-export const SparklesIcon: React.FC<{ className?: string }> = ({ className }) => ( // Limpeza
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.9 4.2-4.2 1.9 4.2 1.9L12 15l1.9-4.2 4.2-1.9-4.2-1.9L12 3z"></path><path d="M5 22v-4.8"></path><path d="m19 22-1.2-2.4"></path><path d="M3 10H2"></path><path d="M22 10h-1"></path></svg>
+// Limpeza
+export const SparklesIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 3v3m0 9v3M3 12h3m9 0h3M7 7l2 2m6 6 2 2m0-10-2 2m-6 6-2 2"
+  />
 );
 
-export const DoorOpenIcon: React.FC<{ className?: string }> = ({ className }) => ( // Portões
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M13 4h3a2 2 0 0 1 2 2v14"></path><path d="M2 20V6a2 2 0 0 1 2-2h9"></path><path d="M10 12v.01"></path></svg>
+// Portões
+export const DoorOpenIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M3 4h8v16H3zM11 4l10 2v12l-10 2z"
+  />
 );
 
-export const WavesIcon: React.FC<{ className?: string }> = ({ className }) => ( // Piscina
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 6c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>
+// Piscina
+export const WavesIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M3 16c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2M3 12c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2"
+  />
 );
 
-export const LoaderCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${className} animate-spin`}><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+// Ícone de Imagem (se quiser usar)
+export const ImageIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M4 5h16v14H4z M8 11l3 3 2-2 5 5"
+  />
 );
 
-export const UploadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-    <polyline points="17 8 12 3 7 8"></polyline>
-    <line x1="12" y1="3" x2="12" y2="15"></line>
-  </svg>
+// Chevron Left (seta esquerda)
+export const ChevronLeftIcon = (props: any) => (
+  <Icon {...props} path="M15 18 9 12l6-6" />
 );
 
-// Icons for Toasts
-export const CheckCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+// Chevron Right (seta direita)
+export const ChevronRightIcon = (props: any) => (
+  <Icon {...props} path="M9 18l6-6-6-6" />
 );
 
-export const AlertTriangleIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+// Ícone de alerta (triângulo)
+export const AlertTriangleIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01"
+  />
 );
 
-export const InfoIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+// Ícone de check (círculo)
+export const CheckCircleIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z M9 12l2 2 4-4"
+  />
 );
+
+// Ícone de informação
+export const InfoIcon = (props: any) => (
+  <Icon
+    {...props}
+    path="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 4h.01M11 10h2v6h-2"
+  />
+);
+

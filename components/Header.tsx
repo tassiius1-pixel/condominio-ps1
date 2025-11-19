@@ -1,15 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import {
-  LogOutIcon,
-  UsersIcon,
-  BarChartIcon,
-  LayoutDashboardIcon,
-  BellIcon,
-  UploadIcon,
-  TrashIcon
-} from './Icons';
+import * as Icons from './Icons'; // 🔥 USO CORRETO DOS ÍCONES
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -107,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({
                     group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <UploadIcon className="h-6 w-6 text-white" />
+                  <Icons.UploadIcon className="h-6 w-6 text-white" />
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -149,7 +141,7 @@ const Header: React.FC<HeaderProps> = ({
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
               >
-                <LayoutDashboardIcon className="h-5 w-5 mr-2" /> Painel
+                <Icons.LayoutDashboardIcon className="h-5 w-5 mr-2" /> Painel
               </button>
 
               {[Role.ADMIN, Role.GESTAO].includes(currentUser.role) && (
@@ -162,7 +154,7 @@ const Header: React.FC<HeaderProps> = ({
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                  <BarChartIcon className="h-5 w-5 mr-2" /> Relatórios
+                  <Icons.BarChartIcon className="h-5 w-5 mr-2" /> Relatórios
                 </button>
               )}
 
@@ -176,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                  <UsersIcon className="h-5 w-5 mr-2" /> Usuários
+                  <Icons.UsersIcon className="h-5 w-5 mr-2" /> Usuários
                 </button>
               )}
             </nav>
@@ -187,7 +179,7 @@ const Header: React.FC<HeaderProps> = ({
                 onClick={() => setShowNotifications((prev) => !prev)}
                 className="p-2 rounded-full text-gray-500 hover:bg-gray-100 relative"
               >
-                <BellIcon className="h-6 w-6" />
+                <Icons.BellIcon className="h-6 w-6" />
 
                 {unreadCount > 0 && (
                   <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white 
@@ -238,7 +230,7 @@ const Header: React.FC<HeaderProps> = ({
                             onClick={() => deleteNotification(n.id)}
                             className="ml-3 text-gray-400 hover:text-red-500"
                           >
-                            <TrashIcon className="h-5 w-5" />
+                            <Icons.TrashIcon className="h-5 w-5" />
                           </button>
                         </li>
                       ))
@@ -281,7 +273,7 @@ const Header: React.FC<HeaderProps> = ({
               onClick={logout}
               className="p-2 rounded-full text-gray-500 hover:bg-gray-100"
             >
-              <LogOutIcon className="h-6 w-6" />
+              <Icons.LogOutIcon className="h-6 w-6" />
             </button>
           </div>
         </div>

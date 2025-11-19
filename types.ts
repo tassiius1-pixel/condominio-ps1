@@ -1,15 +1,18 @@
+// ROLES
 export enum Role {
   MORADOR = 'morador',
   GESTAO = 'gestao',
   ADMIN = 'admin',
 }
 
+// STATUS
 export enum Status {
   PENDENTE = 'Pendente',
   EM_ANDAMENTO = 'Em Andamento',
   CONCLUIDO = 'Concluído',
 }
 
+// PRIORIDADE
 export enum Priority {
   BAIXA = 'Baixa',
   MEDIA = 'Média',
@@ -17,6 +20,7 @@ export enum Priority {
   URGENTE = 'Urgente',
 }
 
+// SETORES
 export enum Sector {
   CHURRASCO_1 = 'Area de churrasco 1',
   CHURRASCO_2 = 'Area de churrasco 2',
@@ -31,6 +35,7 @@ export enum Sector {
   JARDINS = 'Jardins'
 }
 
+// TIPO DE MANUTENÇÃO
 export enum RequestType {
   ELETRICA = 'Elétrica',
   HIDRAULICA = 'Hidráulica',
@@ -44,6 +49,7 @@ export enum RequestType {
   PISCINA = 'Piscina',
 }
 
+// USUÁRIO
 export interface User {
   id: string;
   name: string;
@@ -52,18 +58,25 @@ export interface User {
   houseNumber: number;
   password?: string;
   role: Role;
-  email: string; // <-- ADICIONADO
+  email: string;
 }
 
+// TIPO DO COMENTÁRIO (NORMAL OU MUDANÇA DE STATUS)
+export type CommentType = "manual" | "status-change";
 
+// COMENTÁRIO / HISTÓRICO
 export interface Comment {
   id: string;
   authorId: string;
   authorName: string;
-  text: string;
+  text: string;              // comentário ou justificativa da mudança
   createdAt: string;
+  type: CommentType;         // "manual" ou "status-change"
+  fromStatus?: Status;       // usado quando muda status
+  toStatus?: Status;         // usado quando muda status
 }
 
+// PENDÊNCIA
 export interface Request {
   id: string;
   title: string;
@@ -76,21 +89,20 @@ export interface Request {
   authorId: string;
   authorName: string;
   createdAt: string;
-  comments: Comment[];
+  comments: Comment[];       // agora suporta histórico completo
 }
 
+// NOTIFICAÇÃO
 export interface Notification {
   id: string;
-  userId: string;       // pode ser "all"
-  requestId: string;    // pode ser ""
-  message: string;      // <-- CORRETO
+  userId: string;     
+  requestId: string;  
+  message: string;
   createdAt: string;
-  readBy: string[];     // quem já leu
+  readBy: string[];
 }
 
-
-
-
+// TOAST (SNACKBAR)
 export interface Toast {
   id: string;
   message: string;

@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { SECTORS, REQUEST_TYPES, STATUSES, PRIORITIES } from '../constants';
 import { uploadPhoto } from '../services/storage';
-import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon } from './Icons';
+import * as Icons from './Icons';
 import { suggestRequestDetails } from '../services/gemini';
 import ImageLightbox from './ImageLightbox';
 
@@ -23,7 +23,8 @@ interface RequestModalProps {
 
 const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const { currentUser } = useAuth();
-  const { addRequest, updateRequest, deleteRequest, addComment, addToast } = useData();
+  const { addRequest, updateRequest, deleteRequest, addComment, addToast } =
+    useData();
 
   const MAX_PHOTOS = 3;
 
@@ -31,9 +32,15 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [title, setTitle] = useState(request?.title || '');
   const [description, setDescription] = useState(request?.description || '');
   const [sector, setSector] = useState<Sector>(request?.sector || SECTORS[0]);
-  const [type, setType] = useState<RequestType>(request?.type || REQUEST_TYPES[0]);
-  const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
-  const [priority, setPriority] = useState<Priority>(request?.priority || Priority.MEDIA);
+  const [type, setType] = useState<RequestType>(
+    request?.type || REQUEST_TYPES[0]
+  );
+  const [status, setStatus] = useState<Status>(
+    request?.status || Status.PENDENTE
+  );
+  const [priority, setPriority] = useState<Priority>(
+    request?.priority || Priority.MEDIA
+  );
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
 
   // ===== COMENTÁRIOS =====
@@ -41,8 +48,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
-    // Se a pendência for atualizada pelo Firestore enquanto o modal está aberto,
-    // mantemos os comentários sincronizados.
     setComments(request?.comments || []);
   }, [request?.comments]);
 
@@ -53,12 +58,13 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // =============================
+  // ======================================================
   // IA — Sugestões automáticas
-  // =============================
+  // ======================================================
   useEffect(() => {
     if (isEditing && description) {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+      if (debounceTimeout.current)
+        clearTimeout(debounceTimeout.current);
 
       setIsSuggesting(true);
 
@@ -79,54 +85,63 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     }
 
     return () => {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+      if (debounceTimeout.current)
+        clearTimeout(debounceTimeout.current);
     };
   }, [description, isEditing, addToast]);
 
   if (!currentUser) return null;
 
-  const canManage = currentUser.role === Role.ADMIN || currentUser.role === Role.GESTAO;
+  const canManage =
+    currentUser.role === Role.ADMIN ||
+    currentUser.role === Role.GESTAO;
+
   const isAuthor = currentUser.id === request?.authorId;
 
-  // =============================
-  // Upload de Fotos (Supabase Storage)
-  // =============================
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ======================================================
+  // Upload de Fotos
+  // ======================================================
+  const handlePhotoUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!e.target.files) return;
 
     const remainingSlots = MAX_PHOTOS - photos.length;
     const files = Array.from(e.target.files).slice(0, remainingSlots);
 
     if (files.length === 0) {
-      addToast(`Você pode adicionar no máximo ${MAX_PHOTOS} fotos.`, 'info');
+      addToast(
+        `Você pode adicionar no máximo ${MAX_PHOTOS} fotos.`,
+        'info'
+      );
       return;
     }
 
     const urls: string[] = [];
-
     for (const file of files) {
-      const url = await uploadPhoto(file, "pendencias");
+      const url = await uploadPhoto(file, 'pendencias');
       urls.push(url);
     }
-
     setPhotos(prev => [...prev, ...urls]);
   };
 
   const removePhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
   };
-
   const validateForm = (): boolean => {
     const errs: Record<string, string> = {};
+
     if (!title.trim()) errs.title = 'O título é obrigatório.';
-    if (!description.trim()) errs.description = 'A descrição é obrigatória.';
+    if (!description.trim())
+      errs.description = 'A descrição é obrigatória.';
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // =============================
-  // SALVAR
-  // =============================
+  // ======================================================
+  // SALVAR (Criar ou Atualizar)
+  // ======================================================
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -165,36 +180,38 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     }
   };
 
-  // =============================
-  // ADICIONAR COMENTÁRIO
-  // =============================
+  // ======================================================
+  // ADICIONAR COMENTÁRIO MANUAL
+  // ======================================================
   const handleAddComment = () => {
     if (!newComment.trim() || !request) return;
 
     const text = newComment.trim();
 
-    // Atualiza visualmente na hora (otimista)
     const tempComment: Comment = {
       id: `temp-${Date.now()}`,
       authorId: currentUser.id,
       authorName: currentUser.name,
       text,
       createdAt: new Date().toISOString(),
+      type: 'manual',
     };
 
     setComments(prev => [...prev, tempComment]);
 
-    // Grava no Firestore via contexto (que vai criar o id definitivo)
     addComment(request.id, {
       authorId: currentUser.id,
       authorName: currentUser.name,
       text,
+      type: 'manual',
     });
 
     setNewComment('');
   };
 
-  const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleCommentKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddComment();
@@ -206,9 +223,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     setIsLightboxOpen(true);
   };
 
-  // =============================
-  // Campo de SELECT genérico
-  // =============================
+  // ======================================================
+  // Campo SELECT reutilizável
+  // ======================================================
   const renderSelect = (
     label: string,
     value: any,
@@ -220,14 +237,16 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     <div>
       <label className="block text-sm font-medium text-gray-700 flex items-center">
         {label}
-        {loading && <LoaderCircleIcon className="w-4 h-4 ml-2 text-indigo-500" />}
+        {loading && (
+          <Icons.LoaderCircleIcon className="w-4 h-4 ml-2 text-indigo-500 animate-spin" />
+        )}
       </label>
 
       <select
         value={value}
         onChange={e => onChange(e.target.value as any)}
         disabled={disabled}
-        className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300 
+        className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300
                    focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200 text-gray-900"
       >
         {list.map(opt => (
@@ -239,14 +258,15 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     </div>
   );
 
-  // =============================
-  // RENDERIZAÇÃO
-  // =============================
+  // ======================================================
+  // RENDERIZAÇÃO DO MODAL
+  // ======================================================
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-          {/* Header */}
+
+          {/* ---------------- HEADER ---------------- */}
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900">
               {request ? 'Detalhes da Pendência' : 'Nova Pendência'}
@@ -258,56 +278,63 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                   onClick={() => setIsEditing(true)}
                   className="p-2 hover:bg-gray-100 rounded-full"
                 >
-                  <EditIcon className="w-5 h-5 text-gray-600" />
+                  <Icons.EditIcon className="w-5 h-5 text-gray-600" />
                 </button>
               )}
+
               {request && (isAuthor || canManage) && (
                 <button
                   onClick={handleDelete}
                   className="p-2 hover:bg-gray-100 rounded-full"
                 >
-                  <TrashIcon className="w-5 h-5 text-red-600" />
+                  <Icons.TrashIcon className="w-5 h-5 text-red-600" />
                 </button>
               )}
+
               <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-                <XIcon className="w-6 h-6 text-gray-600" />
+                <Icons.XIcon className="w-6 h-6 text-gray-600" />
               </button>
             </div>
           </div>
 
-          {/* FORM */}
+          {/* ---------------- FORM ---------------- */}
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            {/* Título */}
+
+            {/* TÍTULO */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Título</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Título
+              </label>
               <input
                 value={title}
                 disabled={!isEditing}
                 onChange={e => setTitle(e.target.value)}
-                className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300 
-                  focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200"
+                className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300
+                           focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200"
               />
               {errors.title && (
                 <p className="mt-1 text-xs text-red-600">{errors.title}</p>
               )}
             </div>
 
-            {/* Descrição */}
+            {/* DESCRIÇÃO */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Descrição</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Descrição
+              </label>
               <textarea
                 value={description}
                 disabled={!isEditing}
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
-                className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300 
-                  focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200"
+                className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300
+                           focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200"
               />
               {errors.description && (
                 <p className="mt-1 text-xs text-red-600">{errors.description}</p>
               )}
             </div>
-
+            {/* SETOR + TIPO */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {renderSelect(
                 'Setor',
@@ -317,6 +344,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                 !isEditing,
                 isSuggesting
               )}
+
               {renderSelect(
                 'Tipo',
                 type,
@@ -327,6 +355,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               )}
             </div>
 
+            {/* STATUS + PRIORIDADE (somente gestão/admin) */}
             {canManage && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderSelect(
@@ -336,18 +365,18 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                   STATUSES,
                   !isEditing
                 )}
+
                 {renderSelect(
                   'Prioridade',
                   priority,
                   v => setPriority(v as Priority),
                   PRIORITIES,
-                  !isEditing,
-                  isSuggesting
+                  !isEditing
                 )}
               </div>
             )}
 
-            {/* FOTOS */}
+            {/* ---------------- FOTOS ---------------- */}
             <div>
               <label className="block text-sm">
                 Fotos ({photos.length}/{MAX_PHOTOS})
@@ -358,26 +387,27 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                   <div key={index} className="relative group">
                     <img
                       src={photo}
-                      className="w-full h-24 rounded-md object-cover cursor-pointer"
                       onClick={() => openLightbox(index)}
+                      className="w-full h-24 object-cover rounded-md cursor-pointer"
                     />
 
                     {isEditing && (
                       <button
                         type="button"
                         onClick={() => removePhoto(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 
-                          group-hover:opacity-100 transition"
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0
+                                   group-hover:opacity-100 transition"
                       >
-                        <XIcon className="w-4 h-4" />
+                        <Icons.XIcon className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 ))}
 
+                {/* Botão de adicionar foto */}
                 {isEditing && photos.length < MAX_PHOTOS && (
                   <label className="flex flex-col justify-center items-center border-2 border-dashed border-gray-300 rounded-md h-24 cursor-pointer bg-gray-50">
-                    <PlusIcon className="w-8 h-8 text-gray-500" />
+                    <Icons.PlusIcon className="w-8 h-8 text-gray-500" />
                     <span className="text-xs text-gray-500">Adicionar</span>
                     <input type="file" multiple onChange={handlePhotoUpload} className="hidden" />
                   </label>
@@ -385,32 +415,66 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               </div>
             </div>
 
-            {/* COMENTÁRIOS (somente quando já existe pendência) */}
+            {/* ====================================================== */}
+            {/* COMENTÁRIOS / HISTÓRICO (TIMELINE PROFISSIONAL) */}
+            {/* ====================================================== */}
             {request && (
               <div className="mt-6 border-t pt-4 space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Comentários
+                  Comentários e Histórico
                 </h3>
 
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+
                   {comments.length === 0 && (
-                    <p className="text-sm text-gray-500">
-                      Nenhum comentário ainda.
-                    </p>
+                    <p className="text-sm text-gray-500">Nenhum comentário ainda.</p>
                   )}
 
-                  {comments.map(comment => (
-                    <div
-                      key={comment.id}
-                      className="bg-gray-50 rounded-md px-3 py-2"
-                    >
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                        {comment.text}
-                      </p>
-                      <p className="mt-1 text-[11px] text-gray-500">
-                        - {comment.authorName}{' '}
-                        {comment.createdAt &&
-                          (() => {
+                  {[...comments].reverse().map((comment, index) => (
+                    <div key={comment.id} className="flex items-start gap-3">
+
+                      {/* BOLINHA DA TIMELINE */}
+                      <div className="mt-2 w-3 h-3 rounded-full bg-indigo-500 flex-shrink-0"></div>
+
+                      {/* CAIXA PRINCIPAL */}
+                      <div
+                        className={`flex-1 rounded-md px-3 py-2 border text-sm
+                          ${
+                            comment.type === 'status-change'
+                              ? 'bg-yellow-50 border-yellow-300'
+                              : 'bg-gray-50 border-gray-200'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+
+                          {/* ÍCONE DIFERENTE PARA CADA TIPO */}
+                          {comment.type === 'status-change' ? (
+                            <Icons.StatusChangeIcon className="w-4 h-4 text-yellow-600" />
+                          ) : (
+                            <Icons.CommentIcon className="w-4 h-4 text-gray-600" />
+                          )}
+
+                          <span className="font-semibold text-gray-800">
+                            {comment.authorName}
+                          </span>
+                        </div>
+
+                        {/* TEXTO */}
+                        <p className="text-gray-800 whitespace-pre-wrap">
+                          {comment.type === "status-change" ? (
+                            <>
+                              alterou o status de <strong>{comment.fromStatus}</strong> para{' '}
+                              <strong>{comment.toStatus}</strong>: {comment.text}
+                            </>
+                          ) : (
+                            comment.text
+                          )}
+                        </p>
+
+                        {/* DATA */}
+                        <p className="mt-1 text-[11px] text-gray-500">
+                          {(() => {
                             const d = new Date(comment.createdAt);
                             const data = d.toLocaleDateString('pt-BR');
                             const hora = d
@@ -419,13 +483,15 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                                 minute: '2-digit',
                               })
                               .replace(':', 'h');
-                            return `em ${data}, ${hora}`;
+                            return `${data}, ${hora}`;
                           })()}
-                      </p>
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
 
+                {/* CAMPO DE NOVO COMENTÁRIO */}
                 <div className="flex gap-2 mt-2">
                   <input
                     type="text"
@@ -433,13 +499,14 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                     value={newComment}
                     onChange={e => setNewComment(e.target.value)}
                     onKeyDown={handleCommentKeyDown}
-                    className="flex-1 border rounded-md px-3 py-2 text-sm bg-white border-gray-300 
-                      focus:ring-indigo-500 focus:border-indigo-500"
+                    className="flex-1 border rounded-md px-3 py-2 text-sm bg-white border-gray-300
+                               focus:ring-indigo-500 focus:border-indigo-500"
                   />
+
                   <button
                     type="button"
                     onClick={handleAddComment}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition"
                   >
                     Enviar
                   </button>
@@ -447,19 +514,20 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               </div>
             )}
 
-            {/* BOTÕES */}
+            {/* BOTÕES FINAIS */}
             {isEditing && (
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 border rounded-md bg-white"
+                  className="px-4 py-2 border rounded-md bg-white hover:bg-gray-100"
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                 >
                   Salvar
                 </button>
@@ -469,6 +537,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
         </div>
       </div>
 
+      {/* LIGHTBOX */}
       {isLightboxOpen && (
         <ImageLightbox
           images={photos}
