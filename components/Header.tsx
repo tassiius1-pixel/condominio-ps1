@@ -5,6 +5,8 @@ import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, Upl
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
+import NotificationsDropdown from './NotificationsDropdown';
+
 interface HeaderProps {
   currentView: string;
   setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'notices') => void;
@@ -37,28 +39,6 @@ const Header: React.FC<HeaderProps> = ({
   const unreadCount = userNotifications.filter(
     (n) => !n.readBy.includes(currentUser.id)
   ).length;
-
-  // --------------------------
-  // 🔥 FECHAR AO CLICAR FORA
-  // --------------------------
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowNotifications(false);
-      }
-    }
-
-    if (showNotifications) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showNotifications]);
 
   // Upload da logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +166,10 @@ const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
+              <NotificationsDropdown
+                open={showNotifications}
+                onClose={() => setShowNotifications(false)}
+              />
             </div>
 
             {/* Mobile Hamburger (movido para depois das notificações) */}
