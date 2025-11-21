@@ -122,7 +122,7 @@ const App: React.FC = () => {
     // com usuário logado → dashboard / usuários / relatórios
     switch (mainView) {
       case "notices":
-        return <Notices />;
+        return <Notices setView={setMainView} />;
       case "dashboard":
         return <Dashboard setView={setMainView} />;
       case "reservations":

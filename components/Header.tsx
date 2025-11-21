@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
     "https://hjrhipbzuzkxrzlffwlb.supabase.co/storage/v1/object/public/logotipos/WhatsApp%20Image%202025-11-17%20at%2011.06.58.jpeg";
 
   const navItems = [
-    { id: "notices", label: "Avisos", icon: InfoIcon },
+    { id: "notices", label: "Início", icon: InfoIcon },
     { id: "dashboard", label: "Pendências", icon: LayoutDashboardIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
@@ -161,7 +161,17 @@ const Header: React.FC<HeaderProps> = ({
               })}
             </nav>
 
-            {/* NOTIFICAÇÕES (movido para primeira posição em mobile) */}
+            {/* USER INFO */}
+            <div className="text-right ml-2 hidden sm:block">
+              <p className="text-sm font-medium text-gray-800">
+                {currentUser.name}
+              </p>
+              <p className="text-xs text-gray-500">
+                Casa: {currentUser.houseNumber} — Perfil: {currentUser.role}
+              </p>
+            </div>
+
+            {/* NOTIFICAÇÕES (movido para direita) */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(prev => !prev)}
@@ -176,16 +186,6 @@ const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-            </div>
-
-            {/* USER INFO */}
-            <div className="text-right ml-2 hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">
-                {currentUser.name}
-              </p>
-              <p className="text-xs text-gray-500">
-                Casa: {currentUser.houseNumber} — Perfil: {currentUser.role}
-              </p>
             </div>
 
             {/* Mobile Hamburger (movido para depois das notificações) */}
