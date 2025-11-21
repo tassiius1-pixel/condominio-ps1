@@ -68,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex justify-between items-center h-20">
           {/* LOGO */}
           <div className="flex items-center gap-4">
-            <div className="relative group flex-shrink-0 w-12 h-12">
+            <div className="relative group flex-shrink-0 w-16 h-16">
               <img
                 src={logoURL}
                 alt="Logo do Condomínio"
@@ -82,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({
                                  group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <UploadIcon className="h-4 w-4 text-white" />
+                  <UploadIcon className="h-6 w-6 text-white" />
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -96,14 +96,15 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* TÍTULO */}
             <div className="flex flex-col justify-center">
-              <h1 className="text-base md:text-lg font-bold text-gray-800 leading-tight whitespace-nowrap">
-                Condomínio Porto Seguro 1
+              <h1 className="text-lg md:text-xl font-bold text-gray-800 leading-tight">
+                Condomínio<br />
+                Porto Seguro 1
               </h1>
 
               {currentUser.role === Role.ADMIN && condoLogo && (
                 <button
                   onClick={() => setCondoLogo(null)}
-                  className="text-[10px] text-red-500 hover:underline text-left mt-0.5"
+                  className="text-xs text-red-500 hover:underline text-left mt-1"
                 >
                   Remover logo
                 </button>
@@ -112,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* MENU */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
 
             {/* NAV */}
             <nav className="hidden md:flex items-center space-x-1 mr-2">
@@ -142,12 +143,12 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* USER INFO */}
-            <div className="text-right ml-2 hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">
+            <div className="text-right hidden sm:block leading-tight">
+              <p className="text-sm font-medium text-gray-800 whitespace-nowrap">
                 {currentUser.name}
               </p>
-              <p className="text-xs text-gray-500">
-                Casa: {currentUser.houseNumber} — Perfil: {currentUser.role}
+              <p className="text-xs text-gray-500 whitespace-nowrap">
+                Casa: {currentUser.houseNumber} — {currentUser.role}
               </p>
             </div>
 
