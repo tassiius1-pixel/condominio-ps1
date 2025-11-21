@@ -6,7 +6,7 @@ import { TrashIcon, PlusIcon, CheckIcon, UploadIcon, XIcon } from './Icons';
 import { fileToBase64 } from '../utils/fileUtils';
 
 const VotingModule: React.FC = () => {
-    const { votings, addVoting, castVote } = useData();
+    const { votings, addVoting, castVote, addToast } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'active' | 'history' | 'create'>('active');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -55,7 +55,7 @@ const VotingModule: React.FC = () => {
     const handleCreateVoting = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title || !startDate || !endDate || options.some(o => !o.text.trim())) {
-            alert('Preencha todos os campos obrigatórios.');
+            addToast('Preencha todos os campos obrigatórios.', 'error');
             return;
         }
 
@@ -108,7 +108,7 @@ const VotingModule: React.FC = () => {
 
         const choices = selectedOptions[votingId];
         if (!choices || choices.length === 0) {
-            alert('Selecione pelo menos uma opção.');
+            addToast('Selecione pelo menos uma opção.', 'info');
             return;
         }
         await castVote(votingId, choices, currentUser);

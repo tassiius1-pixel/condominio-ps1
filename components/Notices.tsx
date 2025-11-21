@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
 import { PlusIcon, TrashIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon } from './Icons';
+import ConfirmModal from './ConfirmModal';
 
 const Notices: React.FC = () => {
     const { notices, addNotice, deleteNotice, toggleNoticeReaction } = useData();
@@ -11,6 +13,7 @@ const Notices: React.FC = () => {
     const [newTitle, setNewTitle] = useState('');
     const [newContent, setNewContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [noticeToDelete, setNoticeToDelete] = useState<string | null>(null);
 
     const canManageNotices = currentUser && [Role.ADMIN, Role.GESTAO].includes(currentUser.role);
 
@@ -36,9 +39,10 @@ const Notices: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir este aviso?')) {
-            await deleteNotice(id);
+    const confirmDelete = async () => {
+        if (noticeToDelete) {
+            await deleteNotice(noticeToDelete);
+            setNoticeToDelete(null);
         }
     };
 
@@ -79,7 +83,7 @@ const Notices: React.FC = () => {
                                         </div>
                                         {canManageNotices && (
                                             <button
-                                                onClick={() => handleDelete(notice.id)}
+                                                onClick={() => setNoticeToDelete(notice.id)}
                                                 className="text-gray-400 hover:text-red-500 transition p-1 rounded-full hover:bg-red-50"
                                                 title="Excluir aviso"
                                             >
@@ -96,8 +100,8 @@ const Notices: React.FC = () => {
                                         <button
                                             onClick={() => currentUser && toggleNoticeReaction(notice.id, currentUser.id, 'like')}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${isLiked
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                                                 }`}
                                         >
                                             <ThumbsUpIcon className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
@@ -107,8 +111,8 @@ const Notices: React.FC = () => {
                                         <button
                                             onClick={() => currentUser && toggleNoticeReaction(notice.id, currentUser.id, 'dislike')}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${isDisliked
-                                                    ? 'bg-red-100 text-red-700'
-                                                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                                ? 'bg-red-100 text-red-700'
+                                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                                                 }`}
                                         >
                                             <ThumbsDownIcon className={`w-4 h-4 ${isDisliked ? 'fill-current' : ''}`} />
@@ -187,6 +191,16 @@ const Notices: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={!!noticeToDelete}
+                onClose={() => setNoticeToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Excluir Aviso"
+                message="Tem certeza que deseja excluir este aviso? Esta ação não pode ser desfeita."
+                confirmText="Sim, Excluir"
+                cancelText="Cancelar"
+            />
         </div>
     );
 };

@@ -13,3 +13,22 @@
 .animate-slideFadeIn {
   animation: slideFadeIn 0.18s ease-out;
 }
+
+/* Animações Gerais */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}

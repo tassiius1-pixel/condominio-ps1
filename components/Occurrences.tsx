@@ -5,7 +5,7 @@ import { Role } from '../types';
 import { PlusIcon } from './Icons';
 
 const Occurrences: React.FC = () => {
-    const { occurrences, addOccurrence } = useData();
+    const { occurrences, addOccurrence, addToast } = useData();
     const { currentUser } = useAuth();
     const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -33,6 +33,7 @@ const Occurrences: React.FC = () => {
         setPhone('');
         setSubject('');
         setDescription('');
+        addToast('Ocorrência registrada com sucesso!', 'success');
     };
 
     return (

@@ -138,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(prev => !prev)}
-                className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 flex items-center justify-center transition-colors"
+                className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
               >
                 <BellIcon className="h-6 w-6" />
                 {unreadCount > 0 && (
@@ -149,69 +149,34 @@ const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* NAV */}
-              <nav className="hidden md:flex items-center space-x-1 mr-2">
-                {navItems.map(item => {
-                  if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
+            </div>
 
-                  // Specific check for Users tab (Admin only)
-                  if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+            {/* NAV */}
+            <nav className="hidden md:flex items-center space-x-1 mr-2">
+              {navItems.map(item => {
+                if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
 
-                  const Icon = item.icon;
-                  const isActive = currentView === item.id;
+                // Specific check for Users tab (Admin only)
+                if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
 
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setView(item.id as any)}
-                      className={`
+                const Icon = item.icon;
+                const isActive = currentView === item.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setView(item.id as any)}
+                    className={`
                                 flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors
                                 ${isActive ? "bg-gray-100 text-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
                             `}
-                    >
-                      <Icon className={`h-5 w-5 mr-2 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </nav>
-
-
-
-              {showNotifications && (
-                <div ref={dropdownRef} className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-40">
-                  <div className="p-3 flex justify-between items-center border-b">
-                    <h4 className="font-semibold">Notificações</h4>
-                    {unreadCount > 0 && (
-                      <button
-                        onClick={() => markAllNotificationsAsRead(currentUser.id)}
-                        className="text-sm text-indigo-600 hover:underline"
-                      >
-                        Marcar todas como lidas
-                      </button>
-                    )}
-                  </div>
-
-                  <ul className="max-h-80 overflow-y-auto">
-                    {userNotifications.length > 0 ? userNotifications.map(n => {
-                      const isRead = n.readBy?.includes(currentUser.id);
-                      return (
-                        <li key={n.id} className={`p-3 border-b ${!isRead ? 'bg-indigo-50' : ''}`}>
-                          <p className="text-sm">{n.message}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(n.createdAt).toLocaleString('pt-BR')}
-                          </p>
-                        </li>
-                      );
-                    }) : (
-                      <li className="p-4 text-center text-sm text-gray-500">
-                        Nenhuma notificação.
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
+                  >
+                    <Icon className={`h-5 w-5 mr-2 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
 
             {/* USER INFO */}
             <div className="text-right ml-2 hidden sm:block">

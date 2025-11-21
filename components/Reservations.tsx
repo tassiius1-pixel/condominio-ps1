@@ -4,11 +4,14 @@ import { useAuth } from '../hooks/useAuth';
 import { Reservation, Role } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from './Icons';
 
+import ConfirmModal from './ConfirmModal';
+
 const Reservations: React.FC = () => {
-    const { reservations, addReservation, cancelReservation } = useData();
+    const { reservations, addReservation, cancelReservation, addToast } = useData();
     const { currentUser } = useAuth();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [reservationToCancel, setReservationToCancel] = useState<Reservation | null>(null);
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -61,7 +64,7 @@ const Reservations: React.FC = () => {
             if (!input) return;
             const parsed = parseInt(input);
             if (isNaN(parsed)) {
-                alert("Número da casa inválido.");
+                addToast("Número da casa inválido.", 'error');
                 return;
             }
             houseNumber = parsed;
@@ -76,19 +79,19 @@ const Reservations: React.FC = () => {
         // If Admin wants to force, they can delete existing first.
         if (area === 'salao_festas') {
             if (existingReservations.some(r => r.area.includes('churrasco'))) {
-                alert('Não é possível reservar o Salão de Festas pois já existem reservas de churrasqueira para este dia.');
+                addToast('Não é possível reservar o Salão de Festas pois já existem reservas de churrasqueira para este dia.', 'error');
                 return;
             }
         } else {
             if (existingReservations.some(r => r.area === 'salao_festas')) {
-                alert('Não é possível reservar a Churrasqueira pois o Salão de Festas já está reservado para este dia.');
+                addToast('Não é possível reservar a Churrasqueira pois o Salão de Festas já está reservado para este dia.', 'error');
                 return;
             }
         }
 
         // Verificar disponibilidade da área específica
         if (existingReservations.some(r => r.area === area)) {
-            alert('Esta área já está reservada para este dia.');
+            addToast('Esta área já está reservada para este dia.', 'error');
             return;
         }
 
@@ -101,18 +104,23 @@ const Reservations: React.FC = () => {
         });
     };
 
-    const handleCancel = async (reservation: Reservation) => {
+    const handleCancelClick = (reservation: Reservation) => {
         if (!currentUser) return;
 
         const isOwner = reservation.userId === currentUser.id;
         const isAdmin = [Role.ADMIN, Role.GESTAO].includes(currentUser.role);
 
         if (isOwner || isAdmin) {
-            if (confirm('Tem certeza que deseja cancelar esta reserva?')) {
-                await cancelReservation(reservation.id);
-            }
+            setReservationToCancel(reservation);
         } else {
-            alert('Você não tem permissão para cancelar esta reserva.');
+            addToast('Você não tem permissão para cancelar esta reserva.', 'error');
+        }
+    };
+
+    const confirmCancel = async () => {
+        if (reservationToCancel) {
+            await cancelReservation(reservationToCancel.id);
+            setReservationToCancel(null);
         }
     };
 
@@ -273,7 +281,7 @@ const Reservations: React.FC = () => {
                                                     </div>
                                                     {(currentUser?.id === res.userId || [Role.ADMIN, Role.GESTAO].includes(currentUser?.role || Role.MORADOR)) && (
                                                         <button
-                                                            onClick={() => handleCancel(res)}
+                                                            onClick={() => handleCancelClick(res)}
                                                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition"
                                                             title="Cancelar Reserva"
                                                         >
@@ -326,6 +334,16 @@ const Reservations: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={!!reservationToCancel}
+                onClose={() => setReservationToCancel(null)}
+                onConfirm={confirmCancel}
+                title="Cancelar Reserva"
+                message="Tem certeza que deseja cancelar esta reserva? Esta ação não pode ser desfeita."
+                confirmText="Sim, Cancelar"
+                cancelText="Não, Manter"
+            />
         </div>
     );
 };
