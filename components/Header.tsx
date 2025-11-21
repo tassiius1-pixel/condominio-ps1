@@ -68,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex justify-between items-center h-20">
           {/* LOGO */}
           <div className="flex items-center gap-4">
-            <div className="relative group flex-shrink-0 w-16 h-16">
+            <div className="relative group flex-shrink-0 w-12 h-12">
               <img
                 src={logoURL}
                 alt="Logo do Condomínio"
@@ -82,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({
                                  group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <UploadIcon className="h-6 w-6 text-white" />
+                  <UploadIcon className="h-4 w-4 text-white" />
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -95,15 +95,15 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* TÍTULO */}
-            <div>
-              <h1 className="text-lg md:text-2xl font-bold text-gray-800 leading-6">
-                Condomínio<br />Porto Seguro 1
+            <div className="flex flex-col justify-center">
+              <h1 className="text-base md:text-lg font-bold text-gray-800 leading-tight whitespace-nowrap">
+                Condomínio Porto Seguro 1
               </h1>
 
               {currentUser.role === Role.ADMIN && condoLogo && (
                 <button
                   onClick={() => setCondoLogo(null)}
-                  className="text-xs text-red-500 hover:underline"
+                  className="text-[10px] text-red-500 hover:underline text-left mt-0.5"
                 >
                   Remover logo
                 </button>
