@@ -9,6 +9,7 @@ const VotingModule: React.FC = () => {
     const { votings, addVoting, castVote } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'active' | 'history' | 'create'>('active');
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Create Voting State
     const [title, setTitle] = useState('');
@@ -165,8 +166,8 @@ const VotingModule: React.FC = () => {
                         <p className="text-sm text-gray-500">{voting.description}</p>
                     </div>
                     <div className={`px-2 py-1 rounded text-xs font-bold uppercase ${status === 'active' ? 'bg-green-100 text-green-700' :
-                            status === 'future' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-gray-100 text-gray-700'
+                        status === 'future' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
                         }`}>
                         {status === 'active' ? 'Em Andamento' : status === 'future' ? 'Agendada' : 'Encerrada'}
                     </div>
@@ -188,17 +189,28 @@ const VotingModule: React.FC = () => {
                                     key={opt.id}
                                     onClick={() => handleToggleOption(voting.id, opt.id, voting.allowMultipleChoices)}
                                     className={`relative text-left p-3 rounded-lg border transition ${selectedOptions[voting.id]?.includes(opt.id)
-                                            ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-200'
-                                            : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                        ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-200'
+                                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                         }`}
                                 >
                                     {opt.imageUrl && (
-                                        <div className="mb-2 rounded-lg overflow-hidden">
+                                        <div
+                                            className="mb-2 rounded-lg overflow-hidden cursor-pointer group relative"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedImage(opt.imageUrl!);
+                                            }}
+                                        >
                                             <img
                                                 src={opt.imageUrl}
                                                 alt={opt.text}
-                                                className="w-full h-32 object-cover"
+                                                className="w-full h-32 object-cover transition-transform group-hover:scale-105"
                                             />
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+                                                <span className="text-white text-xs opacity-0 group-hover:opacity-100 bg-black bg-opacity-50 px-2 py-1 rounded">
+                                                    Clique para ampliar
+                                                </span>
+                                            </div>
                                         </div>
                                     )}
                                     <div className="flex justify-between items-start">
@@ -230,7 +242,12 @@ const VotingModule: React.FC = () => {
                                 <div key={res.id} className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         {res.imageUrl && (
-                                            <img src={res.imageUrl} alt={res.text} className="w-12 h-12 object-cover rounded" />
+                                            <img
+                                                src={res.imageUrl}
+                                                alt={res.text}
+                                                className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 transition"
+                                                onClick={() => setSelectedImage(res.imageUrl!)}
+                                            />
                                         )}
                                         <div className="flex-1">
                                             <div className="flex justify-between text-xs text-gray-600">
@@ -443,6 +460,27 @@ const VotingModule: React.FC = () => {
                             </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* Image Lightbox Modal */}
+            {selectedImage && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <button
+                        onClick={() => setSelectedImage(null)}
+                        className="absolute top-4 right-4 p-2 bg-white rounded-full hover:bg-gray-100 transition"
+                    >
+                        <XIcon className="w-6 h-6 text-gray-800" />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Ampliação"
+                        className="max-w-full max-h-full object-contain"
+                        onClick={(e) => e.stopPropagation()}
+                    />
                 </div>
             )}
         </div>

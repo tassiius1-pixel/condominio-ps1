@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon } from './Icons';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -26,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({
   } = useData();
 
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,6 +133,14 @@ const Header: React.FC<HeaderProps> = ({
           {/* MENU */}
           <div className="flex items-center space-x-2">
 
+            {/* Mobile Hamburger */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-full text-gray-500 hover:bg-gray-100"
+            >
+              {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+            </button>
+
             {/* NAV */}
             <nav className="hidden md:flex items-center space-x-1 mr-2">
               {navItems.map(item => {
@@ -229,6 +238,36 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+            {navItems.map(item => {
+              if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
+              if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setView(item.id as any);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center px-3 py-2 text-base font-medium rounded-md transition ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                >
+                  <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </header>
   );
 };
