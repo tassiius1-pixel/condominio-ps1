@@ -490,6 +490,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       createdAt: new Date().toISOString(),
     };
     await addDoc(collection(db, 'votings'), newVoting);
+
+    // Criar notificação global para todos os usuários
+    await addNotification({
+      message: `Nova votação disponível: ${voting.title}`,
+      userId: "all",
+      requestId: "",
+    });
+
     addToast('Votação criada com sucesso!', 'success');
   };
 

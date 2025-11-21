@@ -82,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* LOGO */}
@@ -115,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* TÍTULO */}
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 leading-6">
+              <h1 className="text-lg md:text-2xl font-bold text-gray-800 leading-6">
                 Condomínio<br />Porto Seguro 1
               </h1>
 
@@ -133,55 +133,49 @@ const Header: React.FC<HeaderProps> = ({
           {/* MENU */}
           <div className="flex items-center space-x-2">
 
-            {/* Mobile Hamburger */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-full text-gray-500 hover:bg-gray-100"
-            >
-              {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
-            </button>
-
-            {/* NAV */}
-            <nav className="hidden md:flex items-center space-x-1 mr-2">
-              {navItems.map(item => {
-                if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
-
-                // Specific check for Users tab (Admin only)
-                if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
-
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setView(item.id as any)}
-                    className={`
-                                flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors
-                                ${isActive ? "bg-gray-100 text-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
-                            `}
-                  >
-                    <Icon className={`h-5 w-5 mr-2 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* NOTIFICAÇÕES */}
+            {/* NOTIFICAÇÕES (movido para primeira posição em mobile) */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(prev => !prev)}
-                className="p-2 rounded-full text-gray-500 hover:bg-gray-100"
+                className="p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <BellIcon className="h-6 w-6" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white 
-                                         rounded-full text-xs flex items-center justify-center">
+                  <span className="absolute top-1 right-1 h-5 w-5 bg-red-500 text-white 
+                                         rounded-full text-xs flex items-center justify-center font-bold">
                     {unreadCount}
                   </span>
                 )}
               </button>
+
+              {/* NAV */}
+              <nav className="hidden md:flex items-center space-x-1 mr-2">
+                {navItems.map(item => {
+                  if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
+
+                  // Specific check for Users tab (Admin only)
+                  if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+
+                  const Icon = item.icon;
+                  const isActive = currentView === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setView(item.id as any)}
+                      className={`
+                                flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors
+                                ${isActive ? "bg-gray-100 text-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                            `}
+                    >
+                      <Icon className={`h-5 w-5 mr-2 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </nav>
+
+
 
               {showNotifications && (
                 <div ref={dropdownRef} className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-40">
@@ -228,10 +222,18 @@ const Header: React.FC<HeaderProps> = ({
               </p>
             </div>
 
+            {/* Mobile Hamburger (movido para depois das notificações) */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+            </button>
+
             {/* LOGOUT */}
             <button
               onClick={logout}
-              className="p-2 rounded-full text-gray-500 hover:bg-gray-100"
+              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <LogOutIcon className="h-6 w-6" />
             </button>
@@ -239,10 +241,34 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Backdrop */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div className={`
+        fixed top-0 left-0 bottom-0 w-64 bg-white shadow-2xl z-50 md:hidden
+        transform transition-transform duration-300 ease-in-out
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="h-full flex flex-col">
+          {/* Menu Header */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-800">Menu</h2>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 rounded-full text-gray-500 hover:bg-gray-100"
+            >
+              <XIcon className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Menu Items */}
+          <nav className="flex-1 overflow-y-auto py-4">
             {navItems.map(item => {
               if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
               if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
@@ -257,17 +283,29 @@ const Header: React.FC<HeaderProps> = ({
                     setView(item.id as any);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center px-3 py-2 text-base font-medium rounded-md transition ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                  className={`w-full flex items-center px-6 py-4 text-base font-medium transition-colors ${isActive
+                    ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
-                  <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
                   {item.label}
                 </button>
               );
             })}
+          </nav>
+
+          {/* Menu Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500 text-center">
+              {currentUser.role === Role.ADMIN && 'Administrador'}
+              {currentUser.role === Role.GESTAO && 'Gestão'}
+              {currentUser.role === Role.MORADOR && 'Morador'}
+              {' • Casa '}{currentUser.houseNumber}
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 };
