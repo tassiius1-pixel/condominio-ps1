@@ -97,7 +97,6 @@ const Header: React.FC<HeaderProps> = ({
             {/* TÍTULO */}
             <div className="flex flex-col justify-center">
               <h1 className="text-lg md:text-xl font-bold text-gray-800 leading-tight">
-                Condomínio<br />
                 Porto Seguro 1
               </h1>
 
