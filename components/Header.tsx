@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon } from './Icons';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
 interface HeaderProps {
   currentView: string;
-  setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting') => void;
+  setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'notices') => void;
   condoLogo: string | null;
   setCondoLogo: (logo: string | null) => void;
 }
@@ -73,6 +73,7 @@ const Header: React.FC<HeaderProps> = ({
     "https://hjrhipbzuzkxrzlffwlb.supabase.co/storage/v1/object/public/logotipos/WhatsApp%20Image%202025-11-17%20at%2011.06.58.jpeg";
 
   const navItems = [
+    { id: "notices", label: "Avisos", icon: InfoIcon },
     { id: "dashboard", label: "Pendências", icon: LayoutDashboardIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
@@ -137,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(prev => !prev)}
-                className="p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 flex items-center justify-center transition-colors"
               >
                 <BellIcon className="h-6 w-6" />
                 {unreadCount > 0 && (

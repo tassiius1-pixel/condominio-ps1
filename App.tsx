@@ -12,6 +12,7 @@ import Reports from "./components/Reports";
 import Reservations from "./components/Reservations";
 import Occurrences from "./components/Occurrences";
 import VotingModule from "./components/VotingModule";
+import Notices from "./components/Notices";
 import { useData } from "./hooks/useData";
 import {
   XIcon,
@@ -85,14 +86,14 @@ const Toast: React.FC<{ toast: ToastType; onDismiss: (id: string) => void }> = (
 
 
 // mesma definição do projeto padrão
-type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting";
+type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "notices";
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
   const { toasts, removeToast } = useData();
 
   const [authView, setAuthView] = useState<"login" | "register">("login");
-  const [mainView, setMainView] = useState<View>("dashboard");
+  const [mainView, setMainView] = useState<View>("notices");
 
   const [condoLogo, setCondoLogo] = useState<string | null>(() => {
     return localStorage.getItem("condo-logo");
@@ -123,6 +124,8 @@ const App: React.FC = () => {
 
     // com usuário logado → dashboard / usuários / relatórios
     switch (mainView) {
+      case "notices":
+        return <Notices />;
       case "dashboard":
         return <Dashboard />;
       case "reservations":

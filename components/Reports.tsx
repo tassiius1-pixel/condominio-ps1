@@ -270,17 +270,21 @@ const Reports: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-2xl font-bold text-gray-800">Relatórios e Análises</h2>
 
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="startDate" className="text-sm font-medium">De:</label>
-                        <input type="date" id="startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className="border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white" />
+                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-end gap-4 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                        <div className="flex flex-col gap-1 w-full sm:w-auto">
+                            <label htmlFor="startDate" className="text-sm font-medium text-gray-700">De:</label>
+                            <input type="date" id="startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className="border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white w-full sm:w-auto" />
+                        </div>
+                        <div className="flex flex-col gap-1 w-full sm:w-auto">
+                            <label htmlFor="endDate" className="text-sm font-medium text-gray-700">Até:</label>
+                            <input type="date" id="endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className="border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white w-full sm:w-auto" />
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="endDate" className="text-sm font-medium">Até:</label>
-                        <input type="date" id="endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className="border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white" />
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <button onClick={handleExportPDF} className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors">PDF</button>
+                        <button onClick={handleExportExcel} className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-colors">Excel</button>
                     </div>
-                    <button onClick={handleExportPDF} className="px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm">Exportar PDF</button>
-                    <button onClick={handleExportExcel} className="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm">Exportar Excel</button>
                 </div>
             </div>
 
@@ -399,7 +403,7 @@ const Reports: React.FC = () => {
 
             {/* VOTAÇ Õ ES TAB */}
             {activeTab === 'votacoes' && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-6 animate-fade-in w-full overflow-hidden">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <StatCard title="Total de Votações" value={votings.length} color="border-purple-500" />
                         <StatCard title="Ativas" value={votings.filter(v => {

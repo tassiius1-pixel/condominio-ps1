@@ -147,3 +147,14 @@ export interface Voting {
   createdBy: string;
   createdAt: string;
 }
+
+export interface Notice {
+  id: string;
+  title: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  createdAt: string;
+  likes: string[];    // IDs of users who liked
+  dislikes: string[]; // IDs of users who disliked
+}

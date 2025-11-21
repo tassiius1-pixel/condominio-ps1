@@ -13,7 +13,8 @@ import {
   Reservation,
   Occurrence,
   Voting,
-  Vote
+  Vote,
+  Notice
 } from "../types";
 
 import { isValidCPF } from "../utils/cpfValidator";
@@ -38,6 +39,7 @@ interface DataContextType {
   reservations: Reservation[];
   occurrences: Occurrence[];
   votings: Voting[];
+  notices: Notice[];
   toasts: Toast[];
   loading: boolean;
 
@@ -75,6 +77,10 @@ interface DataContextType {
 
   addVoting: (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => Promise<void>;
   castVote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
+
+  addNotice: (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => Promise<void>;
+  deleteNotice: (noticeId: string) => Promise<void>;
+  toggleNoticeReaction: (noticeId: string, userId: string, type: 'like' | 'dislike') => Promise<void>;
 }
 
 
@@ -90,6 +96,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [votings, setVotings] = useState<Voting[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [adminSeeded, setAdminSeeded] = useState(false);
 
@@ -159,6 +166,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setVotings(loaded);
     });
 
+    const unsubNotices = onSnapshot(collection(db, "notices"), (snapshot) => {
+      const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Notice))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setNotices(loaded);
+    });
+
     return () => {
       unsubUsers();
       unsubRequests();
@@ -166,6 +179,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       unsubReservations();
       unsubOccurrences();
       unsubVotings();
+      unsubNotices();
     };
   }, [adminSeeded]);
 
@@ -535,6 +549,64 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast('Voto registrado com sucesso!', 'success');
   };
 
+  // --- NOTICES ---
+  const addNotice = async (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => {
+    const newNotice = {
+      ...notice,
+      likes: [],
+      dislikes: [],
+      createdAt: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'notices'), newNotice);
+
+    // Notify all users
+    await addNotification({
+      message: `Novo aviso publicado: ${notice.title}`,
+      userId: "all",
+      requestId: "",
+    });
+
+    addToast('Aviso publicado com sucesso!', 'success');
+  };
+
+  const deleteNotice = async (noticeId: string) => {
+    await deleteDoc(doc(db, 'notices', noticeId));
+    addToast('Aviso removido.', 'info');
+  };
+
+  const toggleNoticeReaction = async (noticeId: string, userId: string, type: 'like' | 'dislike') => {
+    const noticeRef = doc(db, 'notices', noticeId);
+    const notice = notices.find(n => n.id === noticeId);
+    if (!notice) return;
+
+    const isLiked = notice.likes.includes(userId);
+    const isDisliked = notice.dislikes.includes(userId);
+
+    let newLikes = [...notice.likes];
+    let newDislikes = [...notice.dislikes];
+
+    if (type === 'like') {
+      if (isLiked) {
+        newLikes = newLikes.filter(id => id !== userId); // Remove like
+      } else {
+        newLikes.push(userId); // Add like
+        newDislikes = newDislikes.filter(id => id !== userId); // Remove dislike if exists
+      }
+    } else {
+      if (isDisliked) {
+        newDislikes = newDislikes.filter(id => id !== userId); // Remove dislike
+      } else {
+        newDislikes.push(userId); // Add dislike
+        newLikes = newLikes.filter(id => id !== userId); // Remove like if exists
+      }
+    }
+
+    await updateDoc(noticeRef, {
+      likes: newLikes,
+      dislikes: newDislikes
+    });
+  };
+
   // PROVIDER
   return (
     <DataContext.Provider
@@ -565,6 +637,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addOccurrence,
         addVoting,
         castVote,
+        notices,
+        addNotice,
+        deleteNotice,
+        toggleNoticeReaction,
       }}
     >
       {children}
