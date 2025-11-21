@@ -134,23 +134,6 @@ const Header: React.FC<HeaderProps> = ({
           {/* MENU */}
           <div className="flex items-center space-x-2">
 
-            {/* NOTIFICAÇÕES (movido para primeira posição em mobile) */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(prev => !prev)}
-                className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
-              >
-                <BellIcon className="h-6 w-6" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 h-5 w-5 bg-red-500 text-white 
-                                         rounded-full text-xs flex items-center justify-center font-bold">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-            </div>
-
             {/* NAV */}
             <nav className="hidden md:flex items-center space-x-1 mr-2">
               {navItems.map(item => {
@@ -177,6 +160,23 @@ const Header: React.FC<HeaderProps> = ({
                 );
               })}
             </nav>
+
+            {/* NOTIFICAÇÕES (movido para primeira posição em mobile) */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(prev => !prev)}
+                className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
+              >
+                <BellIcon className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-5 w-5 bg-red-500 text-white 
+                                         rounded-full text-xs flex items-center justify-center font-bold">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+            </div>
 
             {/* USER INFO */}
             <div className="text-right ml-2 hidden sm:block">
