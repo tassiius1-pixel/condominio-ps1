@@ -8,11 +8,12 @@ import {
   Role,
   Status,
   Comment,
-  RequestType,
-  Sector,
-  Priority,
   Notification,
   Toast,
+  Reservation,
+  Occurrence,
+  Voting,
+  Vote
 } from "../types";
 
 import { isValidCPF } from "../utils/cpfValidator";
@@ -24,6 +25,8 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
+  getDoc,
+  arrayUnion
 } from "firebase/firestore";
 
 import { db } from "../services/firebase";
@@ -32,6 +35,9 @@ interface DataContextType {
   users: User[];
   requests: Request[];
   notifications: Notification[];
+  reservations: Reservation[];
+  occurrences: Occurrence[];
+  votings: Voting[];
   toasts: Toast[];
   loading: boolean;
 
@@ -51,7 +57,7 @@ interface DataContextType {
 
   updateRequest: (updatedRequest: Request) => void;
   deleteRequest: (requestId: string) => void;
-  updateRequestStatus: (requestId: string, newStatus: Status) => void;
+  updateRequestStatus: (requestId: string, newStatus: Status, justification?: string, userId?: string) => void;
 
   addComment: (
     requestId: string,
@@ -61,6 +67,13 @@ interface DataContextType {
   markAllNotificationsAsRead: (userId: string) => void;
 
   addToast: (message: string, type: "success" | "error" | "info") => void;
+
+  addReservation: (data: Omit<Reservation, 'id' | 'createdAt'>) => Promise<void>;
+  cancelReservation: (reservationId: string) => Promise<void>;
+  addOccurrence: (data: Omit<Occurrence, 'id' | 'createdAt' | 'status'>) => Promise<void>;
+
+  addVoting: (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => Promise<void>;
+  castVote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(
@@ -74,6 +87,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
+  const [votings, setVotings] = useState<Voting[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [adminSeeded, setAdminSeeded] = useState(false);
 
@@ -126,10 +142,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       }
     );
 
+    const unsubReservations = onSnapshot(collection(db, "reservations"), (snapshot) => {
+      const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Reservation));
+      setReservations(loaded);
+    });
+
+    const unsubOccurrences = onSnapshot(collection(db, "occurrences"), (snapshot) => {
+      const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Occurrence))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setOccurrences(loaded);
+    });
+
+    const unsubVotings = onSnapshot(collection(db, "votings"), (snapshot) => {
+      const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Voting))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setVotings(loaded);
+    });
+
     return () => {
       unsubUsers();
       unsubRequests();
       unsubNotifications();
+      unsubReservations();
+      unsubOccurrences();
+      unsubVotings();
     };
   }, [adminSeeded]);
 
@@ -247,47 +283,47 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       .catch(() => addToast("Erro ao atualizar perfil.", "error"));
   };
 
-// DELETE USER — COMPLETO (FIRESTORE + AUTH)
-const deleteUser = async (userId: string) => {
-  try {
-    const user = users.find((u) => u.id === userId);
-    if (!user) {
-      addToast("Usuário não encontrado.", "error");
-      return;
-    }
-
-    // 1. Remove do Firestore
-    await deleteDoc(doc(db, "users", userId));
-
-    // 2. Chama função do Supabase (AGORA COM A URL CERTA)
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/delete-firebase-user`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          username: user.username,
-        }),
+  // DELETE USER — COMPLETO (FIRESTORE + AUTH)
+  const deleteUser = async (userId: string) => {
+    try {
+      const user = users.find((u) => u.id === userId);
+      if (!user) {
+        addToast("Usuário não encontrado.", "error");
+        return;
       }
-    );
 
-    const data = await response.json();
-    console.log("Supabase:", data);
+      // 1. Remove do Firestore
+      await deleteDoc(doc(db, "users", userId));
 
-    if (!response.ok) {
-      addToast("Erro ao excluir usuário no Auth.", "error");
-      return;
+      // 2. Chama função do Supabase (AGORA COM A URL CERTA)
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/delete-firebase-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            username: user.username,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Supabase:", data);
+
+      if (!response.ok) {
+        addToast("Erro ao excluir usuário no Auth.", "error");
+        return;
+      }
+
+      addToast("Usuário excluído completamente!", "success");
+    } catch (error) {
+      console.error("❌ Erro ao excluir usuário:", error);
+      addToast("Erro ao excluir usuário.", "error");
     }
-
-    addToast("Usuário excluído completamente!", "success");
-  } catch (error) {
-    console.error("❌ Erro ao excluir usuário:", error);
-    addToast("Erro ao excluir usuário.", "error");
-  }
-};
+  };
 
 
   // REQUESTS
@@ -327,10 +363,55 @@ const deleteUser = async (userId: string) => {
     );
   };
 
-  const updateRequestStatus = (requestId: string, newStatus: Status) => {
-    updateDoc(doc(db, "requests", requestId), { status: newStatus }).then(() =>
+  const updateRequestStatus = (requestId: string, newStatus: Status, justification?: string, userId?: string) => {
+    const updateData: any = { status: newStatus };
+
+    // Se houver justificativa, adiciona como comentário especial
+    if (justification && userId) {
+      const request = requests.find(r => r.id === requestId);
+      const author = users.find(u => u.id === userId);
+
+      if (request && author) {
+        const newComment: Comment = {
+          id: `comment-${Date.now()}`,
+          authorId: author.id,
+          authorName: author.name,
+          text: justification,
+          createdAt: new Date().toISOString(),
+          type: 'status_change',
+          newStatus: newStatus
+        };
+        updateData.comments = [...request.comments, newComment];
+      }
+    }
+
+    updateDoc(doc(db, "requests", requestId), updateData).then(() =>
       addToast("Status atualizado.", "info")
     );
+  };
+
+  // RESERVATIONS
+  const addReservation = async (reservation: Omit<Reservation, "id" | "createdAt">) => {
+    await addDoc(collection(db, "reservations"), {
+      ...reservation,
+      createdAt: new Date().toISOString(),
+    });
+    addToast("Reserva realizada com sucesso!", "success");
+  };
+
+  const cancelReservation = async (reservationId: string) => {
+    await deleteDoc(doc(db, "reservations", reservationId));
+    addToast("Reserva cancelada.", "info");
+  };
+
+  // OCCURRENCES
+  const addOccurrence = async (data: Omit<Occurrence, 'id' | 'createdAt' | 'status'>) => {
+    await addDoc(collection(db, "occurrences"), {
+      ...data,
+      createdAt: new Date().toISOString(),
+      status: 'Aberto',
+    });
+    addToast("Ocorrência registrada.", "success");
   };
 
   // COMMENTS
@@ -363,6 +444,51 @@ const deleteUser = async (userId: string) => {
     );
   };
 
+  // --- VOTING ---
+  const addVoting = async (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => {
+    const newVoting = {
+      ...voting,
+      votes: [],
+      createdAt: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'votings'), newVoting);
+    addToast('Votação criada com sucesso!', 'success');
+  };
+
+  const castVote = async (votingId: string, optionIds: string[], currentUser: User) => {
+    if (!currentUser) return;
+
+    const votingRef = doc(db, 'votings', votingId);
+    const votingDoc = await getDoc(votingRef);
+
+    if (!votingDoc.exists()) {
+      addToast('Votação não encontrada.', 'error');
+      return;
+    }
+
+    const votingData = votingDoc.data() as Voting;
+
+    // Check if house already voted
+    const hasVoted = votingData.votes.some(v => v.houseNumber === currentUser.houseNumber);
+    if (hasVoted) {
+      addToast('Sua unidade já registrou um voto nesta votação.', 'error');
+      return;
+    }
+
+    const newVote: Vote = {
+      userId: currentUser.id,
+      userName: currentUser.name,
+      houseNumber: currentUser.houseNumber,
+      optionIds,
+      timestamp: new Date().toISOString(),
+    };
+
+    await updateDoc(votingRef, {
+      votes: arrayUnion(newVote)
+    });
+    addToast('Voto registrado com sucesso!', 'success');
+  };
+
   // PROVIDER
   return (
     <DataContext.Provider
@@ -384,6 +510,14 @@ const deleteUser = async (userId: string) => {
         addComment,
         markAllNotificationsAsRead,
         addToast,
+        reservations,
+        occurrences,
+        votings,
+        addReservation,
+        cancelReservation,
+        addOccurrence,
+        addVoting,
+        castVote,
       }}
     >
       {children}

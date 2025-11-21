@@ -9,6 +9,9 @@ import UserManagement from "./components/UserManagement";
 import Header from "./components/Header";
 import { Role, Toast as ToastType } from "./types";
 import Reports from "./components/Reports";
+import Reservations from "./components/Reservations";
+import Occurrences from "./components/Occurrences";
+import VotingModule from "./components/VotingModule";
 import { useData } from "./hooks/useData";
 import {
   XIcon,
@@ -82,7 +85,7 @@ const Toast: React.FC<{ toast: ToastType; onDismiss: (id: string) => void }> = (
 
 
 // mesma definição do projeto padrão
-type View = "dashboard" | "users" | "reports";
+type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting";
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
@@ -122,6 +125,12 @@ const App: React.FC = () => {
     switch (mainView) {
       case "dashboard":
         return <Dashboard />;
+      case "reservations":
+        return <Reservations />;
+      case "occurrences":
+        return <Occurrences />;
+      case "voting":
+        return <VotingModule />;
       case "users":
         return currentUser.role === Role.ADMIN ? (
           <UserManagement />
@@ -152,9 +161,8 @@ const App: React.FC = () => {
         )}
 
         <main
-          className={`max-w-7xl mx-auto ${
-            currentUser ? "p-4 sm:p-6 lg:p-8" : ""
-          }`}
+          className={`max-w-7xl mx-auto ${currentUser ? "p-4 sm:p-6 lg:p-8" : ""
+            }`}
         >
           {renderContent()}
         </main>

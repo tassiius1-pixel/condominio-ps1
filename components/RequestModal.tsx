@@ -35,6 +35,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
   const [priority, setPriority] = useState<Priority>(request?.priority || Priority.MEDIA);
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
+  const [justification, setJustification] = useState('');
 
   // ===== COMENTÁRIOS =====
   const [comments, setComments] = useState<Comment[]>(request?.comments || []);
@@ -120,6 +121,12 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     const errs: Record<string, string> = {};
     if (!title.trim()) errs.title = 'O título é obrigatório.';
     if (!description.trim()) errs.description = 'A descrição é obrigatória.';
+
+    // Validação de justificativa se status mudou
+    if (request && status !== request.status && !justification.trim()) {
+      errs.justification = 'A justificativa é obrigatória para alteração de status.';
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -132,6 +139,17 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     if (!validateForm()) return;
 
     if (request) {
+      // Se status mudou, adiciona comentário de sistema
+      if (status !== request.status) {
+        addComment(request.id, {
+          authorId: currentUser.id,
+          authorName: currentUser.name,
+          text: justification,
+          type: 'status_change',
+          newStatus: status
+        });
+      }
+
       const updated: Request = {
         ...request,
         title,
@@ -347,6 +365,26 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               </div>
             )}
 
+            {/* Justificativa de Status (se status mudou) */}
+            {canManage && request && status !== request.status && (
+              <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">
+                <label className="block text-sm font-medium text-yellow-800">
+                  Justificativa da alteração de status (Obrigatório)
+                </label>
+                <textarea
+                  value={justification}
+                  onChange={e => setJustification(e.target.value)}
+                  rows={2}
+                  className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-yellow-300 
+                    focus:ring-yellow-500 focus:border-yellow-500"
+                  placeholder="Explique o motivo da alteração..."
+                />
+                {errors.justification && (
+                  <p className="mt-1 text-xs text-red-600">{errors.justification}</p>
+                )}
+              </div>
+            )}
+
             {/* FOTOS */}
             <div>
               <label className="block text-sm">
@@ -399,31 +437,57 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                     </p>
                   )}
 
-                  {comments.map(comment => (
-                    <div
-                      key={comment.id}
-                      className="bg-gray-50 rounded-md px-3 py-2"
-                    >
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                        {comment.text}
-                      </p>
-                      <p className="mt-1 text-[11px] text-gray-500">
-                        - {comment.authorName}{' '}
-                        {comment.createdAt &&
-                          (() => {
-                            const d = new Date(comment.createdAt);
-                            const data = d.toLocaleDateString('pt-BR');
-                            const hora = d
-                              .toLocaleTimeString('pt-BR', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })
-                              .replace(':', 'h');
-                            return `em ${data}, ${hora}`;
-                          })()}
-                      </p>
-                    </div>
-                  ))}
+                  {[...comments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(comment => {
+                    const isStatusChange = comment.type === 'status_change';
+                    const isConcluido = comment.newStatus === Status.CONCLUIDO;
+
+                    return (
+                      <div
+                        key={comment.id}
+                        className={`rounded-md px-3 py-2 ${isStatusChange
+                          ? isConcluido
+                            ? 'bg-green-50 border border-green-200'
+                            : 'bg-yellow-50 border border-yellow-200'
+                          : 'bg-gray-50'
+                          }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <p className={`text-sm whitespace-pre-wrap ${isStatusChange
+                            ? isConcluido ? 'text-green-900 font-medium' : 'text-yellow-900 font-medium'
+                            : 'text-gray-800'
+                            }`}>
+                            {comment.text}
+                          </p>
+                          {isStatusChange && comment.newStatus && (
+                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 ${isConcluido
+                                ? 'bg-green-200 text-green-800'
+                                : 'bg-yellow-200 text-yellow-800'
+                              }`}>
+                              {comment.newStatus}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`mt-1 text-[11px] ${isStatusChange
+                          ? isConcluido ? 'text-green-600' : 'text-yellow-600'
+                          : 'text-gray-500'
+                          }`}>
+                          - {comment.authorName}{' '}
+                          {comment.createdAt &&
+                            (() => {
+                              const d = new Date(comment.createdAt);
+                              const data = d.toLocaleDateString('pt-BR');
+                              const hora = d
+                                .toLocaleTimeString('pt-BR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                                .replace(':', 'h');
+                              return `em ${data}, ${hora}`;
+                            })()}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="flex gap-2 mt-2">

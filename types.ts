@@ -52,9 +52,8 @@ export interface User {
   houseNumber: number;
   password?: string;
   role: Role;
-  email: string; // <-- ADICIONADO
+  email: string;
 }
-
 
 export interface Comment {
   id: string;
@@ -62,6 +61,8 @@ export interface Comment {
   authorName: string;
   text: string;
   createdAt: string;
+  type?: 'regular' | 'status_change';
+  newStatus?: Status;
 }
 
 export interface Request {
@@ -92,4 +93,54 @@ export interface Toast {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
+}
+
+export interface Reservation {
+  id: string;
+  userId: string;
+  userName: string;
+  date: string; // YYYY-MM-DD
+  area: 'churrasco1' | 'churrasco2' | 'salao_festas';
+  houseNumber: number;
+  createdAt: string;
+}
+
+export interface Occurrence {
+  id: string;
+  authorId: string;
+  authorName: string;
+  houseNumber: number;
+  phone: string;
+  subject: string;
+  description: string;
+  createdAt: string;
+  photos?: string[];
+  status: 'Aberto' | 'Resolvido';
+}
+
+export interface VotingOption {
+  id: string;
+  text: string;
+  imageUrl?: string; // Optional image for visual voting
+}
+
+export interface Vote {
+  userId: string;
+  userName: string;
+  houseNumber: number;
+  optionIds: string[];
+  timestamp: string;
+}
+
+export interface Voting {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  allowMultipleChoices: boolean;
+  options: VotingOption[];
+  votes: Vote[];
+  createdBy: string;
+  createdAt: string;
 }
