@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
 import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon } from './Icons';
@@ -12,17 +12,54 @@ interface HeaderProps {
   setCondoLogo: (logo: string | null) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCondoLogo }) => {
+const Header: React.FC<HeaderProps> = ({
+  currentView,
+  setView,
+  condoLogo,
+  setCondoLogo
+}) => {
   const { currentUser, logout } = useAuth();
-  const { notifications, markAllNotificationsAsRead } = useData();
+  const {
+    notifications,
+    markAllNotificationsAsRead,
+    deleteNotification
+  } = useData();
+
   const [showNotifications, setShowNotifications] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!currentUser) return null;
 
-  const userNotifications = notifications.filter(n => n.userId === currentUser.id);
-  const unreadCount = userNotifications.filter(n => !n.read).length;
+  const userNotifications = notifications;
 
+  const unreadCount = userNotifications.filter(
+    (n) => !n.readBy.includes(currentUser.id)
+  ).length;
+
+  // --------------------------
+  // 🔥 FECHAR AO CLICAR FORA
+  // --------------------------
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
+    }
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifications]);
+
+  // Upload da logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const base64 = await fileToBase64(e.target.files[0]);
@@ -47,11 +84,8 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-
-          {/* LOGO + NOME */}
+          {/* LOGO */}
           <div className="flex items-center gap-4">
-
-            {/* LOGO */}
             <div className="relative group flex-shrink-0 w-16 h-16">
               <img
                 src={logoURL}
@@ -95,7 +129,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
             </div>
           </div>
 
-          {/* MENU À DIREITA */}
+          {/* MENU */}
           <div className="flex items-center space-x-2">
 
             {/* NAV */}
@@ -141,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-40">
+                <div ref={dropdownRef} className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-40">
                   <div className="p-3 flex justify-between items-center border-b">
                     <h4 className="font-semibold">Notificações</h4>
                     {unreadCount > 0 && (
@@ -155,14 +189,17 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
                   </div>
 
                   <ul className="max-h-80 overflow-y-auto">
-                    {userNotifications.length > 0 ? userNotifications.map(n => (
-                      <li key={n.id} className={`p-3 border-b ${!n.read ? 'bg-indigo-50' : ''}`}>
-                        <p className="text-sm">{n.text}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(n.createdAt).toLocaleString('pt-BR')}
-                        </p>
-                      </li>
-                    )) : (
+                    {userNotifications.length > 0 ? userNotifications.map(n => {
+                      const isRead = n.readBy?.includes(currentUser.id);
+                      return (
+                        <li key={n.id} className={`p-3 border-b ${!isRead ? 'bg-indigo-50' : ''}`}>
+                          <p className="text-sm">{n.message}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(n.createdAt).toLocaleString('pt-BR')}
+                          </p>
+                        </li>
+                      );
+                    }) : (
                       <li className="p-4 text-center text-sm text-gray-500">
                         Nenhuma notificação.
                       </li>
@@ -172,11 +209,13 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
               )}
             </div>
 
-            {/* USUÁRIO */}
+            {/* USER INFO */}
             <div className="text-right ml-2 hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">{currentUser.name}</p>
+              <p className="text-sm font-medium text-gray-800">
+                {currentUser.name}
+              </p>
               <p className="text-xs text-gray-500">
-                Casa: {currentUser.houseNumber} | Perfil: {currentUser.role}
+                Casa: {currentUser.houseNumber} — Perfil: {currentUser.role}
               </p>
             </div>
 
@@ -187,7 +226,6 @@ const Header: React.FC<HeaderProps> = ({ currentView, setView, condoLogo, setCon
             >
               <LogOutIcon className="h-6 w-6" />
             </button>
-
           </div>
         </div>
       </div>

@@ -65,6 +65,7 @@ interface DataContextType {
   ) => void;
 
   markAllNotificationsAsRead: (userId: string) => void;
+  deleteNotification: (notificationId: string) => void;
 
   addToast: (message: string, type: "success" | "error" | "info") => void;
 
@@ -76,13 +77,12 @@ interface DataContextType {
   castVote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
 }
 
+
 export const DataContext = createContext<DataContextType | undefined>(
   undefined
 );
 
-export const DataProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
@@ -210,16 +210,46 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const removeToast = (id: string) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  // NOTIFICAÇÕES
+  // NOTIFICAÇÕES (MODELO CORRETO)
   const addNotification = async (
-    notificationData: Omit<Notification, "id" | "createdAt" | "read">
+    notificationData: Omit<Notification, "id" | "createdAt" | "readBy">
   ) => {
     await addDoc(collection(db, "notifications"), {
       ...notificationData,
       createdAt: new Date().toISOString(),
-      read: false,
+      readBy: [], // cada usuário marcará a sua
     });
   };
+
+  // DELETAR NOTIFICAÇÃO (LIMPAR INDIVIDUAL)
+  const deleteNotification = async (notificationId: string, showToast = true) => {
+    try {
+      await deleteDoc(doc(db, "notifications", notificationId));
+
+
+    } catch (error) {
+      console.error("Erro ao excluir notificação:", error);
+      addToast("Erro ao remover notificação.", "error");
+    }
+  };
+
+  const deleteAllNotifications = async () => {
+    try {
+      const batchIds = notifications.map((n) => n.id);
+
+      // exclui sem mostrar toast individual
+      for (const id of batchIds) {
+        await deleteNotification(id, false);
+      }
+
+      // mostra apenas UM toast
+      addToast("Todas as notificações foram removidas.", "info");
+    } catch (error) {
+      console.error("Erro ao excluir todas:", error);
+      addToast("Erro ao remover notificações.", "error");
+    }
+  };
+
 
   // FIND USER
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
@@ -325,9 +355,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-
   // REQUESTS
-  const addRequest = (
+  const addRequest = async (
     requestData: Omit<
       Request,
       "id" | "authorName" | "createdAt" | "comments" | "status"
@@ -344,9 +373,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       status: Status.PENDENTE,
     };
 
-    addDoc(collection(db, "requests"), newRequest).then(() => {
-      addToast("Pendência registrada.", "success");
+    await addDoc(collection(db, "requests"), newRequest);
+
+    // cria notificação global
+    await addNotification({
+      message: `Nova pendência criada por ${author.name}`,
+      userId: "all",
+      requestId: "",
     });
+
+    addToast("Pendência registrada.", "success");
   };
 
   const updateRequest = (updatedRequest: Request) => {
@@ -435,13 +471,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
-  // MARK NOTIFICATIONS AS READ
-  const markAllNotificationsAsRead = (userId: string) => {
-    const unread = notifications.filter((n) => n.userId === userId && !n.read);
+  // MARCAR COMO LIDAS
+  const markAllNotificationsAsRead = async (userId: string) => {
+    const unread = notifications.filter((n) => !n.readBy?.includes(userId));
 
-    unread.forEach((n) =>
-      updateDoc(doc(db, "notifications", n.id), { read: true })
-    );
+    for (const n of unread) {
+      updateDoc(doc(db, "notifications", n.id), {
+        readBy: [...(n.readBy || []), userId],
+      });
+    }
   };
 
   // --- VOTING ---
@@ -509,6 +547,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         updateRequestStatus,
         addComment,
         markAllNotificationsAsRead,
+        deleteNotification,
         addToast,
         reservations,
         occurrences,

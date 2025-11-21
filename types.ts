@@ -82,12 +82,15 @@ export interface Request {
 
 export interface Notification {
   id: string;
-  userId: string;
-  text: string;
-  requestId: string;
-  read: boolean;
+  userId: string;       // pode ser "all"
+  requestId: string;    // pode ser ""
+  message: string;      // <-- CORRETO
   createdAt: string;
+  readBy: string[];     // quem já leu
 }
+
+
+
 
 export interface Toast {
   id: string;
