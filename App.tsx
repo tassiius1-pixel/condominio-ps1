@@ -7,7 +7,7 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import UserManagement from "./components/UserManagement";
 import Header from "./components/Header";
-import { Role, Toast as ToastType } from "./types";
+import { Role, Toast as ToastType, View } from "./types";
 import Reports from "./components/Reports";
 import Reservations from "./components/Reservations";
 import Occurrences from "./components/Occurrences";
@@ -85,9 +85,6 @@ const Toast: React.FC<{ toast: ToastType; onDismiss: (id: string) => void }> = (
 };
 
 
-// mesma definição do projeto padrão
-type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "notices";
-
 const App: React.FC = () => {
   const { currentUser } = useAuth();
   const { toasts, removeToast } = useData();
@@ -127,7 +124,7 @@ const App: React.FC = () => {
       case "notices":
         return <Notices />;
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard setView={setMainView} />;
       case "reservations":
         return <Reservations />;
       case "occurrences":
@@ -138,16 +135,16 @@ const App: React.FC = () => {
         return currentUser.role === Role.ADMIN ? (
           <UserManagement />
         ) : (
-          <Dashboard />
+          <Dashboard setView={setMainView} />
         );
       case "reports":
         return [Role.ADMIN, Role.GESTAO].includes(currentUser.role) ? (
           <Reports />
         ) : (
-          <Dashboard />
+          <Dashboard setView={setMainView} />
         );
       default:
-        return <Dashboard />;
+        return <Dashboard setView={setMainView} />;
     }
   };
 

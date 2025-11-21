@@ -158,3 +158,5 @@ export interface Notice {
   likes: string[];    // IDs of users who liked
   dislikes: string[]; // IDs of users who disliked
 }
+
+export type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "notices";
