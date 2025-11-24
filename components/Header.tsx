@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, ChevronLeftIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon } from './Icons';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -69,15 +69,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* LOGO */}
           <div className="flex items-center gap-4">
             {/* Back Button (Mobile/Tablet only, when not on Home) */}
-            {currentView !== 'notices' && (
-              <button
-                onClick={() => setView('notices')}
-                className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Voltar para o início"
-              >
-                <ChevronLeftIcon className="w-6 h-6" />
-              </button>
-            )}
+
 
             <div className="relative group flex-shrink-0 w-16 h-16">
               <img
