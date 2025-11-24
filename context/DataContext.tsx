@@ -81,6 +81,7 @@ interface DataContextType {
   addNotice: (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => Promise<void>;
   deleteNotice: (noticeId: string) => Promise<void>;
   toggleNoticeReaction: (noticeId: string, userId: string, type: 'like' | 'dislike') => Promise<void>;
+  updateOccurrence: (id: string, data: Partial<Occurrence>) => Promise<void>;
 }
 
 
@@ -287,14 +288,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return null;
     }
 
-    if (
-      users.some(
-        (u) => u.houseNumber === userData.houseNumber && u.houseNumber !== 0
-      )
-    ) {
-      addToast("Número da casa já cadastrado.", "error");
-      return null;
-    }
+
 
     try {
       const email = `${userData.username.toLowerCase()}@condominio-ps1.local`;
@@ -462,6 +456,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       status: 'Aberto',
     });
     addToast("Ocorrência registrada.", "success");
+  };
+
+  const updateOccurrence = async (id: string, data: Partial<Occurrence>) => {
+    await updateDoc(doc(db, "occurrences", id), data);
+
+    // If admin responded, notify user
+    if (data.adminResponse) {
+      const occurrence = occurrences.find(o => o.id === id);
+      if (occurrence) {
+        await addNotification({
+          message: `Sua ocorrência "${occurrence.subject}" foi respondida pela gestão.`,
+          userId: occurrence.authorId,
+          requestId: "",
+        });
+      }
+    }
+
+    addToast("Ocorrência atualizada.", "success");
   };
 
   // COMMENTS
@@ -641,6 +653,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addNotice,
         deleteNotice,
         toggleNoticeReaction,
+        updateOccurrence,
       }}
     >
       {children}

@@ -119,6 +119,8 @@ export interface Occurrence {
   createdAt: string;
   photos?: string[];
   status: 'Aberto' | 'Resolvido';
+  adminResponse?: string;
+  resolvedAt?: string;
 }
 
 export interface VotingOption {
@@ -155,6 +157,9 @@ export interface Notice {
   authorId: string;
   authorName: string;
   createdAt: string;
+  startDate: string;
+  endDate: string;
+  photos?: string[];
   likes: string[];    // IDs of users who liked
   dislikes: string[]; // IDs of users who disliked
 }

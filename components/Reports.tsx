@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '../hooks/useData';
 import { Status, Role } from '../types';
-import { generateReportSummary } from '../services/gemini';
+
 import { LoaderCircleIcon } from './Icons';
 
 // Chart component using a canvas
@@ -75,8 +75,7 @@ const Reports: React.FC = () => {
     const [activeTab, setActiveTab] = useState<ReportTab>('pendencias');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [summary, setSummary] = useState('');
-    const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+
 
     // --- FILTERS ---
     const filterByDate = (dateStr: string) => {
@@ -133,40 +132,7 @@ const Reports: React.FC = () => {
         }, {} as Record<string, number>);
     }, [filteredOccurrences]);
 
-    // --- SUMMARY ---
-    const handleGenerateSummary = async () => {
-        setIsSummaryLoading(true);
-        setSummary('');
-        let reportData = '';
 
-        if (activeTab === 'pendencias') {
-            reportData = `
-                - Estatísticas de Pendências:
-                - Total: ${requestStats.total}
-                - Pendentes: ${requestStats.pending}
-                - Em Andamento: ${requestStats.inProgress}
-                - Concluídas: ${requestStats.completed}
-                - Por Setor: ${JSON.stringify(requestsBySector)}
-                - Por Tipo: ${JSON.stringify(requestsByType)}
-            `;
-        } else if (activeTab === 'reservas') {
-            reportData = `
-                - Estatísticas de Reservas:
-                - Total: ${filteredReservations.length}
-                - Por Área: ${JSON.stringify(reservationsByArea)}
-            `;
-        } else {
-            reportData = `
-                - Estatísticas de Ocorrências:
-                - Total: ${filteredOccurrences.length}
-                - Por Status: ${JSON.stringify(occurrencesByStatus)}
-            `;
-        }
-
-        const result = await generateReportSummary(reportData);
-        setSummary(result);
-        setIsSummaryLoading(false);
-    };
 
     // --- EXPORT ---
     const handleExportPDF = () => {
@@ -513,17 +479,7 @@ const Reports: React.FC = () => {
             )}
 
 
-            <div className="bg-white p-6 rounded-lg shadow">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold">Resumo Executivo por IA</h3>
-                    <button onClick={handleGenerateSummary} disabled={isSummaryLoading} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed">
-                        {isSummaryLoading && <LoaderCircleIcon className="w-5 h-5 mr-2" />}
-                        {isSummaryLoading ? 'Gerando...' : 'Gerar Resumo'}
-                    </button>
-                </div>
-                {summary && !isSummaryLoading && <div className="prose prose-sm max-w-none whitespace-pre-wrap">{summary}</div>}
-                {!summary && !isSummaryLoading && <p className="text-gray-500">Clique em "Gerar Resumo" para obter uma análise por IA dos dados filtrados.</p>}
-            </div>
+
         </div >
     );
 };

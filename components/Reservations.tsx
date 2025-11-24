@@ -74,17 +74,17 @@ const Reservations: React.FC = () => {
         const dateString = selectedDate.toISOString().split('T')[0];
         const existingReservations = getReservationsForDate(selectedDate);
 
-        // Regra de Exclusividade (Admin also respects exclusivity to avoid conflicts, or should they bypass?)
-        // Assuming Admin respects physical constraints (exclusivity) but not time constraints.
-        // If Admin wants to force, they can delete existing first.
+        // Regra de Exclusividade (Por Casa)
+        const myHouseReservations = existingReservations.filter(r => r.houseNumber === houseNumber);
+
         if (area === 'salao_festas') {
-            if (existingReservations.some(r => r.area.includes('churrasco'))) {
-                addToast('Não é possível reservar o Salão de Festas pois já existem reservas de churrasqueira para este dia.', 'error');
+            if (myHouseReservations.some(r => r.area.includes('churrasco'))) {
+                addToast('Você já reservou uma churrasqueira para este dia.', 'error');
                 return;
             }
         } else {
-            if (existingReservations.some(r => r.area === 'salao_festas')) {
-                addToast('Não é possível reservar a Churrasqueira pois o Salão de Festas já está reservado para este dia.', 'error');
+            if (myHouseReservations.some(r => r.area === 'salao_festas')) {
+                addToast('Você já reservou o Salão de Festas para este dia.', 'error');
                 return;
             }
         }
@@ -223,7 +223,7 @@ const Reservations: React.FC = () => {
 
                                     {/* Churrasqueira 1 */}
                                     <button
-                                        disabled={isDateDisabled(selectedDate, 'churrasco') || getReservationsForDate(selectedDate).some(r => r.area === 'churrasco1' || r.area === 'salao_festas')}
+                                        disabled={isDateDisabled(selectedDate, 'churrasco') || getReservationsForDate(selectedDate).some(r => r.area === 'churrasco1') || getReservationsForDate(selectedDate).some(r => r.houseNumber === currentUser?.houseNumber && r.area === 'salao_festas')}
                                         onClick={() => handleReserve('churrasco1')}
                                         className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
                                     >
@@ -237,7 +237,7 @@ const Reservations: React.FC = () => {
 
                                     {/* Churrasqueira 2 */}
                                     <button
-                                        disabled={isDateDisabled(selectedDate, 'churrasco') || getReservationsForDate(selectedDate).some(r => r.area === 'churrasco2' || r.area === 'salao_festas')}
+                                        disabled={isDateDisabled(selectedDate, 'churrasco') || getReservationsForDate(selectedDate).some(r => r.area === 'churrasco2') || getReservationsForDate(selectedDate).some(r => r.houseNumber === currentUser?.houseNumber && r.area === 'salao_festas')}
                                         onClick={() => handleReserve('churrasco2')}
                                         className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
                                     >
@@ -251,7 +251,7 @@ const Reservations: React.FC = () => {
 
                                     {/* Salão de Festas */}
                                     <button
-                                        disabled={isDateDisabled(selectedDate, 'salao') || getReservationsForDate(selectedDate).some(r => r.area.includes('churrasco') || r.area === 'salao_festas')}
+                                        disabled={isDateDisabled(selectedDate, 'salao') || getReservationsForDate(selectedDate).some(r => r.area === 'salao_festas') || getReservationsForDate(selectedDate).some(r => r.houseNumber === currentUser?.houseNumber && r.area.includes('churrasco'))}
                                         onClick={() => handleReserve('salao_festas')}
                                         className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
                                     >

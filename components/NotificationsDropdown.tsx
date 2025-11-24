@@ -77,8 +77,8 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
       style={{
         position: "absolute",
         top: "60px",
-        right: "20px",
-        width: "330px",
+        right: "max(20px, 5vw)",
+        width: "min(330px, 90vw)",
         background: "white",
         borderRadius: "10px",
         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
