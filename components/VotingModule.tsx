@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, Voting, VotingOption } from '../types';
-import { TrashIcon, PlusIcon, CheckIcon, UploadIcon, XIcon } from './Icons';
+import { TrashIcon, PlusIcon, CheckIcon, UploadIcon, XIcon, ChevronLeftIcon } from './Icons';
 import { fileToBase64 } from '../utils/fileUtils';
 
-const VotingModule: React.FC = () => {
-    const { votings, addVoting, castVote, addToast } = useData();
+interface VotingModuleProps {
+    setView?: (view: any) => void;
+}
+
+const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
+    const { votings, addVoting, vote, addToast } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'active' | 'history' | 'create'>('active');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -111,7 +115,7 @@ const VotingModule: React.FC = () => {
             addToast('Selecione pelo menos uma opção.', 'info');
             return;
         }
-        await castVote(votingId, choices, currentUser);
+        await vote(votingId, currentUser.id, currentUser.name, currentUser.houseNumber, choices);
         // Clear selection
         setSelectedOptions(prev => {
             const newState = { ...prev };
@@ -281,6 +285,15 @@ const VotingModule: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-fade-in">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setView && setView('notices')} className="md:hidden p-1 text-gray-500 hover:text-gray-700">
+                        <ChevronLeftIcon className="w-6 h-6" />
+                    </button>
+                    <h2 className="text-2xl font-bold text-gray-800">Votações</h2>
+                </div>
+            </div>
+
             {/* Header Tabs */}
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
                 <button

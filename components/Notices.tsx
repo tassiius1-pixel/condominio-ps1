@@ -57,15 +57,15 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
     const activeNotices = notices.filter(n => {
         if (!n.endDate) return true; // Keep if no end date (legacy)
         const end = new Date(n.endDate);
-        end.setHours(23, 59, 59, 999);
-        return end >= today;
+        const now = new Date();
+        return end >= now;
     });
 
     const historyNotices = notices.filter(n => {
         if (!n.endDate) return false;
         const end = new Date(n.endDate);
-        end.setHours(23, 59, 59, 999);
-        return end < today;
+        const now = new Date();
+        return end < now;
     });
 
     // Dashboard Data

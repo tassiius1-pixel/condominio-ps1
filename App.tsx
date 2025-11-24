@@ -145,11 +145,11 @@ const App: React.FC = () => {
       case "dashboard":
         return <Dashboard setView={handleViewChange} />;
       case "reservations":
-        return <Reservations />;
+        return <Reservations setView={handleViewChange} />;
       case "occurrences":
-        return <Occurrences />;
+        return <Occurrences setView={handleViewChange} />;
       case "voting":
-        return <VotingModule />;
+        return <VotingModule setView={handleViewChange} />;
       case "users":
         return currentUser.role === Role.ADMIN ? (
           <UserManagement />

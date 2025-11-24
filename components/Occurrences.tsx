@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, Occurrence } from '../types';
-import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon } from './Icons';
+import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon } from './Icons';
 import { fileToBase64 } from '../utils/fileUtils';
 
-const Occurrences: React.FC = () => {
+interface OccurrencesProps {
+    setView?: (view: any) => void;
+}
+
+const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
     const { occurrences, addOccurrence, updateOccurrence, addToast } = useData();
     const { currentUser } = useAuth();
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -193,7 +197,12 @@ const Occurrences: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">Livro de Ocorrências</h2>
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setView && setView('notices')} className="md:hidden p-1 text-gray-500 hover:text-gray-700">
+                        <ChevronLeftIcon className="w-6 h-6" />
+                    </button>
+                    <h2 className="text-2xl font-bold text-gray-800">Livro de Ocorrências</h2>
+                </div>
 
                 {!isFormOpen && (
                     <button

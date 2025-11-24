@@ -6,7 +6,11 @@ import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from './Icons';
 
 import ConfirmModal from './ConfirmModal';
 
-const Reservations: React.FC = () => {
+interface ReservationsProps {
+    setView?: (view: any) => void;
+}
+
+const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     const { reservations, addReservation, cancelReservation, addToast } = useData();
     const { currentUser } = useAuth();
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -187,9 +191,14 @@ const Reservations: React.FC = () => {
                 {/* Calendar Section */}
                 <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="p-4 flex items-center justify-between border-b border-gray-200 bg-gray-50">
-                        <h2 className="text-lg font-semibold text-gray-800">
-                            {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                        </h2>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setView && setView('notices')} className="md:hidden p-1 text-gray-500 hover:text-gray-700">
+                                <ChevronLeftIcon className="w-6 h-6" />
+                            </button>
+                            <h2 className="text-lg font-semibold text-gray-800">
+                                {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                            </h2>
+                        </div>
                         <div className="flex gap-2">
                             <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-200 rounded-lg transition">
                                 <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
