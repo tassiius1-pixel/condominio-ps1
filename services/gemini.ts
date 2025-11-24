@@ -34,16 +34,16 @@ export const suggestRequestDetails = async (description: string): Promise<Sugges
       Descrição: "${description}"
 
       Use as seguintes regras:
-
-      - URGENTE: risco iminente (incêndio, gás, curto grave)
-      - ALTA: afeta uso das áreas (portão, elevador, falta de água)
-      - MÉDIA: incômodo (goteiras, lâmpadas, pequenos vazamentos)
-      - BAIXA: estética (pintura, poda)
+      
+      - URGENTE: risco iminente (incêndio, gás, curto grave, vazamento grande)
+      - ALTA: afeta uso das áreas comuns ou segurança (portão quebrado, elevador parado, falta de água, luz queimada em área escura)
+      - MÉDIA: incômodo funcional (goteiras, lâmpadas queimadas, pequenos vazamentos, interfone com chiado)
+      - BAIXA: estética ou melhoria (pintura descascando, poda de jardim, limpeza)
 
       Responda SOMENTE com JSON válido.
       
       Valores possíveis para "sector": ${SECTORS.join(', ')}
-      Valores possíveis para "type": ${REQUEST_TYPES.join(', ')}
+      Valores possíveis para "type": ${REQUEST_TYPES.join(', ')} (inclui "Pequenos reparos")
       Valores possíveis para "priority": ${PRIORITIES.join(', ')}`,
       config: {
         responseMimeType: "application/json",

@@ -196,6 +196,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
       id: `temp-${Date.now()}`,
       authorId: currentUser.id,
       authorName: currentUser.name,
+      houseNumber: currentUser.houseNumber,
       text,
       createdAt: new Date().toISOString(),
     };
@@ -206,6 +207,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     addComment(request.id, {
       authorId: currentUser.id,
       authorName: currentUser.name,
+      houseNumber: currentUser.houseNumber,
       text,
     });
 
@@ -460,8 +462,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                           </p>
                           {isStatusChange && comment.newStatus && (
                             <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 ${isConcluido
-                                ? 'bg-green-200 text-green-800'
-                                : 'bg-yellow-200 text-yellow-800'
+                              ? 'bg-green-200 text-green-800'
+                              : 'bg-yellow-200 text-yellow-800'
                               }`}>
                               {comment.newStatus}
                             </span>
@@ -471,7 +473,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                           ? isConcluido ? 'text-green-600' : 'text-yellow-600'
                           : 'text-gray-500'
                           }`}>
-                          - {comment.authorName}{' '}
+                          - {comment.authorName.split(' ')[0]} {comment.houseNumber ? `(Casa ${comment.houseNumber})` : ''}{' '}
                           {comment.createdAt &&
                             (() => {
                               const d = new Date(comment.createdAt);

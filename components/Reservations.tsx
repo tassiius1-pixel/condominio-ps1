@@ -277,7 +277,9 @@ const Reservations: React.FC = () => {
                                                         <p className="text-xs font-bold text-gray-700">
                                                             {res.area === 'salao_festas' ? 'Salão de Festas' : res.area === 'churrasco1' ? 'Churrasqueira 1' : 'Churrasqueira 2'}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">{res.userName}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {res.userName.split(' ')[0]} (Casa {res.houseNumber})
+                                                        </p>
                                                     </div>
                                                     {(currentUser?.id === res.userId || [Role.ADMIN, Role.GESTAO].includes(currentUser?.role || Role.MORADOR)) && (
                                                         <button

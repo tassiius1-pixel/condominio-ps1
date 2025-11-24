@@ -42,6 +42,7 @@ export enum RequestType {
   LIMPEZA = 'Limpeza e conservação',
   PORTOES = 'Portões',
   PISCINA = 'Piscina',
+  PEQUENOS_REPAROS = 'Pequenos reparos',
 }
 
 export interface User {
@@ -59,6 +60,7 @@ export interface Comment {
   id: string;
   authorId: string;
   authorName: string;
+  houseNumber?: number;
   text: string;
   createdAt: string;
   type?: 'regular' | 'status_change';

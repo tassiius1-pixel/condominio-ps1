@@ -156,7 +156,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                             <p className="text-sm text-gray-500 mt-1">
                                 Publicado por <span className="font-medium text-gray-700">{notice.authorName}</span>
                                 {' • '}
-                                {new Date(notice.startDate + 'T12:00:00').toLocaleDateString('pt-BR')} até {new Date(notice.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                {new Date(notice.startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} até {new Date(notice.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                             </p>
                         </div>
                         {canManageNotices && (
@@ -377,14 +377,9 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
             {/* Content */}
             {activeTab === 'active' ? (
                 <>
-                    {/* Summary Cards (Dynamic) */}
-                    <div className="pt-2">
-                        <SummaryCards />
-                    </div>
-
-                    {/* Active Notices List */}
+                    {/* Active Notices List - PRIORITY: Above Summary Cards */}
                     {activeNotices.length > 0 && (
-                        <div id="avisos-section" className="space-y-6 pt-4 border-t border-gray-200">
+                        <div id="avisos-section" className="space-y-6 pt-2 mb-8">
                             <div className="flex justify-between items-center">
                                 <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                                     <InfoIcon className="w-6 h-6 text-indigo-600" />
@@ -405,6 +400,12 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                             </div>
                         </div>
                     )}
+
+                    {/* Summary Cards (Dynamic) */}
+                    <div className={activeNotices.length > 0 ? "pt-8 border-t border-gray-200" : "pt-2"}>
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Resumo Geral</h2>
+                        <SummaryCards />
+                    </div>
 
                     {/* If no notices, show Create button here too */}
                     {activeNotices.length === 0 && canManageNotices && (
@@ -466,7 +467,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
@@ -476,7 +477,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Fim</label>
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"

@@ -90,11 +90,30 @@ const App: React.FC = () => {
   const { toasts, removeToast } = useData();
 
   const [authView, setAuthView] = useState<"login" | "register">("login");
-  const [mainView, setMainView] = useState<View>("notices");
+  const [mainView, setMainView] = useState<View>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("view") as View) || "notices";
+  });
 
   const [condoLogo, setCondoLogo] = useState<string | null>(() => {
     return localStorage.getItem("condo-logo");
   });
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.view) {
+        setMainView(event.state.view);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleViewChange = (view: View) => {
+    setMainView(view);
+    window.history.pushState({ view }, "", `?view=${view}`);
+  };
 
   useEffect(() => {
     if (condoLogo) {
@@ -122,9 +141,9 @@ const App: React.FC = () => {
     // com usuário logado → dashboard / usuários / relatórios
     switch (mainView) {
       case "notices":
-        return <Notices setView={setMainView} />;
+        return <Notices setView={handleViewChange} />;
       case "dashboard":
-        return <Dashboard setView={setMainView} />;
+        return <Dashboard setView={handleViewChange} />;
       case "reservations":
         return <Reservations />;
       case "occurrences":
@@ -135,16 +154,16 @@ const App: React.FC = () => {
         return currentUser.role === Role.ADMIN ? (
           <UserManagement />
         ) : (
-          <Dashboard setView={setMainView} />
+          <Dashboard setView={handleViewChange} />
         );
       case "reports":
         return [Role.ADMIN, Role.GESTAO].includes(currentUser.role) ? (
           <Reports />
         ) : (
-          <Dashboard setView={setMainView} />
+          <Dashboard setView={handleViewChange} />
         );
       default:
-        return <Dashboard setView={setMainView} />;
+        return <Dashboard setView={handleViewChange} />;
     }
   };
 
@@ -154,7 +173,7 @@ const App: React.FC = () => {
         {currentUser && (
           <Header
             currentView={mainView}
-            setView={setMainView}
+            setView={handleViewChange}
             condoLogo={condoLogo}
             setCondoLogo={handleSetLogo}
           />
