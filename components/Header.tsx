@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!currentUser) return null;
@@ -68,9 +68,6 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex justify-between items-center h-20">
           {/* LOGO */}
           <div className="flex items-center gap-4">
-            {/* Back Button (Mobile/Tablet only, when not on Home) */}
-
-
             <div className="relative group flex-shrink-0 w-16 h-16">
               <img
                 src={logoURL}
@@ -157,6 +154,7 @@ const Header: React.FC<HeaderProps> = ({
             {/* NOTIFICAÇÕES (movido para direita) */}
             <div className="relative">
               <button
+                ref={bellRef}
                 onClick={() => setShowNotifications(prev => !prev)}
                 className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
               >
@@ -172,6 +170,7 @@ const Header: React.FC<HeaderProps> = ({
               <NotificationsDropdown
                 open={showNotifications}
                 onClose={() => setShowNotifications(false)}
+                triggerRef={bellRef}
               />
             </div>
 

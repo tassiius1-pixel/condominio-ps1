@@ -9,9 +9,10 @@ import { TrashIcon, XIcon } from "./Icons";
 interface Props {
   open: boolean;
   onClose: () => void;
+  triggerRef?: React.RefObject<HTMLElement>;
 }
 
-const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
+const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) => {
   const { notifications, deleteNotification, markAllNotificationsAsRead, addToast } =
     useData();
   const { currentUser } = useAuth();
@@ -22,7 +23,8 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
     function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target as Node) &&
+        (!triggerRef?.current || !triggerRef.current.contains(event.target as Node))
       ) {
         onClose();
       }
@@ -37,7 +39,7 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [open, onClose]);
+  }, [open, onClose, triggerRef]);
 
   // Marcar como lidas ao abrir
   useEffect(() => {
