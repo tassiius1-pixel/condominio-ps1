@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { Notification } from "../types";
 import { db } from "../services/firebase";
 import { doc, writeBatch } from "firebase/firestore";
+import { TrashIcon, XIcon } from "./Icons";
 
 interface Props {
   open: boolean;
@@ -74,122 +75,66 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose }) => {
   return (
     <div
       ref={dropdownRef}
-      style={{
-        position: "absolute",
-        top: "60px",
-        right: "max(20px, 5vw)",
-        width: "min(330px, 90vw)",
-        background: "white",
-        borderRadius: "10px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        padding: "12px 0",
-        overflow: "hidden",
-        animation: "fadeIn 0.18s ease-out",
-        zIndex: 999,
-      }}
+      className="fixed inset-x-4 top-20 z-50 md:absolute md:inset-auto md:top-full md:right-0 md:mt-4 md:w-80 bg-white rounded-xl shadow-xl overflow-hidden animate-fade-in border border-gray-100"
     >
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
-
       {/* Título + botão excluir todas */}
-      <div
-        style={{
-          padding: "0 16px",
-          marginBottom: "8px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h4
-          style={{
-            margin: 0,
-            fontSize: "15px",
-            fontWeight: "600",
-            color: "#444",
-          }}
-        >
+      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50">
+        <h4 className="text-sm font-bold text-gray-700">
           Notificações
         </h4>
 
         {filtered.length > 0 && (
           <button
             onClick={handleDeleteAll}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "#d00",
-              fontSize: "13px",
-              cursor: "pointer",
-            }}
+            className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors flex items-center gap-1"
           >
-            Excluir todas
+            <TrashIcon className="w-3 h-3" />
+            Limpar tudo
           </button>
         )}
       </div>
 
-      {filtered.length === 0 && (
-        <p
-          style={{
-            textAlign: "center",
-            padding: "18px 0",
-            color: "#777",
-            fontSize: "14px",
-          }}
-        >
-          Nenhuma notificação
-        </p>
-      )}
-
-      {filtered.map((notification: Notification) => {
-        const isRead = notification.readBy?.includes(userId || "");
-
-        return (
-          <div
-            key={notification.id}
-            style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid #eee",
-              background: isRead ? "#fff" : "#f5faff",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "12px",
-              transition: "background 0.2s",
-            }}
-          >
-            <div>
-              <p style={{ margin: 0, fontSize: "14px", color: "#333" }}>
-                {notification.message}
-              </p>
-              <small style={{ color: "#777" }}>
-                {new Date(notification.createdAt).toLocaleString("pt-BR")}
-              </small>
-            </div>
-
-            {/* Botão para limpar individual */}
-            <button
-              onClick={() => deleteNotification(notification.id)}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#999",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-              title="Remover notificação"
-            >
-              ✕
-            </button>
+      <div className="max-h-[60vh] md:max-h-96 overflow-y-auto">
+        {filtered.length === 0 && (
+          <div className="text-center py-8 px-4">
+            <p className="text-gray-500 text-sm">
+              Nenhuma notificação no momento.
+            </p>
           </div>
-        );
-      })}
+        )}
+
+        {filtered.map((notification: Notification) => {
+          const isRead = notification.readBy?.includes(userId || "");
+
+          return (
+            <div
+              key={notification.id}
+              className={`px-4 py-3 border-b border-gray-100 flex justify-between items-start gap-3 transition-colors hover:bg-gray-50 ${isRead ? 'bg-white' : 'bg-blue-50/50'}`}
+            >
+              <div className="flex-1">
+                <p className={`text-sm ${isRead ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
+                  {notification.message}
+                </p>
+                <small className="text-xs text-gray-400 mt-1 block">
+                  {new Date(notification.createdAt).toLocaleString("pt-BR")}
+                </small>
+              </div>
+
+              {/* Botão para limpar individual */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteNotification(notification.id);
+                }}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-gray-100"
+                title="Remover notificação"
+              >
+                <XIcon className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
