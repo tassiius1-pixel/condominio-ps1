@@ -289,10 +289,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return null;
     }
 
-    // Validação de formato de usuário (sem acentos, sem espaços, sem traços se desejado)
-    const usernameRegex = /^[a-z0-9_]+$/; // Apenas letras minúsculas, números e underscore
-    if (!usernameRegex.test(userData.username)) {
-      addToast("O usuário deve conter apenas letras minúsculas e números (sem acentos, espaços ou traços).", "error");
+    // Validação de formato de usuário
+    if (/\s/.test(userData.username)) {
+      addToast("O nome de usuário não pode conter espaços.", "error");
+      return null;
+    }
+    if (/[A-Z]/.test(userData.username)) {
+      addToast("O nome de usuário deve conter apenas letras minúsculas.", "error");
+      return null;
+    }
+    if (/[^a-z0-9_]/.test(userData.username)) {
+      addToast("O nome de usuário não pode conter acentos ou caracteres especiais.", "error");
       return null;
     }
 

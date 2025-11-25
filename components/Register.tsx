@@ -44,10 +44,17 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = "Informe o nome completo.";
-    if (!formData.username.trim())
+    if (!formData.username.trim()) {
       newErrors.username = "Informe o nome de usuário.";
-    else if (!/^[a-z0-9_]+$/.test(formData.username))
-      newErrors.username = "Usuário inválido: use apenas letras minúsculas e números (sem acentos ou espaços).";
+    } else {
+      if (/\s/.test(formData.username)) {
+        newErrors.username = "O nome de usuário não pode conter espaços.";
+      } else if (/[A-Z]/.test(formData.username)) {
+        newErrors.username = "O nome de usuário deve conter apenas letras minúsculas.";
+      } else if (/[^a-z0-9_]/.test(formData.username)) {
+        newErrors.username = "O nome de usuário não pode conter acentos ou caracteres especiais.";
+      }
+    }
 
     if (!isValidCPF(formData.cpf)) newErrors.cpf = "CPF inválido.";
 
@@ -145,6 +152,9 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nome de Usuário
               </label>
+              <span className="text-xs text-gray-500 block mb-1">
+                (Use apenas letras minúsculas e números. Sem espaços, acentos ou caracteres especiais.)
+              </span>
               <input
                 name="username"
                 type="text"
