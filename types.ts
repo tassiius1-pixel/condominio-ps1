@@ -8,6 +8,9 @@ export enum Role {
 
 export enum Status {
   PENDENTE = 'Pendente',
+  EM_ANALISE = 'Em Análise',
+  APROVADA = 'Aprovada',
+  RECUSADA = 'Recusada',
   EM_ANDAMENTO = 'Em Andamento',
   CONCLUIDO = 'Concluído',
 }
@@ -45,6 +48,7 @@ export enum RequestType {
   PORTOES = 'Portões',
   PISCINA = 'Piscina',
   PEQUENOS_REPAROS = 'Pequenos reparos',
+  SUGESTOES = 'Sugestões',
 }
 
 export interface User {
@@ -82,6 +86,8 @@ export interface Request {
   authorName: string;
   createdAt: string;
   comments: Comment[];
+  likes?: string[];
+  adminResponse?: string;
 }
 
 export interface Notification {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Request,
   Role,
@@ -10,10 +10,9 @@ import {
 } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
-import { SECTORS, REQUEST_TYPES, STATUSES, PRIORITIES } from '../constants';
+import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
 import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon } from './Icons';
-import { suggestRequestDetails } from '../services/gemini';
 import ImageLightbox from './ImageLightbox';
 
 interface RequestModalProps {
@@ -31,11 +30,10 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [title, setTitle] = useState(request?.title || '');
   const [description, setDescription] = useState(request?.description || '');
   const [sector, setSector] = useState<Sector>(request?.sector || SECTORS[0]);
-  const [type, setType] = useState<RequestType>(request?.type || REQUEST_TYPES[0]);
   const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
-  const [priority, setPriority] = useState<Priority>(request?.priority || Priority.MEDIA);
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
   const [justification, setJustification] = useState('');
+  const [adminResponse, setAdminResponse] = useState(request?.adminResponse || '');
 
   // ===== COMENTÁRIOS =====
   const [comments, setComments] = useState<Comment[]>(request?.comments || []);
@@ -48,41 +46,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   }, [request?.comments]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSuggesting, setIsSuggesting] = useState(false);
-  const debounceTimeout = useRef<number | null>(null);
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // =============================
-  // IA — Sugestões automáticas
-  // =============================
-  useEffect(() => {
-    if (isEditing && description) {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-
-      setIsSuggesting(true);
-
-      debounceTimeout.current = window.setTimeout(async () => {
-        try {
-          const suggestions = await suggestRequestDetails(description);
-          if (suggestions) {
-            setSector(suggestions.sector);
-            setType(suggestions.type);
-            setPriority(suggestions.priority);
-          }
-        } catch {
-          addToast('Falha ao obter sugestões da IA.', 'error');
-        } finally {
-          setIsSuggesting(false);
-        }
-      }, 1000);
-    }
-
-    return () => {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    };
-  }, [description, isEditing, addToast]);
 
   if (!currentUser) return null;
 
@@ -141,10 +107,11 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     if (request) {
       // Se status mudou, adiciona comentário de sistema
       if (status !== request.status) {
+        const statusChangeText = `Alterou de "${request.status}" para "${status}".\nJustificativa: ${justification}`;
         addComment(request.id, {
           authorId: currentUser.id,
           authorName: currentUser.name,
-          text: justification,
+          text: statusChangeText,
           type: 'status_change',
           newStatus: status
         });
@@ -155,10 +122,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
         title,
         description,
         sector,
-        type,
         status,
-        priority,
         photos,
+        adminResponse,
       };
       updateRequest(updated);
     } else {
@@ -166,8 +132,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
         title,
         description,
         sector,
-        type,
-        priority,
+        type: RequestType.SUGESTOES,
+        priority: Priority.MEDIA,
         photos,
         authorId: currentUser.id,
       });
@@ -177,7 +143,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   };
 
   const handleDelete = () => {
-    if (request && confirm('Excluir pendência?')) {
+    if (request && confirm('Excluir sugestão?')) {
       deleteRequest(request.id);
       onClose();
     }
@@ -269,7 +235,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           {/* Header */}
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900">
-              {request ? 'Detalhes da Pendência' : 'Nova Pendência'}
+              {request ? 'Detalhes da Sugestão' : 'Nova Sugestão'}
             </h2>
 
             <div className="flex gap-2">
@@ -335,35 +301,47 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                 v => setSector(v as Sector),
                 SECTORS,
                 !isEditing,
-                isSuggesting
+                false
               )}
-              {renderSelect(
-                'Tipo',
-                type,
-                v => setType(v as RequestType),
-                REQUEST_TYPES,
-                !isEditing,
-                isSuggesting
+              {canManage && renderSelect(
+                'Status',
+                status,
+                v => setStatus(v as Status),
+                STATUSES,
+                !isEditing
               )}
             </div>
 
+            {/* Resposta da Gestão (Visível apenas para Gestão) */}
             {canManage && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {renderSelect(
-                  'Status',
-                  status,
-                  v => setStatus(v as Status),
-                  STATUSES,
-                  !isEditing
-                )}
-                {renderSelect(
-                  'Prioridade',
-                  priority,
-                  v => setPriority(v as Priority),
-                  PRIORITIES,
-                  !isEditing,
-                  isSuggesting
-                )}
+              <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                <label className="block text-sm font-medium text-blue-800">
+                  Resposta Oficial da Gestão
+                </label>
+                <textarea
+                  value={adminResponse}
+                  onChange={e => setAdminResponse(e.target.value)}
+                  rows={3}
+                  className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-blue-300 
+                    focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Escreva uma resposta oficial para esta sugestão..."
+                />
+                <div className="flex justify-end mt-2">
+                  {adminResponse !== (request?.adminResponse || '') && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (request) {
+                          updateRequest({ ...request, adminResponse });
+                        }
+                      }}
+                      className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Salvar Resposta
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 

@@ -46,6 +46,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     if (!formData.name.trim()) newErrors.name = "Informe o nome completo.";
     if (!formData.username.trim())
       newErrors.username = "Informe o nome de usuário.";
+    else if (!/^[a-z0-9_]+$/.test(formData.username))
+      newErrors.username = "Usuário inválido: use apenas letras minúsculas e números (sem acentos ou espaços).";
 
     if (!isValidCPF(formData.cpf)) newErrors.cpf = "CPF inválido.";
 

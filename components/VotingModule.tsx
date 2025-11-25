@@ -18,6 +18,21 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
     // Create Voting State
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+
+    React.useEffect(() => {
+        const draft = localStorage.getItem('draft_voting');
+        if (draft) {
+            try {
+                const { title, description } = JSON.parse(draft);
+                setTitle(title);
+                setDescription(description);
+                setActiveTab('create');
+                localStorage.removeItem('draft_voting');
+            } catch (e) {
+                console.error('Error parsing draft voting', e);
+            }
+        }
+    }, []);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [allowMultiple, setAllowMultiple] = useState(false);

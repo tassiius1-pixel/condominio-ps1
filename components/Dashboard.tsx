@@ -59,26 +59,24 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
               <ChevronLeftIcon className="w-6 h-6" />
             </button>
             <CheckSquareIcon className="w-6 h-6 text-indigo-600" />
-            Pendências e Solicitações
+            Sugestões
           </h2>
-          <p className="text-gray-500 text-sm">Acompanhe o status das solicitações do condomínio.</p>
+          <p className="text-gray-500 text-sm">Compartilhe suas ideias para melhorar nosso condomínio.</p>
         </div>
 
-        {[Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR) && (
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-105"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Nova Pendência
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-105"
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Nova Sugestão
+        </button>
       </div>
 
       {/* Main Content - Board */}
       <div className="bg-gray-50/50 rounded-2xl">
-        <Board />
+        <Board setView={setView} />
       </div>
 
       {isModalOpen && (

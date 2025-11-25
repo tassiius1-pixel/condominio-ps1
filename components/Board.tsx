@@ -1,92 +1,54 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useData } from '../hooks/useData';
-import { useAuth } from '../hooks/useAuth';
-import { Status, Role } from '../types';
-import Column from './Column';
-import { STATUSES } from '../constants';
+import { RequestType } from '../types';
+import Card from './Card';
 
-import JustificationModal from './JustificationModal';
+interface BoardProps {
+  setView?: (view: any) => void;
+}
 
-const Board: React.FC = () => {
-  const { requests, updateRequestStatus, addComment, loading } = useData();
-  const { currentUser } = useAuth();
-  const [draggedRequestId, setDraggedRequestId] = useState<string | null>(null);
+const Board: React.FC<BoardProps> = ({ setView }) => {
+  const { requests, loading } = useData();
 
-  // State for Justification Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [pendingDrag, setPendingDrag] = useState<{ requestId: string, newStatus: Status } | null>(null);
+  const suggestions = requests
+    .filter(req => req.type === RequestType.SUGESTOES)
+    .sort((a, b) => {
+      const likesA = a.likes?.length || 0;
+      const likesB = b.likes?.length || 0;
+      return likesB - likesA; // Descending order
+    });
 
-  const canDrag = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
+  if (loading) {
+    return <div className="p-8 text-center text-gray-500">Carregando sugestões...</div>;
+  }
 
-  const handleDragStart = (requestId: string) => {
-    if (canDrag) {
-      setDraggedRequestId(requestId);
+  if (suggestions.length === 0) {
+    return (
+      <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+        <p className="text-gray-500 text-lg">Nenhuma sugestão encontrada.</p>
+        <p className="text-gray-400 text-sm mt-2">Seja o primeiro a compartilhar uma ideia!</p>
+      </div>
+    );
+  }
+
+  const handleCreateVoting = (title: string, description: string) => {
+    if (setView) {
+      localStorage.setItem('draft_voting', JSON.stringify({ title, description }));
+      setView('voting');
     }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (newStatus: Status) => {
-    if (draggedRequestId && canDrag) {
-      // Check if status is actually changing
-      const request = requests.find(r => r.id === draggedRequestId);
-      if (request && request.status !== newStatus) {
-        setPendingDrag({ requestId: draggedRequestId, newStatus });
-        setIsModalOpen(true);
-      }
-      setDraggedRequestId(null);
-    }
-  };
-
-  const handleConfirmJustification = (text: string) => {
-    if (pendingDrag && currentUser) {
-      // 1. Update Status
-      updateRequestStatus(pendingDrag.requestId, pendingDrag.newStatus);
-
-      // 2. Add Comment
-      addComment(pendingDrag.requestId, {
-        authorId: currentUser.id,
-        authorName: currentUser.name,
-        text: text,
-        type: 'status_change',
-        newStatus: pendingDrag.newStatus
-      });
-
-      setPendingDrag(null);
-      setIsModalOpen(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setPendingDrag(null);
-    setIsModalOpen(false);
   };
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {STATUSES.map(status => (
-          <Column
-            key={status}
-            status={status}
-            requests={requests.filter(req => req.status === status)}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(status)}
-            onDragStartCard={handleDragStart}
-            loading={loading}
-          />
-        ))}
-      </div>
-
-      <JustificationModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleConfirmJustification}
-        title="Justificativa de Alteração de Status"
-      />
-    </>
+    <div className="max-w-4xl space-y-6 pb-12">
+      {suggestions.map(request => (
+        <Card
+          key={request.id}
+          request={request}
+          onDragStart={() => { }} // No longer used in Feed view
+          onCreateVoting={handleCreateVoting}
+        />
+      ))}
+    </div>
   );
 };
 

@@ -82,6 +82,7 @@ interface DataContextType {
   deleteNotice: (noticeId: string) => Promise<void>;
   toggleNoticeReaction: (noticeId: string, userId: string, type: 'like' | 'dislike') => Promise<void>;
   updateOccurrence: (id: string, data: Partial<Occurrence>) => Promise<void>;
+  toggleRequestLike: (requestId: string, userId: string) => Promise<void>;
 }
 
 
@@ -288,6 +289,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return null;
     }
 
+    // Validação de formato de usuário (sem acentos, sem espaços, sem traços se desejado)
+    const usernameRegex = /^[a-z0-9_]+$/; // Apenas letras minúsculas, números e underscore
+    if (!usernameRegex.test(userData.username)) {
+      addToast("O usuário deve conter apenas letras minúsculas e números (sem acentos, espaços ou traços).", "error");
+      return null;
+    }
+
 
 
     try {
@@ -385,25 +393,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // cria notificação global
     await addNotification({
-      message: `Nova pendência criada por ${author.name}`,
+      message: `Nova sugestão criada por ${author.name}`,
       userId: "all",
       requestId: "",
     });
 
-    addToast("Pendência registrada.", "success");
+    addToast("Sugestão registrada.", "success");
   };
 
   const updateRequest = (updatedRequest: Request) => {
     const { id, ...data } = updatedRequest;
 
     updateDoc(doc(db, "requests", id), data).then(() =>
-      addToast("Pendência atualizada.", "success")
+      addToast("Sugestão atualizada.", "success")
     );
   };
 
   const deleteRequest = (requestId: string) => {
     deleteDoc(doc(db, "requests", requestId)).then(() =>
-      addToast("Pendência excluída.", "success")
+      addToast("Sugestão excluída.", "success")
     );
   };
 
@@ -495,6 +503,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateDoc(doc(db, "requests", requestId), {
       comments: updatedComments,
     });
+  };
+
+  const toggleRequestLike = async (requestId: string, userId: string) => {
+    const requestRef = doc(db, "requests", requestId);
+    const request = requests.find((r) => r.id === requestId);
+    if (!request) return;
+
+    const likes = request.likes || [];
+    const isLiked = likes.includes(userId);
+
+    let newLikes;
+    if (isLiked) {
+      newLikes = likes.filter((id) => id !== userId);
+    } else {
+      newLikes = [...likes, userId];
+    }
+
+    await updateDoc(requestRef, { likes: newLikes });
   };
 
   // MARCAR COMO LIDAS
@@ -654,6 +680,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deleteNotice,
         toggleNoticeReaction,
         updateOccurrence,
+        toggleRequestLike,
       }}
     >
       {children}

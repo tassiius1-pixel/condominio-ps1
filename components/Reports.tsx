@@ -69,12 +69,12 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
     return <div className="bg-white p-4 rounded-lg shadow h-80"><canvas ref={chartRef}></canvas></div>;
 };
 
-type ReportTab = 'pendencias' | 'reservas' | 'ocorrencias' | 'votacoes';
+type ReportTab = 'sugestoes' | 'reservas' | 'ocorrencias' | 'votacoes';
 
 const Reports: React.FC = () => {
     const { requests, users, reservations, occurrences, votings } = useData();
     const { currentUser } = useAuth();
-    const [activeTab, setActiveTab] = useState<ReportTab>('pendencias');
+    const [activeTab, setActiveTab] = useState<ReportTab>('sugestoes');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
@@ -145,13 +145,13 @@ const Reports: React.FC = () => {
             : 'Período: Todos';
 
         doc.setFontSize(18);
-        doc.text(`Relatório de ${activeTab === 'pendencias' ? 'Manutenção' : activeTab === 'reservas' ? 'Reservas' : 'Ocorrências'}`, 14, 22);
+        doc.text(`Relatório de ${activeTab === 'sugestoes' ? 'Sugestões' : activeTab === 'reservas' ? 'Reservas' : 'Ocorrências'}`, 14, 22);
         doc.setFontSize(11);
         doc.text(period, 14, 30);
 
         const tableData = (data: Record<string, number>) => Object.entries(data).sort((a, b) => b[1] - a[1]);
 
-        if (activeTab === 'pendencias') {
+        if (activeTab === 'sugestoes') {
             doc.autoTable({ startY: 40, head: [['Setor', 'Quantidade']], body: tableData(requestsBySector) });
             doc.autoTable({ head: [['Tipo', 'Quantidade']], body: tableData(requestsByType) });
         } else if (activeTab === 'reservas') {
@@ -185,13 +185,13 @@ const Reports: React.FC = () => {
         let rows: string[] = [];
         let filename = '';
 
-        if (activeTab === 'pendencias') {
+        if (activeTab === 'sugestoes') {
             headers = ["ID", "Título", "Descrição", "Autor", "Casa", "Data", "Setor", "Tipo", "Status", "Prioridade"];
             rows = filteredRequests.map(req => {
                 const author = users.find(u => u.id === req.authorId);
                 return [req.id, `"${req.title.replace(/"/g, '""')}"`, `"${req.description.replace(/"/g, '""')}"`, req.authorName, author?.houseNumber || 'N/A', new Date(req.createdAt).toLocaleString('pt-BR'), req.sector, req.type, req.status, req.priority].join(',');
             });
-            filename = 'relatorio_manutencao.csv';
+            filename = 'relatorio_sugestoes.csv';
         } else if (activeTab === 'reservas') {
             headers = ["ID", "Data", "Área", "Reservado Por", "Casa"];
             rows = filteredReservations.map(r => [
@@ -260,13 +260,13 @@ const Reports: React.FC = () => {
             <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8">
                     <button
-                        onClick={() => setActiveTab('pendencias')}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'pendencias'
+                        onClick={() => setActiveTab('sugestoes')}
+                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'sugestoes'
                             ? 'border-indigo-500 text-indigo-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
-                        Pendências
+                        Sugestões
                     </button>
                     <button
                         onClick={() => setActiveTab('reservas')}
@@ -301,17 +301,17 @@ const Reports: React.FC = () => {
             </div>
 
             {/* CONTENT */}
-            {activeTab === 'pendencias' && (
+            {activeTab === 'sugestoes' && (
                 <div className="space-y-6 animate-fade-in">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatCard title="Total de Pendências" value={requestStats.total} color="border-gray-500" />
+                        <StatCard title="Total de Sugestões" value={requestStats.total} color="border-gray-500" />
                         <StatCard title="Pendentes" value={requestStats.pending} color="border-yellow-500" />
                         <StatCard title="Em Andamento" value={requestStats.inProgress} color="border-blue-500" />
                         <StatCard title="Concluídas" value={requestStats.completed} color="border-green-500" />
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <Chart type="pie" data={requestsBySector} title="Pendências por Setor" />
-                        <Chart type="bar" data={requestsByType} title="Pendências por Tipo" />
+                        <Chart type="pie" data={requestsBySector} title="Sugestões por Setor" />
+                        <Chart type="bar" data={requestsByType} title="Sugestões por Tipo" />
                     </div>
                 </div>
             )

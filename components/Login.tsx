@@ -22,8 +22,15 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
       if (!ok) {
         setError("Usuário ou senha inválidos.");
       }
-    } catch (err) {
-      setError("Ocorreu um erro ao tentar fazer login.");
+    } catch (err: any) {
+      console.error("Login error:", err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError("Usuário ou senha incorretos.");
+      } else if (err.code === 'auth/too-many-requests') {
+        setError("Muitas tentativas falhas. Tente novamente mais tarde.");
+      } else {
+        setError("Ocorreu um erro ao tentar fazer login. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }

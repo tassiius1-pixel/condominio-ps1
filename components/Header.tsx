@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const navItems = [
     { id: "notices", label: "Início", icon: InfoIcon },
-    { id: "dashboard", label: "Pendências", icon: LayoutDashboardIcon },
+    { id: "dashboard", label: "Sugestões", icon: LayoutDashboardIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
