@@ -184,60 +184,6 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         }));
     };
 
-    const handleExportVotingPDF = (voting: Voting) => {
-        const { jsPDF } = (window as any).jspdf;
-        const doc = new jsPDF();
-
-        // Header
-        doc.setFontSize(18);
-        doc.text('Relatório de Votação', 14, 22);
-
-        doc.setFontSize(12);
-        doc.text(`Título: ${voting.title}`, 14, 32);
-
-        doc.setFontSize(10);
-        doc.text(`Descrição: ${voting.description}`, 14, 38);
-        doc.text(`Período: ${new Date(voting.startDate).toLocaleDateString()} a ${new Date(voting.endDate).toLocaleDateString()}`, 14, 44);
-        doc.text(`Total de Votos: ${voting.votes.length}`, 14, 50);
-
-        // Results Table
-        const results = calculateResults(voting);
-        const resultRows = results.map(res => [
-            res.text,
-            res.count.toString(),
-            `${res.percentage}%`
-        ]);
-
-        doc.autoTable({
-            startY: 55,
-            head: [['Opção', 'Votos', 'Porcentagem']],
-            body: resultRows,
-            theme: 'grid',
-            headStyles: { fillColor: [66, 135, 245] },
-        });
-
-        // Participating Units Table
-        const participatingUnits = voting.votes.map(v => v.houseNumber.toString()).sort((a, b) => parseInt(a) - parseInt(b));
-        // Group units into rows of 10 for better display if needed, or just a simple list
-        // For simplicity in table:
-        const unitRows = [];
-        for (let i = 0; i < participatingUnits.length; i += 5) {
-            unitRows.push(participatingUnits.slice(i, i + 5));
-        }
-
-        doc.text('Unidades Participantes:', 14, doc.lastAutoTable.finalY + 10);
-
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 15,
-            head: [['Casa', 'Casa', 'Casa', 'Casa', 'Casa']], // 5 columns
-            body: unitRows,
-            theme: 'plain',
-            styles: { fontSize: 8 },
-        });
-
-        doc.save(`relatorio_votacao_${voting.id}.pdf`);
-    };
-
     const renderVotingCard = (voting: Voting) => {
         const status = getVotingStatus(voting);
         const hasVoted = voting.votes.some(v => v.houseNumber === currentUser?.houseNumber);
@@ -245,27 +191,17 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         const isAdmin = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
 
         return (
-            <div key={voting.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 relative">
+            <div key={voting.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
                 <div className="flex justify-between items-start">
                     <div>
                         <h3 className="text-lg font-bold text-gray-800">{voting.title}</h3>
                         <p className="text-sm text-gray-500">{voting.description}</p>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                        <div className={`px-2 py-1 rounded text-xs font-bold uppercase ${status === 'active' ? 'bg-green-100 text-green-700' :
-                            status === 'future' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-gray-100 text-gray-700'
-                            }`}>
-                            {status === 'active' ? 'Em Andamento' : status === 'future' ? 'Agendada' : 'Encerrada'}
-                        </div>
-                        {isAdmin && (
-                            <button
-                                onClick={() => handleExportVotingPDF(voting)}
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
-                            >
-                                Exportar PDF
-                            </button>
-                        )}
+                    <div className={`px-2 py-1 rounded text-xs font-bold uppercase ${status === 'active' ? 'bg-green-100 text-green-700' :
+                        status === 'future' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                        }`}>
+                        {status === 'active' ? 'Em Andamento' : status === 'future' ? 'Agendada' : 'Encerrada'}
                     </div>
                 </div>
 

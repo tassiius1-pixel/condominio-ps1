@@ -408,12 +408,81 @@ const Reports: React.FC = () => {
 
                                 return (
                                     <div key={voting.id} className="bg-white rounded-lg shadow p-6 space-y-4">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-gray-800">{voting.title}</h3>
-                                            <p className="text-sm text-gray-500">{voting.description}</p>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                Período: {new Date(voting.startDate).toLocaleDateString('pt-BR')} até {new Date(voting.endDate).toLocaleDateString('pt-BR')}
-                                            </p>
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-800">{voting.title}</h3>
+                                                <p className="text-sm text-gray-500">{voting.description}</p>
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    Período: {new Date(voting.startDate).toLocaleDateString('pt-BR')} até {new Date(voting.endDate).toLocaleDateString('pt-BR')}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        const { jsPDF } = (window as any).jspdf;
+                                                        const doc = new jsPDF();
+                                                        doc.setFontSize(18);
+                                                        doc.text('Relatório de Votação (Detalhado)', 14, 22);
+                                                        doc.setFontSize(12);
+                                                        doc.text(`Título: ${voting.title}`, 14, 32);
+                                                        doc.text(`Total de Votos: ${voting.votes.length}`, 14, 38);
+
+                                                        // Results Summary
+                                                        const resultsData = results.map(res => [res.text, res.count.toString(), `${res.percentage}%`]);
+                                                        doc.autoTable({
+                                                            startY: 45,
+                                                            head: [['Opção', 'Votos', '%']],
+                                                            body: resultsData,
+                                                            theme: 'grid',
+                                                            headStyles: { fillColor: [66, 135, 245] }
+                                                        });
+
+                                                        // Individual Votes
+                                                        const votesData = voting.votes.map(v => [
+                                                            v.houseNumber.toString(),
+                                                            v.userName,
+                                                            v.optionIds.map(oid => voting.options.find(o => o.id === oid)?.text).join(', '),
+                                                            new Date(v.timestamp).toLocaleString('pt-BR')
+                                                        ]);
+
+                                                        doc.text('Votos Individuais:', 14, doc.lastAutoTable.finalY + 10);
+                                                        doc.autoTable({
+                                                            startY: doc.lastAutoTable.finalY + 15,
+                                                            head: [['Casa', 'Morador', 'Escolha', 'Data/Hora']],
+                                                            body: votesData,
+                                                            theme: 'striped',
+                                                            styles: { fontSize: 8 }
+                                                        });
+                                                        doc.save(`relatorio_votacao_${voting.id}.pdf`);
+                                                    }}
+                                                    className="px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded shadow-sm transition-colors"
+                                                >
+                                                    PDF
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        const headers = ["Casa", "Morador", "Escolha", "Data/Hora"];
+                                                        const rows = voting.votes.map(v => [
+                                                            v.houseNumber,
+                                                            `"${v.userName}"`,
+                                                            `"${v.optionIds.map(oid => voting.options.find(o => o.id === oid)?.text).join(', ')}"`,
+                                                            new Date(v.timestamp).toLocaleString('pt-BR')
+                                                        ].join(','));
+
+                                                        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+                                                        const encodedUri = encodeURI(csvContent);
+                                                        const link = document.createElement("a");
+                                                        link.setAttribute("href", encodedUri);
+                                                        link.setAttribute("download", `relatorio_votacao_${voting.id}.csv`);
+                                                        document.body.appendChild(link);
+                                                        link.click();
+                                                        document.body.removeChild(link);
+                                                    }}
+                                                    className="px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded shadow-sm transition-colors"
+                                                >
+                                                    Excel
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {/* Results */}
