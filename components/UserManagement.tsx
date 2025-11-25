@@ -93,7 +93,12 @@ const UserManagement: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-gray-800">Gerenciamento de Usuários</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-800">Gerenciamento de Usuários</h2>
+          <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold border border-blue-100 shadow-sm">
+            Total: {users.length}
+          </div>
+        </div>
         <div className="flex gap-2">
           <button onClick={handleExportPDF} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors">
             PDF
