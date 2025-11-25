@@ -112,9 +112,9 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
         if (!currentUser) return;
 
         const isOwner = reservation.userId === currentUser.id;
-        const isAdmin = [Role.ADMIN, Role.GESTAO].includes(currentUser.role);
+        const canCancelAny = [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
-        if (isOwner || isAdmin) {
+        if (isOwner || canCancelAny) {
             setReservationToCancel(reservation);
         } else {
             addToast('Você não tem permissão para cancelar esta reserva.', 'error');
@@ -290,7 +290,7 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                                                             {res.userName.split(' ')[0]} (Casa {res.houseNumber})
                                                         </p>
                                                     </div>
-                                                    {(currentUser?.id === res.userId || [Role.ADMIN, Role.GESTAO].includes(currentUser?.role || Role.MORADOR)) && (
+                                                    {(currentUser?.id === res.userId || [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR)) && (
                                                         <button
                                                             onClick={() => handleCancelClick(res)}
                                                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition"
