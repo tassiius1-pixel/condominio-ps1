@@ -46,9 +46,63 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    const { jsPDF } = (window as any).jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text('Relatório de Usuários', 14, 22);
+    doc.setFontSize(11);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+
+    const rows = users.map(user => [
+      formatName(user.name),
+      formatCPF(user.cpf),
+      user.houseNumber.toString(),
+      user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    ]);
+
+    doc.autoTable({
+      startY: 40,
+      head: [['Nome', 'CPF', 'Casa', 'Perfil']],
+      body: rows,
+    });
+
+    doc.save('relatorio_usuarios.pdf');
+  };
+
+  const handleExportExcel = () => {
+    const headers = ["Nome", "CPF", "Casa", "Perfil"];
+    const rows = users.map(user => [
+      `"${formatName(user.name)}"`,
+      `"${formatCPF(user.cpf)}"`,
+      user.houseNumber,
+      user.role
+    ].join(','));
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "relatorio_usuarios.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Gerenciamento de Usuários</h2>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">Gerenciamento de Usuários</h2>
+        <div className="flex gap-2">
+          <button onClick={handleExportPDF} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors">
+            PDF
+          </button>
+          <button onClick={handleExportExcel} className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-colors">
+            Excel
+          </button>
+        </div>
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
