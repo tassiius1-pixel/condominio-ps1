@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { XIcon } from "./Icons";
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -11,6 +12,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +91,16 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
               />
             </div>
 
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(true)}
+                className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -116,6 +128,38 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
           </p>
         </div>
       </div>
+
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 relative animate-fade-in">
+            <button
+              onClick={() => setShowForgotModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🔑</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Recuperação de Senha</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Como o sistema utiliza identificação interna, a redefinição de senha deve ser solicitada diretamente à administração.
+              </p>
+              <p className="text-sm font-medium text-indigo-800 bg-indigo-50 p-3 rounded-lg">
+                Entre em contato com o síndico ou gestão para solicitar o reset.
+              </p>
+              <button
+                onClick={() => setShowForgotModal(false)}
+                className="mt-6 w-full py-2 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

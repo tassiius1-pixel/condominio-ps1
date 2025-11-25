@@ -63,8 +63,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     else if (isNaN(Number(formData.houseNumber)))
       newErrors.houseNumber = "Número da casa inválido.";
 
-    if (formData.password.length < 4)
-      newErrors.password = "A senha deve ter ao menos 4 caracteres.";
+    if (formData.password.length < 6)
+      newErrors.password = "A senha deve ter ao menos 6 caracteres.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -208,7 +208,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
-                placeholder="Mínimo 4 caracteres"
+                placeholder="Mínimo 6 caracteres"
               />
               {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
             </div>
