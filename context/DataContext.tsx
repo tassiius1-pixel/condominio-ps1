@@ -189,7 +189,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const seedAdminUser = async () => {
     try {
       const email = "admin@condominio-ps1.local";
-      const password = "P0lyc@rt";
+      const password = "8376567";
 
       const cred = await createUserWithEmailAndPassword(auth, email, password);
 
