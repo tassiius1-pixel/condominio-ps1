@@ -76,7 +76,7 @@ interface DataContextType {
   addOccurrence: (data: Omit<Occurrence, 'id' | 'createdAt' | 'status'>) => Promise<void>;
 
   addVoting: (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => Promise<void>;
-  castVote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
+  vote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
 
   addNotice: (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => Promise<void>;
   deleteNotice: (noticeId: string) => Promise<void>;
@@ -648,7 +648,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cancelReservation,
         addOccurrence,
         addVoting,
-        castVote,
+        vote: castVote,
         notices,
         addNotice,
         deleteNotice,

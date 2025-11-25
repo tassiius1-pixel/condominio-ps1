@@ -2,6 +2,8 @@ export enum Role {
   MORADOR = 'morador',
   GESTAO = 'gestao',
   ADMIN = 'admin',
+  SINDICO = 'sindico',
+  SUBSINDICO = 'subsindico',
 }
 
 export enum Status {

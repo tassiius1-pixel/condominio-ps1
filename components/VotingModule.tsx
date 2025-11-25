@@ -115,7 +115,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
             addToast('Selecione pelo menos uma opção.', 'info');
             return;
         }
-        await vote(votingId, currentUser.id, currentUser.name, currentUser.houseNumber, choices);
+        await vote(votingId, choices, currentUser);
         // Clear selection
         setSelectedOptions(prev => {
             const newState = { ...prev };
@@ -160,7 +160,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         const status = getVotingStatus(voting);
         const hasVoted = voting.votes.some(v => v.houseNumber === currentUser?.houseNumber);
         const results = calculateResults(voting);
-        const isAdmin = [Role.ADMIN, Role.GESTAO].includes(currentUser?.role || Role.MORADOR);
+        const isAdmin = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
 
         return (
             <div key={voting.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
@@ -310,7 +310,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                 >
                     Histórico
                 </button>
-                {[Role.ADMIN, Role.GESTAO].includes(currentUser?.role || Role.MORADOR) && (
+                {[Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR) && (
                     <button
                         onClick={() => setActiveTab('create')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'create' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'

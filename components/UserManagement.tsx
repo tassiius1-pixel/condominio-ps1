@@ -3,15 +3,24 @@ import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, User } from '../types';
 import { TrashIcon } from './Icons';
+import { formatCPF, formatName } from '../utils/formatters';
 
 const UserManagement: React.FC = () => {
   const { users, updateUserRole, deleteUser } = useData();
   const { currentUser } = useAuth();
 
+  if (currentUser?.role !== Role.ADMIN && currentUser?.role !== Role.SINDICO && currentUser?.role !== Role.SUBSINDICO) {
+    // Note: SINDICO/SUBSINDICO shouldn't see this page per requirements, but if they somehow do, we block.
+    // Actually requirements say: "sindico - acesso igual de admin (porém sem acesso aos usuários)"
+    // So only Role.ADMIN should see this. The check below is correct.
+    return <p>Acesso negado.</p>;
+  }
+
+  // Double check: SINDICO/SUBSINDICO should NOT be here.
   if (currentUser?.role !== Role.ADMIN) {
     return <p>Acesso negado.</p>;
   }
-  
+
   const handleRoleChange = (userId: string, newRole: Role) => {
     updateUserRole(userId, newRole);
   };
@@ -56,8 +65,8 @@ const UserManagement: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {users.map(user => (
               <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.cpf}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatName(user.name)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCPF(user.cpf)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.houseNumber}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <select
@@ -66,18 +75,20 @@ const UserManagement: React.FC = () => {
                     disabled={user.role === Role.ADMIN}
                     className="block w-full pl-3 pr-10 py-1 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md disabled:bg-gray-200 disabled:cursor-not-allowed bg-white text-gray-900"
                   >
-                    <option value={Role.MORADOR}>morador</option>
-                    <option value={Role.GESTAO}>gestao</option>
-                    <option value={Role.ADMIN}>admin</option>
+                    <option value={Role.MORADOR}>Morador</option>
+                    <option value={Role.GESTAO}>Gestão</option>
+                    <option value={Role.SINDICO}>Síndico</option>
+                    <option value={Role.SUBSINDICO}>Subsíndico</option>
+                    {/* ADMIN removed to prevent promotion */}
                   </select>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    onClick={() => handleDeleteUser(user)} 
+                  <button
+                    onClick={() => handleDeleteUser(user)}
                     disabled={user.role === Role.ADMIN}
                     className="text-red-600 hover:text-red-900 disabled:text-gray-400 disabled:cursor-not-allowed"
-                   >
-                     <TrashIcon className="w-5 h-5"/>
+                  >
+                    <TrashIcon className="w-5 h-5" />
                   </button>
                 </td>
               </tr>

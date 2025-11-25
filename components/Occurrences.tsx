@@ -26,7 +26,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
     const [responseText, setResponseText] = useState('');
     const [activeTab, setActiveTab] = useState<'open' | 'resolved'>('open');
 
-    const isAdminOrGestao = currentUser && [Role.ADMIN, Role.GESTAO].includes(currentUser.role);
+    const canManageOccurrences = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -79,7 +79,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
     // Filter Logic
     const filteredOccurrences = occurrences.filter(occ => {
-        if (isAdminOrGestao) {
+        if (canManageOccurrences) {
             return activeTab === 'open' ? occ.status === 'Aberto' : occ.status === 'Resolvido';
         } else {
             // Residents see only their own
@@ -128,7 +128,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             )}
 
             {/* Admin Response Section */}
-            {(occ.adminResponse || (isAdminOrGestao && occ.status === 'Aberto')) && (
+            {(occ.adminResponse || (canManageOccurrences && occ.status === 'Aberto')) && (
                 <div className="mt-6 border-t pt-4">
                     <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
                         <CheckCircleIcon className="w-4 h-4 text-indigo-600" />
@@ -140,7 +140,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                             {occ.adminResponse}
                         </div>
                     ) : (
-                        isAdminOrGestao && !respondingTo && (
+                        canManageOccurrences && !respondingTo && (
                             <button
                                 onClick={() => setRespondingTo(occ.id)}
                                 className="text-sm text-indigo-600 hover:underline font-medium"
@@ -180,7 +180,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             )}
 
             {/* Admin Actions */}
-            {isAdminOrGestao && occ.status === 'Aberto' && (
+            {canManageOccurrences && occ.status === 'Aberto' && (
                 <div className="mt-4 flex justify-end">
                     <button
                         onClick={() => handleResolve(occ.id)}
@@ -216,7 +216,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             </div>
 
             {/* Tabs for Admin */}
-            {isAdminOrGestao && !isFormOpen && (
+            {canManageOccurrences && !isFormOpen && (
                 <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
                     <button
                         onClick={() => setActiveTab('open')}
@@ -347,7 +347,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     {filteredOccurrences.length === 0 ? (
                         <div className="text-center py-12 bg-white rounded-xl border border-gray-200 border-dashed">
                             <p className="text-gray-500">
-                                {isAdminOrGestao
+                                {canManageOccurrences
                                     ? `Nenhuma ocorrência ${activeTab === 'open' ? 'em aberto' : 'resolvida'}.`
                                     : "Você não possui ocorrências registradas."}
                             </p>

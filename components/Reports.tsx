@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '../hooks/useData';
+import { useAuth } from '../hooks/useAuth';
 import { Status, Role } from '../types';
 
 import { LoaderCircleIcon } from './Icons';
@@ -72,6 +73,7 @@ type ReportTab = 'pendencias' | 'reservas' | 'ocorrencias' | 'votacoes';
 
 const Reports: React.FC = () => {
     const { requests, users, reservations, occurrences, votings } = useData();
+    const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('pendencias');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -275,15 +277,17 @@ const Reports: React.FC = () => {
                     >
                         Reservas
                     </button>
-                    <button
-                        onClick={() => setActiveTab('ocorrencias')}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'ocorrencias'
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        Ocorrências
-                    </button>
+                    {[Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR) && (
+                        <button
+                            onClick={() => setActiveTab('ocorrencias')}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'ocorrencias'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Ocorrências
+                        </button>
+                    )}
                     <button
                         onClick={() => setActiveTab('votacoes')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'votacoes'

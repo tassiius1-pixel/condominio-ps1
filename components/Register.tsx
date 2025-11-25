@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { isValidCPF } from "../utils/cpfValidator";
+import { formatCPF, formatName } from "../utils/formatters";
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -21,9 +22,22 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let formattedValue = value;
+
+    if (name === 'cpf') {
+      formattedValue = formatCPF(value);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: formattedValue }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
     setMessage("");
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'name') {
+      setFormData(prev => ({ ...prev, name: formatName(value) }));
+    }
   };
 
   const validate = () => {
@@ -64,6 +78,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         cpf: formData.cpf,
         houseNumber: parseInt(formData.houseNumber, 10),
         password: formData.password,
+        email: "",
       });
 
       if (ok) {
@@ -100,8 +115,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
           {message && (
             <div className={`mb-4 p-3 border-l-4 text-sm rounded ${message.includes("sucesso")
-                ? "bg-green-50 border-green-500 text-green-700"
-                : "bg-red-50 border-red-500 text-red-700"
+              ? "bg-green-50 border-green-500 text-green-700"
+              : "bg-red-50 border-red-500 text-red-700"
               }`}>
               {message}
             </div>
@@ -119,6 +134,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
                 placeholder="Seu nome completo"
+                onBlur={handleBlur}
               />
               {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
             </div>

@@ -157,7 +157,7 @@ const App: React.FC = () => {
           <Dashboard setView={handleViewChange} />
         );
       case "reports":
-        return [Role.ADMIN, Role.GESTAO].includes(currentUser.role) ? (
+        return [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role) ? (
           <Reports />
         ) : (
           <Dashboard setView={handleViewChange} />

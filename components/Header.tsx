@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({
             {/* NAV */}
             <nav className="hidden md:flex items-center space-x-1 mr-2">
               {navItems.map(item => {
-                if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
+                if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
 
                 // Specific check for Users tab (Admin only)
                 if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
@@ -222,7 +222,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Menu Items */}
           <nav className="flex-1 overflow-y-auto py-4">
             {navItems.map(item => {
-              if (item.adminOnly && ![Role.ADMIN, Role.GESTAO].includes(currentUser.role)) return null;
+              if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
               if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
 
               const Icon = item.icon;
@@ -252,6 +252,8 @@ const Header: React.FC<HeaderProps> = ({
             <div className="text-xs text-gray-500 text-center">
               {currentUser.role === Role.ADMIN && 'Administrador'}
               {currentUser.role === Role.GESTAO && 'Gestão'}
+              {currentUser.role === Role.SINDICO && 'Síndico'}
+              {currentUser.role === Role.SUBSINDICO && 'Subsíndico'}
               {currentUser.role === Role.MORADOR && 'Morador'}
               {' • Casa '}{currentUser.houseNumber}
             </div>

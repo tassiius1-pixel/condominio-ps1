@@ -16,7 +16,7 @@ const Board: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingDrag, setPendingDrag] = useState<{ requestId: string, newStatus: Status } | null>(null);
 
-  const canDrag = currentUser?.role === Role.ADMIN || currentUser?.role === Role.GESTAO;
+  const canDrag = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
 
   const handleDragStart = (requestId: string) => {
     if (canDrag) {
