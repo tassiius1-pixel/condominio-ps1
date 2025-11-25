@@ -13,6 +13,7 @@ export enum Status {
   RECUSADA = 'Recusada',
   EM_ANDAMENTO = 'Em Andamento',
   CONCLUIDO = 'Concluído',
+  EM_VOTACAO = 'Em Votação',
 }
 
 export enum Priority {
@@ -88,6 +89,7 @@ export interface Request {
   comments: Comment[];
   likes?: string[];
   adminResponse?: string;
+  statusUpdatedAt?: string;
 }
 
 export interface Notification {

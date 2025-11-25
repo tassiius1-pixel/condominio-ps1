@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
-import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon } from './Icons';
+import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
 
 interface RequestModalProps {
@@ -22,7 +22,7 @@ interface RequestModalProps {
 
 const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const { currentUser } = useAuth();
-  const { addRequest, updateRequest, deleteRequest, addComment, addToast } = useData();
+  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, addToast } = useData();
 
   const MAX_PHOTOS = 3;
 
@@ -33,15 +33,17 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
   const [justification, setJustification] = useState('');
+  // Admin response is now handled via status change comments or quick actions, but we keep the state if needed for legacy or internal logic, 
+  // though we won't show the dedicated field anymore as requested.
   const [adminResponse, setAdminResponse] = useState(request?.adminResponse || '');
 
   // ===== COMENTÁRIOS =====
   const [comments, setComments] = useState<Comment[]>(request?.comments || []);
   const [newComment, setNewComment] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
 
   useEffect(() => {
-    // Se a pendência for atualizada pelo Firestore enquanto o modal está aberto,
-    // mantemos os comentários sincronizados.
     setComments(request?.comments || []);
   }, [request?.comments]);
 
@@ -52,11 +54,14 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
 
   if (!currentUser) return null;
 
-  const canManage = currentUser.role === Role.ADMIN || currentUser.role === Role.GESTAO;
+  const canManage = currentUser.role === Role.ADMIN ||
+    currentUser.role === Role.GESTAO ||
+    currentUser.role === Role.SINDICO ||
+    currentUser.role === Role.SUBSINDICO;
   const isAuthor = currentUser.id === request?.authorId;
 
   // =============================
-  // Upload de Fotos (Supabase Storage)
+  // Upload de Fotos
   // =============================
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -88,7 +93,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     if (!title.trim()) errs.title = 'O título é obrigatório.';
     if (!description.trim()) errs.description = 'A descrição é obrigatória.';
 
-    // Validação de justificativa se status mudou
     if (request && status !== request.status && !justification.trim()) {
       errs.justification = 'A justificativa é obrigatória para alteração de status.';
     }
@@ -105,9 +109,17 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     if (!validateForm()) return;
 
     if (request) {
-      // Se status mudou, adiciona comentário de sistema
+      // Se status mudou, adiciona comentário de sistema E atualiza adminResponse
+      let finalAdminResponse = adminResponse;
+
       if (status !== request.status) {
-        const statusChangeText = `Alterou de "${request.status}" para "${status}".\nJustificativa: ${justification}`;
+        // Se mudou status e tem justificativa, essa vira a nova resposta oficial
+        if (justification) {
+          finalAdminResponse = justification;
+        }
+
+        // Também adicionamos ao histórico como comentário
+        const statusChangeText = `Alterou o status para "${status}". Justificativa: ${justification}`;
         addComment(request.id, {
           authorId: currentUser.id,
           authorName: currentUser.name,
@@ -124,7 +136,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
         sector,
         status,
         photos,
-        adminResponse,
+        adminResponse: finalAdminResponse,
       };
       updateRequest(updated);
     } else {
@@ -150,34 +162,36 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   };
 
   // =============================
-  // ADICIONAR COMENTÁRIO
+  // COMENTÁRIOS
   // =============================
   const handleAddComment = () => {
     if (!newComment.trim() || !request) return;
-
     const text = newComment.trim();
 
-    // Atualiza visualmente na hora (otimista)
-    const tempComment: Comment = {
-      id: `temp-${Date.now()}`,
-      authorId: currentUser.id,
-      authorName: currentUser.name,
-      houseNumber: currentUser.houseNumber,
-      text,
-      createdAt: new Date().toISOString(),
-    };
-
-    setComments(prev => [...prev, tempComment]);
-
-    // Grava no Firestore via contexto (que vai criar o id definitivo)
     addComment(request.id, {
       authorId: currentUser.id,
       authorName: currentUser.name,
       houseNumber: currentUser.houseNumber,
       text,
     });
-
     setNewComment('');
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.text);
+  };
+
+  const handleSaveEditedComment = (commentId: string) => {
+    if (!request || !editingCommentText.trim()) return;
+    updateComment(request.id, commentId, editingCommentText);
+    setEditingCommentId(null);
+    setEditingCommentText('');
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    if (!request || !confirm('Excluir comentário?')) return;
+    deleteComment(request.id, commentId);
   };
 
   const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -192,9 +206,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     setIsLightboxOpen(true);
   };
 
-  // =============================
-  // Campo de SELECT genérico
-  // =============================
   const renderSelect = (
     label: string,
     value: any,
@@ -225,9 +236,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     </div>
   );
 
-  // =============================
-  // RENDERIZAÇÃO
-  // =============================
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
@@ -312,39 +320,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               )}
             </div>
 
-            {/* Resposta da Gestão (Visível apenas para Gestão) */}
-            {canManage && (
-              <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-                <label className="block text-sm font-medium text-blue-800">
-                  Resposta Oficial da Gestão
-                </label>
-                <textarea
-                  value={adminResponse}
-                  onChange={e => setAdminResponse(e.target.value)}
-                  rows={3}
-                  className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-blue-300 
-                    focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Escreva uma resposta oficial para esta sugestão..."
-                />
-                <div className="flex justify-end mt-2">
-                  {adminResponse !== (request?.adminResponse || '') && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (request) {
-                          updateRequest({ ...request, adminResponse });
-                        }
-                      }}
-                      className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      Salvar Resposta
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Justificativa de Status (se status mudou) */}
             {canManage && request && status !== request.status && (
               <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">
@@ -403,7 +378,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               </div>
             </div>
 
-            {/* COMENTÁRIOS (somente quando já existe pendência) */}
+            {/* COMENTÁRIOS */}
             {request && (
               <div className="mt-6 border-t pt-4 space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -419,52 +394,109 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
 
                   {[...comments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(comment => {
                     const isStatusChange = comment.type === 'status_change';
-                    const isConcluido = comment.newStatus === Status.CONCLUIDO;
+                    const isApproved = comment.newStatus === 'Aprovada' || comment.newStatus === 'Concluído';
+                    const isRejected = comment.newStatus === 'Recusada';
+
+                    // Cores dinâmicas para comentários de status
+                    let bgClass = 'bg-gray-50';
+                    let borderClass = '';
+                    let textClass = 'text-gray-800';
+                    let badgeClass = '';
+
+                    if (isStatusChange) {
+                      if (isApproved) {
+                        bgClass = 'bg-green-50';
+                        borderClass = 'border border-green-200';
+                        textClass = 'text-green-900 font-medium';
+                        badgeClass = 'bg-green-200 text-green-800';
+                      } else if (isRejected) {
+                        bgClass = 'bg-red-50';
+                        borderClass = 'border border-red-200';
+                        textClass = 'text-red-900 font-medium';
+                        badgeClass = 'bg-red-200 text-red-800';
+                      } else {
+                        bgClass = 'bg-blue-50';
+                        borderClass = 'border border-blue-200';
+                        textClass = 'text-blue-900 font-medium';
+                        badgeClass = 'bg-blue-200 text-blue-800';
+                      }
+                    }
+
+                    const isCommentAuthor = currentUser.id === comment.authorId;
+                    const canEditComment = isCommentAuthor || canManage;
 
                     return (
                       <div
                         key={comment.id}
-                        className={`rounded-md px-3 py-2 ${isStatusChange
-                          ? isConcluido
-                            ? 'bg-green-50 border border-green-200'
-                            : 'bg-yellow-50 border border-yellow-200'
-                          : 'bg-gray-50'
-                          }`}
+                        className={`rounded-md px-3 py-2 ${bgClass} ${borderClass} group relative`}
                       >
-                        <div className="flex justify-between items-start">
-                          <p className={`text-sm whitespace-pre-wrap ${isStatusChange
-                            ? isConcluido ? 'text-green-900 font-medium' : 'text-yellow-900 font-medium'
-                            : 'text-gray-800'
-                            }`}>
-                            {comment.text}
-                          </p>
-                          {isStatusChange && comment.newStatus && (
-                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 ${isConcluido
-                              ? 'bg-green-200 text-green-800'
-                              : 'bg-yellow-200 text-yellow-800'
-                              }`}>
-                              {comment.newStatus}
-                            </span>
-                          )}
-                        </div>
-                        <p className={`mt-1 text-[11px] ${isStatusChange
-                          ? isConcluido ? 'text-green-600' : 'text-yellow-600'
-                          : 'text-gray-500'
-                          }`}>
-                          - {comment.authorName.split(' ')[0]} {comment.houseNumber ? `(Casa ${comment.houseNumber})` : ''}{' '}
-                          {comment.createdAt &&
-                            (() => {
-                              const d = new Date(comment.createdAt);
-                              const data = d.toLocaleDateString('pt-BR');
-                              const hora = d
-                                .toLocaleTimeString('pt-BR', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                                .replace(':', 'h');
-                              return `em ${data}, ${hora}`;
-                            })()}
-                        </p>
+                        {editingCommentId === comment.id ? (
+                          <div className="flex flex-col gap-2">
+                            <textarea
+                              value={editingCommentText}
+                              onChange={(e) => setEditingCommentText(e.target.value)}
+                              className="w-full text-sm p-2 border rounded"
+                              rows={2}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setEditingCommentId(null)}
+                                className="text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEditedComment(comment.id)}
+                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700"
+                              >
+                                Salvar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex justify-between items-start">
+                              <p className={`text-sm whitespace-pre-wrap ${textClass}`}>
+                                {comment.text}
+                              </p>
+                              {isStatusChange && comment.newStatus && (
+                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 shrink-0 ${badgeClass}`}>
+                                  {comment.newStatus}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex justify-between items-end mt-1">
+                              <p className={`text-[11px] ${isStatusChange ? 'opacity-80' : 'text-gray-500'}`}>
+                                - {comment.authorName.split(' ')[0]} {comment.houseNumber ? `(Casa ${comment.houseNumber})` : ''}{' '}
+                                {comment.createdAt && new Date(comment.createdAt).toLocaleDateString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+
+                              {/* Action Buttons */}
+                              {canEditComment && !isStatusChange && (
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditComment(comment)}
+                                    className="text-gray-400 hover:text-indigo-600"
+                                    title="Editar"
+                                  >
+                                    <EditIcon className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className="text-gray-400 hover:text-red-600"
+                                    title="Excluir"
+                                  >
+                                    <TrashIcon className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     );
                   })}

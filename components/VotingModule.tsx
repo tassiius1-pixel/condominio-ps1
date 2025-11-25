@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
-import { Role, Voting, VotingOption } from '../types';
+import { Role, Voting, VotingOption, Status } from '../types';
 import { TrashIcon, PlusIcon, CheckIcon, UploadIcon, XIcon, ChevronLeftIcon } from './Icons';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -10,7 +10,7 @@ interface VotingModuleProps {
 }
 
 const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
-    const { votings, addVoting, vote, addToast } = useData();
+    const { votings, addVoting, vote, addToast, updateRequestStatus } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'active' | 'history' | 'create'>('active');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -18,14 +18,16 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
     // Create Voting State
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [originRequestId, setOriginRequestId] = useState<string | null>(null);
 
     React.useEffect(() => {
         const draft = localStorage.getItem('draft_voting');
         if (draft) {
             try {
-                const { title, description } = JSON.parse(draft);
+                const { title, description, requestId } = JSON.parse(draft);
                 setTitle(title);
                 setDescription(description);
+                if (requestId) setOriginRequestId(requestId);
                 setActiveTab('create');
                 localStorage.removeItem('draft_voting');
             } catch (e) {
@@ -78,11 +80,16 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
             return;
         }
 
-        const votingOptions: VotingOption[] = options.map((opt, index) => ({
-            id: `opt-${Date.now()}-${index}`,
-            text: opt.text,
-            imageUrl: opt.imageUrl,
-        }));
+        const votingOptions: VotingOption[] = options.map((opt, index) => {
+            const option: VotingOption = {
+                id: `opt-${Date.now()}-${index}`,
+                text: opt.text,
+            };
+            if (opt.imageUrl) {
+                option.imageUrl = opt.imageUrl;
+            }
+            return option;
+        });
 
         await addVoting({
             title,
@@ -93,6 +100,12 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
             allowMultipleChoices: allowMultiple,
             createdBy: currentUser?.id || 'unknown',
         });
+
+        // If this voting originated from a suggestion, update its status
+        if (originRequestId) {
+            await updateRequestStatus(originRequestId, Status.EM_VOTACAO, 'Sugestão colocada em votação.', currentUser?.id);
+            setOriginRequestId(null);
+        }
 
         // Reset form
         setTitle('');
