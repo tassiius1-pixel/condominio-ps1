@@ -134,7 +134,7 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
 
         // Empty cells for previous month
         for (let i = 0; i < emptyDays; i++) {
-            days.push(<div key={`empty-${i}`} className="h-14 md:h-24 bg-gray-50/30 border-b border-r border-gray-100"></div>);
+            days.push(<div key={`empty-${i}`} className="h-12 md:h-16 bg-gray-50/30 border-b border-r border-gray-100"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -157,13 +157,13 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                     key={day}
                     onClick={() => isClickable && setSelectedDate(date)}
                     className={`
-                        h-14 md:h-24 border-b border-r border-gray-100 p-1 transition-all relative flex flex-col items-center justify-start gap-0.5 group
+                        h-12 md:h-16 border-b border-r border-gray-100 p-1 transition-all relative flex flex-col items-center justify-start gap-0.5 group
                         ${!isClickable ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:shadow-inner'}
                         ${isSelected ? 'bg-blue-50/50 ring-inset ring-2 ring-blue-500 z-10' : 'bg-white'}
                     `}
                 >
                     <span className={`
-                        text-xs md:text-sm font-medium w-6 h-6 md:w-7 md:h-7 flex items-center justify-center rounded-full transition-colors
+                        text-xs font-medium w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full transition-colors
                         ${isToday ? 'bg-blue-600 text-white shadow-md' : (isSelected ? 'text-blue-700 font-bold' : 'text-gray-700')}
                         ${!isClickable && !isToday ? 'text-gray-300' : ''}
                     `}>
@@ -171,22 +171,22 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                     </span>
 
                     {/* Dot Indicators for Month View */}
-                    <div className="flex gap-0.5 md:gap-1 mt-0.5 flex-wrap justify-center content-start w-full px-0.5">
+                    <div className="flex gap-0.5 justify-center content-start w-full px-0.5">
                         {hasSalao && (
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-500 shadow-sm" title="Salão de Festas Reservado"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-sm" title="Salão de Festas Reservado"></div>
                         )}
                         {hasChurrasco1 && (
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-orange-500 shadow-sm" title="Churrasqueira 1 Reservada"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm" title="Churrasqueira 1 Reservada"></div>
                         )}
                         {hasChurrasco2 && (
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-amber-400 shadow-sm" title="Churrasqueira 2 Reservada"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm" title="Churrasqueira 2 Reservada"></div>
                         )}
                     </div>
 
                     {/* Text Labels (Desktop Only - if space permits, or on hover) */}
                     <div className="hidden md:flex flex-col gap-0.5 w-full mt-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         {dayReservations.length > 0 && (
-                            <span className="text-[9px] text-center text-gray-500 font-medium bg-gray-100 rounded-full py-0.5 px-1 mx-auto scale-90">
+                            <span className="text-[8px] text-center text-gray-500 font-medium bg-gray-100 rounded-full px-1 mx-auto scale-90">
                                 {dayReservations.length}
                             </span>
                         )}
@@ -206,15 +206,15 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
         isReserved,
         isDisabled
     }: any) => (
-        <div className={`relative overflow-hidden rounded-xl border transition-all duration-300 ${isReserved ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-white border-gray-200 hover:shadow-md hover:border-gray-300'}`}>
-            <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClass}`}>
-                        <Icon className="w-5 h-5" />
+        <div className={`relative overflow-hidden rounded-lg border transition-all duration-300 ${isReserved ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-white border-gray-200 hover:shadow-md hover:border-gray-300'}`}>
+            <div className="p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClass}`}>
+                        <Icon className="w-4 h-4" />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-gray-900">{label}</h4>
-                        <p className="text-xs text-gray-500">
+                        <h4 className="text-xs font-bold text-gray-900">{label}</h4>
+                        <p className="text-[10px] text-gray-500">
                             {isReserved ? 'Indisponível' : 'Disponível'}
                         </p>
                     </div>
@@ -223,14 +223,14 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                 {!isReserved && !isDisabled && (
                     <button
                         onClick={() => handleReserve(area)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors ${btnColorClass}`}
+                        className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-colors ${btnColorClass}`}
                     >
                         Reservar
                     </button>
                 )}
 
                 {isReserved && (
-                    <span className="px-2 py-1 bg-gray-200 text-gray-500 text-[10px] font-bold uppercase rounded">
+                    <span className="px-1.5 py-0.5 bg-gray-200 text-gray-500 text-[9px] font-bold uppercase rounded">
                         Ocupado
                     </span>
                 )}
@@ -241,35 +241,35 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     );
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10">
+        <div className="space-y-4 animate-fade-in pb-4">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reservas</h1>
-                    <p className="text-gray-500 text-sm mt-1">Gerencie e visualize a disponibilidade das áreas comuns.</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">Reservas</h1>
+                    <p className="text-gray-500 text-xs mt-0.5">Gerencie e visualize a disponibilidade.</p>
                 </div>
 
                 {/* Month Navigation */}
-                <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200 p-1 self-start">
-                    <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition">
-                        <ChevronLeftIcon className="w-5 h-5" />
+                <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 p-0.5 self-start">
+                    <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-50 rounded-md text-gray-600 transition">
+                        <ChevronLeftIcon className="w-4 h-4" />
                     </button>
-                    <span className="px-4 text-sm font-bold text-gray-800 min-w-[140px] text-center capitalize">
+                    <span className="px-3 text-sm font-bold text-gray-800 min-w-[120px] text-center capitalize">
                         {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                     </span>
-                    <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition">
-                        <ChevronRightIcon className="w-5 h-5" />
+                    <button onClick={handleNextMonth} className="p-1.5 hover:bg-gray-50 rounded-md text-gray-600 transition">
+                        <ChevronRightIcon className="w-4 h-4" />
                     </button>
                 </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex flex-col lg:flex-row gap-4">
                 {/* Calendar Grid */}
-                <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Weekday Headers */}
                     <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/50">
                         {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                            <div key={day} className="py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            <div key={day} className="py-2 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                 {day}
                             </div>
                         ))}
@@ -281,59 +281,54 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                     </div>
 
                     {/* Legend Footer */}
-                    <div className="p-4 bg-gray-50 flex flex-wrap gap-4 justify-center md:justify-start border-t border-gray-200">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-                            <span className="text-xs text-gray-600 font-medium">Salão de Festas</span>
+                    <div className="p-2 bg-gray-50 flex flex-wrap gap-3 justify-center md:justify-start border-t border-gray-200">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                            <span className="text-[10px] text-gray-600 font-medium">Salão</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
-                            <span className="text-xs text-gray-600 font-medium">Churrasqueira 1</span>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <span className="text-[10px] text-gray-600 font-medium">Churrasq. 1</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
-                            <span className="text-xs text-gray-600 font-medium">Churrasqueira 2</span>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                            <span className="text-[10px] text-gray-600 font-medium">Churrasq. 2</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Sidebar / Details Panel */}
-                <div className="w-full lg:w-96 space-y-6">
+                <div className="w-full lg:w-80 space-y-4">
                     {/* Selected Date Info */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden sticky top-6">
-                        <div className="p-6 border-b border-gray-100 bg-gray-50/30">
-                            <h3 className="text-lg font-bold text-gray-900">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-4">
+                        <div className="p-4 border-b border-gray-100 bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-900">
                                 {selectedDate ? (
                                     selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
                                 ) : (
                                     <span className="text-gray-400">Selecione uma data</span>
                                 )}
                             </h3>
-                            {selectedDate && (
-                                <p className="text-xs text-gray-500 mt-1 font-medium uppercase tracking-wide">
-                                    Status e Disponibilidade
-                                </p>
-                            )}
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        <div className="p-4 space-y-3">
                             {!selectedDate ? (
-                                <div className="text-center py-10">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <ChevronLeftIcon className="w-6 h-6 text-blue-300 rotate-90 md:rotate-0" />
+                                <div className="text-center py-6">
+                                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <ChevronLeftIcon className="w-4 h-4 text-blue-300 rotate-90 md:rotate-0" />
                                     </div>
-                                    <p className="text-sm text-gray-500">
-                                        Clique em um dia no calendário para ver os detalhes.
+                                    <p className="text-xs text-gray-500">
+                                        Clique em um dia para ver detalhes.
                                     </p>
                                 </div>
                             ) : (
                                 <>
                                     {/* Facilities List */}
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         <FacilityCard
                                             area="salao_festas"
                                             label="Salão de Festas"
-                                            icon={(props: any) => <div {...props}>🎉</div>} // Placeholder icon if needed, or use real icons
+                                            icon={(props: any) => <div {...props}>🎉</div>}
                                             colorClass="bg-purple-100 text-purple-600"
                                             btnColorClass="bg-purple-600 text-white hover:bg-purple-700"
                                             isReserved={getReservationsForDate(selectedDate).some(r => r.area === 'salao_festas')}
@@ -363,21 +358,21 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
 
                                     {/* Current Reservations List */}
                                     {getReservationsForDate(selectedDate).length > 0 && (
-                                        <div className="pt-6 border-t border-gray-100">
-                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Reservas Confirmadas</h4>
+                                        <div className="pt-4 border-t border-gray-100">
+                                            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Reservas Confirmadas</h4>
                                             <div className="space-y-2">
                                                 {getReservationsForDate(selectedDate).map(res => (
-                                                    <div key={res.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-2 h-8 rounded-full ${res.area === 'salao_festas' ? 'bg-purple-500' :
-                                                                res.area === 'churrasco1' ? 'bg-orange-500' : 'bg-amber-400'
+                                                    <div key={res.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-1.5 h-6 rounded-full ${res.area === 'salao_festas' ? 'bg-purple-500' :
+                                                                    res.area === 'churrasco1' ? 'bg-orange-500' : 'bg-amber-400'
                                                                 }`}></div>
                                                             <div>
                                                                 <p className="text-xs font-bold text-gray-700">
                                                                     Casa {res.houseNumber}
                                                                 </p>
                                                                 <p className="text-[10px] text-gray-500">
-                                                                    {res.userName.split(' ')[0]} • {res.area === 'salao_festas' ? 'Salão' : res.area === 'churrasco1' ? 'Churrasq. 1' : 'Churrasq. 2'}
+                                                                    {res.userName.split(' ')[0]} • {res.area === 'salao_festas' ? 'Salão' : res.area === 'churrasco1' ? 'C1' : 'C2'}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -385,10 +380,10 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                                                         {(currentUser?.id === res.userId || [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR)) && (
                                                             <button
                                                                 onClick={() => handleCancelClick(res)}
-                                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition"
                                                                 title="Cancelar Reserva"
                                                             >
-                                                                <TrashIcon className="w-4 h-4" />
+                                                                <TrashIcon className="w-3.5 h-3.5" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -402,27 +397,27 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                     </div>
 
                     {/* Rules Card */}
-                    <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-                        <h4 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-                            <span className="text-lg">ℹ️</span> Regras Importantes
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                        <h4 className="text-xs font-bold text-blue-900 mb-2 flex items-center gap-1.5">
+                            <span className="text-sm">ℹ️</span> Regras
                         </h4>
-                        <ul className="text-xs text-blue-800 space-y-2 leading-relaxed">
-                            <li className="flex gap-2">
+                        <ul className="text-[10px] text-blue-800 space-y-1.5 leading-relaxed">
+                            <li className="flex gap-1.5">
                                 <span className="font-bold">•</span>
-                                <span><strong>Churrasqueiras:</strong> Antecedência máx. de 15 dias.</span>
+                                <span><strong>Churrasqueiras:</strong> Max 15 dias antes.</span>
                             </li>
-                            <li className="flex gap-2">
+                            <li className="flex gap-1.5">
                                 <span className="font-bold">•</span>
-                                <span><strong>Salão de Festas:</strong> Antecedência máx. de 6 meses.</span>
+                                <span><strong>Salão:</strong> Max 6 meses antes.</span>
                             </li>
-                            <li className="flex gap-2">
+                            <li className="flex gap-1.5">
                                 <span className="font-bold">•</span>
-                                <span><strong>Exclusividade:</strong> Não é permitido reservar Salão e Churrasqueira no mesmo dia.</span>
+                                <span><strong>Exclusividade:</strong> Salão OU Churrasqueira.</span>
                             </li>
                             {currentUser?.role === Role.ADMIN && (
-                                <li className="flex gap-2 text-red-600 font-bold mt-2 pt-2 border-t border-blue-200">
+                                <li className="flex gap-1.5 text-red-600 font-bold mt-1 pt-1 border-t border-blue-200">
                                     <span>•</span>
-                                    <span>ADMIN: Acesso irrestrito a datas e casas.</span>
+                                    <span>ADMIN: Acesso total.</span>
                                 </li>
                             )}
                         </ul>
