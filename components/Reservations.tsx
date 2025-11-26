@@ -168,8 +168,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                     key={day}
                     onClick={() => isClickable && setSelectedDate(date)}
                     className={`
-                        h-14 md:h-24 border-b border-r border-gray-100 p-1 transition-all relative flex flex-col items-center justify-start gap-0.5 group
-                        ${isPast ? 'bg-gray-100' : 'bg-white'}
+                        h-14 md:h-24 border-b border-r p-1 transition-all relative flex flex-col items-center justify-start gap-0.5 group
+                        ${isPast ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-100'}
                         ${!isClickable ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer hover:bg-white hover:shadow-inner'}
                         ${isSelected ? '!bg-blue-50/50 ring-inset ring-2 ring-blue-500 z-10' : ''}
                     `}
