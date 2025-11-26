@@ -19,7 +19,7 @@ interface AuthContextType {
   currentUser: User | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (data: Omit<User, "id" | "role">) => Promise<boolean>;
+  register: (data: Omit<User, "id" | "role">) => Promise<{ success: boolean; message?: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // REGISTRO ------------------------------------------------------
   const register = async (
     data: Omit<User, "id" | "role">
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; message?: string }> => {
     try {
       const email = usernameToEmail(data.username);
 
@@ -100,24 +100,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // 2) Grava no Firestore
       // Passamos o UID para evitar que o addUser tente criar no Auth novamente
       const newUser = await addUser(data, uid);
-      if (!newUser) return false;
+      if (!newUser) {
+        return { success: false, message: "Erro ao salvar dados no banco de dados." };
+      }
 
       setCurrentUser(newUser);
-      return true;
+      return { success: true };
     } catch (err: any) {
       console.error("Erro ao registrar:", err);
 
       let msg = "Erro ao cadastrar usuário.";
       if (err.code === 'auth/email-already-in-use') {
-        msg = "Este nome de usuário já está em uso.";
+        msg = "Este nome de usuário já está em uso. Tente outro ou faça login.";
       } else if (err.code === 'auth/weak-password') {
-        msg = "A senha é muito fraca.";
+        msg = "A senha é muito fraca. Use pelo menos 6 caracteres.";
       } else if (err.code === 'auth/invalid-email') {
         msg = "Nome de usuário inválido.";
+      } else if (err.code === 'auth/network-request-failed') {
+        msg = "Erro de conexão. Verifique sua internet.";
       }
 
-      addToast(msg, "error");
-      return false;
+      return { success: false, message: msg };
     }
   };
 

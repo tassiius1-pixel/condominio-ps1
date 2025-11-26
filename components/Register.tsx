@@ -81,7 +81,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     }
 
     try {
-      const ok = await register({
+      const result = await register({
         name: formData.name,
         username: formData.username,
         cpf: formData.cpf,
@@ -90,13 +90,13 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         email: "",
       });
 
-      if (ok) {
+      if (result.success) {
         setMessage("Cadastro realizado com sucesso!");
         setTimeout(() => {
           onSwitchToLogin();
         }, 1500);
       } else {
-        setMessage("Erro ao cadastrar. Verifique os dados.");
+        setMessage(result.message || "Erro ao cadastrar. Verifique os dados.");
       }
     } catch (err) {
       setMessage("Ocorreu um erro ao tentar cadastrar.");
