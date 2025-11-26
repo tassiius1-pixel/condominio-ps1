@@ -16,6 +16,17 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [reservationToCancel, setReservationToCancel] = useState<Reservation | null>(null);
+    const detailsRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (selectedDate && detailsRef.current) {
+            // Small delay to ensure the DOM has updated if necessary, though usually not needed with React's batching, 
+            // but helps with smooth scrolling after layout shifts.
+            setTimeout(() => {
+                detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    }, [selectedDate]);
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -300,7 +311,7 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                 {/* Sidebar / Details Panel */}
                 <div className="w-full lg:w-80 space-y-4">
                     {/* Selected Date Info */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-4">
+                    <div ref={detailsRef} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-4">
                         <div className="p-4 border-b border-gray-100 bg-gray-50/30">
                             <h3 className="text-sm font-bold text-gray-900">
                                 {selectedDate ? (
@@ -365,7 +376,7 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                                                     <div key={res.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
                                                         <div className="flex items-center gap-2">
                                                             <div className={`w-1.5 h-6 rounded-full ${res.area === 'salao_festas' ? 'bg-purple-500' :
-                                                                    res.area === 'churrasco1' ? 'bg-orange-500' : 'bg-amber-400'
+                                                                res.area === 'churrasco1' ? 'bg-orange-500' : 'bg-amber-400'
                                                                 }`}></div>
                                                             <div>
                                                                 <p className="text-xs font-bold text-gray-700">
