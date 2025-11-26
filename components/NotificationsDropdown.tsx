@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useData } from "../hooks/useData";
 import { useAuth } from "../hooks/useAuth";
-import { Notification } from "../types";
+import type { Notification } from "../types";
 import { db } from "../services/firebase";
 import { doc, writeBatch } from "firebase/firestore";
 import { TrashIcon, XIcon } from "./Icons";
@@ -137,7 +137,28 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
           );
         })}
       </div>
-    </div>
+
+
+      {/* Footer para ativar notificações */}
+      {
+        Notification.permission === 'default' && (
+          <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
+            <button
+              onClick={() => {
+                Notification.requestPermission().then(permission => {
+                  if (permission === 'granted') {
+                    addToast("Notificações ativadas!", "success");
+                  }
+                });
+              }}
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors w-full py-1 rounded-lg hover:bg-blue-50"
+            >
+              Ativar Notificações Push
+            </button>
+          </div>
+        )
+      }
+    </div >
   );
 };
 
