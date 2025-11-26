@@ -16,7 +16,7 @@ import {
     CheckCircleIcon
 } from './Icons';
 import ConfirmModal from './ConfirmModal';
-import { fileToBase64 } from '../utils/fileUtils';
+import { fileToBase64, compressImage } from '../utils/fileUtils';
 
 interface NoticesProps {
     setView: (view: View) => void;
@@ -48,47 +48,48 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
     const [photos, setPhotos] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const canManageNotices = currentUser && [Role.ADMIN, Role.GESTAO].includes(currentUser.role);
+    // FIX: Permissions restricted to ADMIN, SINDICO, SUBSINDICO as requested
+    const canManageNotices = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
     // Filter Notices
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // today.setHours(0, 0, 0, 0); // Keep time precision for "New" badge
 
     const activeNotices = notices.filter(n => {
         if (!n.endDate) return true; // Keep if no end date (legacy)
         const end = new Date(n.endDate);
         const now = new Date();
         return end >= now;
-    });
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Sort by newest
 
     const historyNotices = notices.filter(n => {
         if (!n.endDate) return false;
         const end = new Date(n.endDate);
         const now = new Date();
         return end < now;
-    });
+    }).sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
 
     // Dashboard Data
     const activeVoting = votings.find(v => {
         const end = new Date(v.endDate);
         end.setHours(23, 59, 59, 999);
-        return end >= today;
+        return end >= new Date();
     });
 
     const userReservations = reservations
         .filter(r => r.userId === currentUser?.id)
         .filter(r => {
-            // Fix date timezone issue by appending time
             const resDate = new Date(r.date + 'T12:00:00');
             resDate.setHours(0, 0, 0, 0);
-            return resDate >= today;
+            const todayZero = new Date();
+            todayZero.setHours(0, 0, 0, 0);
+            return resDate >= todayZero;
         })
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const nextReservation = userReservations[0];
 
     const openOccurrences = occurrences.filter(o => o.authorId === currentUser?.id && o.status === 'Aberto').length;
-    const lastNotice = activeNotices[0];
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -97,10 +98,38 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
         return 'Boa noite';
     };
 
+    const handleOpenModal = () => {
+        // Set default dates: Start = Now, End = Now + 7 days
+        const now = new Date();
+        const nextWeek = new Date(now);
+        nextWeek.setDate(now.getDate() + 7);
+
+        // Adjust for timezone offset to show correct local time in input
+        const toLocalISO = (date: Date) => {
+            const offset = date.getTimezoneOffset() * 60000;
+            return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+        };
+
+        setStartDate(toLocalISO(now));
+        setEndDate(toLocalISO(nextWeek));
+
+        setNewTitle('');
+        setNewContent('');
+        setPhotos([]);
+        setIsModalOpen(true);
+    };
+
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            const base64 = await fileToBase64(e.target.files[0]);
-            setPhotos([...photos, base64]);
+            try {
+                // Use compressImage instead of raw fileToBase64
+                // This prevents "Document size must be less than 1 MiB" errors in Firestore
+                const base64 = await compressImage(e.target.files[0]);
+                setPhotos([...photos, base64]);
+            } catch (error) {
+                console.error("Error compressing image:", error);
+                alert("Erro ao processar a imagem. Tente uma imagem menor.");
+            }
         }
     };
 
@@ -123,14 +152,17 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                 endDate,
                 photos
             });
-            setNewTitle('');
-            setNewContent('');
-            setStartDate('');
-            setEndDate('');
-            setPhotos([]);
             setIsModalOpen(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error creating notice:", error);
+            // Show user-friendly error
+            let msg = "Erro ao publicar aviso.";
+            if (error.message && error.message.includes("size")) {
+                msg = "O aviso é muito grande (provavelmente as fotos). Tente remover algumas fotos.";
+            } else if (error.code === 'permission-denied') {
+                msg = "Você não tem permissão para publicar avisos.";
+            }
+            alert(msg);
         } finally {
             setIsSubmitting(false);
         }
@@ -147,197 +179,178 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
         const isLiked = notice.likes.includes(currentUser?.id || '');
         const isDisliked = notice.dislikes.includes(currentUser?.id || '');
 
+        // Check if notice is "New" (created in the last 24h)
+        const isNew = (new Date().getTime() - new Date(notice.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+
         return (
-            <div key={notice.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <div key={notice.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300 group">
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-900">{notice.title}</h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                                Publicado por <span className="font-medium text-gray-700">{notice.authorName}</span>
-                                {' • '}
-                                {new Date(notice.startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} até {new Date(notice.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                        <div className="flex gap-3">
+                            <div className="mt-1">
+                                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                    <InfoIcon className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-lg font-bold text-gray-900 leading-tight">{notice.title}</h3>
+                                    {isNew && (
+                                        <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                            Novo
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    <span className="font-medium text-gray-700">{notice.authorName}</span>
+                                    {' • '}
+                                    {new Date(notice.startDate).toLocaleDateString('pt-BR')}
+                                </p>
+                            </div>
                         </div>
                         {canManageNotices && (
                             <button
                                 onClick={() => setNoticeToDelete(notice.id)}
-                                className="text-gray-400 hover:text-red-500 transition p-1 rounded-full hover:bg-red-50"
+                                className="text-gray-300 hover:text-red-500 transition p-1.5 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100"
                                 title="Excluir aviso"
                             >
-                                <TrashIcon className="w-5 h-5" />
+                                <TrashIcon className="w-4 h-4" />
                             </button>
                         )}
                     </div>
 
-                    <div className="prose prose-indigo max-w-none mb-6 text-gray-700 whitespace-pre-wrap leading-relaxed">
-                        {notice.content}
-                    </div>
-
-                    {/* Photos */}
-                    {notice.photos && notice.photos.length > 0 && (
-                        <div className="flex gap-2 overflow-x-auto pb-4 mb-2">
-                            {notice.photos.map((photo, idx) => (
-                                <img
-                                    key={idx}
-                                    src={photo}
-                                    alt={`Anexo ${idx + 1}`}
-                                    className="h-32 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition"
-                                    onClick={() => setSelectedImage(photo)}
-                                />
-                            ))}
+                    <div className="pl-[52px]">
+                        <div className="prose prose-sm prose-indigo max-w-none mb-4 text-gray-600 whitespace-pre-wrap leading-relaxed">
+                            {notice.content}
                         </div>
-                    )}
 
-                    <div className="flex items-center gap-4 border-t pt-4 mt-4">
-                        <button
-                            onClick={() => currentUser && toggleNoticeReaction(notice.id, currentUser.id, 'like')}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${isLiked
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                }`}
-                        >
-                            <ThumbsUpIcon className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                            <span>{notice.likes.length}</span>
-                        </button>
+                        {/* Photos */}
+                        {notice.photos && notice.photos.length > 0 && (
+                            <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide">
+                                {notice.photos.map((photo, idx) => (
+                                    <img
+                                        key={idx}
+                                        src={photo}
+                                        alt={`Anexo ${idx + 1}`}
+                                        className="h-24 w-auto rounded-lg object-cover cursor-zoom-in hover:opacity-95 transition border border-gray-100"
+                                        onClick={() => setSelectedImage(photo)}
+                                    />
+                                ))}
+                            </div>
+                        )}
 
-                        <button
-                            onClick={() => currentUser && toggleNoticeReaction(notice.id, currentUser.id, 'dislike')}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${isDisliked
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                }`}
-                        >
-                            <ThumbsDownIcon className={`w-4 h-4 ${isDisliked ? 'fill-current' : ''}`} />
-                            <span>{notice.dislikes.length}</span>
-                        </button>
+                        <div className="flex items-center gap-3 pt-2">
+                            <button
+                                onClick={() => currentUser && toggleNoticeReaction(notice.id, currentUser.id, 'like')}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${isLiked
+                                    ? 'bg-blue-50 text-blue-600'
+                                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                                    }`}
+                            >
+                                <ThumbsUpIcon className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                                <span>{notice.likes.length || 'Curtir'}</span>
+                            </button>
+
+                            <button
+                                onClick={() => currentUser && toggleNoticeReaction(notice.id, currentUser.id, 'dislike')}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${isDisliked
+                                    ? 'bg-red-50 text-red-600'
+                                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                                    }`}
+                            >
+                                <ThumbsDownIcon className={`w-3.5 h-3.5 ${isDisliked ? 'fill-current' : ''}`} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         );
     };
 
-    const SummaryCards = () => {
-        // Only show cards if there is relevant data
+    const SummarySidebar = () => {
         const hasActiveVoting = !!activeVoting;
         const hasNextReservation = !!nextReservation;
         const hasOpenOccurrences = openOccurrences > 0;
-        const hasActiveNotice = !!lastNotice;
 
-        const hasAnyNews = hasActiveVoting || hasNextReservation || hasOpenOccurrences || hasActiveNotice;
-
-        if (!hasAnyNews) {
+        if (!hasActiveVoting && !hasNextReservation && !hasOpenOccurrences) {
             return (
-                <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center animate-fade-in">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                        <CheckCircleIcon className="w-10 h-10 text-green-600" />
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <CheckCircleIcon className="w-6 h-6 text-gray-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Sem novidades ativas</h3>
-                    <p className="text-gray-500 max-w-md">
-                        Tudo tranquilo por aqui! Você não tem pendências, reservas próximas ou votações em aberto.
+                    <p className="text-sm text-gray-500">
+                        Você não tem pendências ou atividades próximas.
                     </p>
                 </div>
             );
         }
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
-                {/* Votações - Show only if active */}
+            <div className="space-y-4">
+                {/* Votações */}
                 {hasActiveVoting && (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
-                        <div>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <BarChartIcon className="w-6 h-6 text-purple-600" />
-                                </div>
-                                <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">Ativo</span>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-purple-100 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div className="relative">
+                            <div className="flex items-center gap-2 mb-2">
+                                <BarChartIcon className="w-4 h-4 text-purple-600" />
+                                <span className="text-xs font-bold text-purple-600 uppercase tracking-wide">Votação Ativa</span>
                             </div>
-                            <h3 className="text-sm font-medium text-gray-500 mb-1">Votação em Andamento</h3>
-                            <p className="text-lg font-bold text-gray-900 leading-tight">
-                                {activeVoting.title}
-                            </p>
+                            <h3 className="font-bold text-gray-900 leading-tight mb-3">{activeVoting.title}</h3>
+                            <button
+                                onClick={() => setView('voting')}
+                                className="text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 px-3 py-1.5 rounded-lg transition w-full text-center"
+                            >
+                                Participar
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setView('voting')}
-                            className="text-sm text-purple-600 font-medium mt-4 hover:underline text-left"
-                        >
-                            Votar agora &gt;
-                        </button>
                     </div>
                 )}
 
-                {/* Próxima Reserva - Show only if exists */}
+                {/* Próxima Reserva */}
                 {hasNextReservation && (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
-                        <div>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <CalendarIcon className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Futuro</span>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div className="relative">
+                            <div className="flex items-center gap-2 mb-2">
+                                <CalendarIcon className="w-4 h-4 text-blue-600" />
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">Sua Reserva</span>
                             </div>
-                            <h3 className="text-sm font-medium text-gray-500 mb-1">Sua Próxima Reserva</h3>
-                            <p className="text-lg font-bold text-gray-900 leading-tight">
+                            <p className="text-lg font-bold text-gray-900">
                                 {new Date(nextReservation.date + 'T12:00:00').toLocaleDateString('pt-BR')}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-xs text-gray-600 mb-3">
                                 {nextReservation.area === 'salao_festas' ? 'Salão de Festas' : nextReservation.area === 'churrasco1' ? 'Churrasqueira 1' : 'Churrasqueira 2'}
                             </p>
+                            <button
+                                onClick={() => setView('reservations')}
+                                className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition w-full text-center"
+                            >
+                                Ver Detalhes
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setView('reservations')}
-                            className="text-sm text-blue-600 font-medium mt-4 hover:underline text-left"
-                        >
-                            Ver detalhes &gt;
-                        </button>
                     </div>
                 )}
 
-                {/* Minhas Ocorrências - Show only if > 0 */}
+                {/* Ocorrências */}
                 {hasOpenOccurrences && (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-orange-500">
-                        <div>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                    <AlertTriangleIcon className="w-6 h-6 text-orange-600" />
-                                </div>
-                                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">Atenção</span>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-orange-100 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-orange-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div className="relative">
+                            <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangleIcon className="w-4 h-4 text-orange-600" />
+                                <span className="text-xs font-bold text-orange-600 uppercase tracking-wide">Pendente</span>
                             </div>
-                            <h3 className="text-sm font-medium text-gray-500 mb-1">Ocorrências Abertas</h3>
-                            <p className="text-lg font-bold text-gray-900 leading-tight">
-                                {openOccurrences} pendente{openOccurrences > 1 ? 's' : ''}
+                            <p className="text-sm text-gray-800 mb-3">
+                                Você tem <span className="font-bold">{openOccurrences}</span> ocorrência(s) em aberto.
                             </p>
+                            <button
+                                onClick={() => setView('occurrences')}
+                                className="text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition w-full text-center"
+                            >
+                                Acompanhar
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setView('occurrences')}
-                            className="text-sm text-orange-600 font-medium mt-4 hover:underline text-left"
-                        >
-                            Acompanhar &gt;
-                        </button>
-                    </div>
-                )}
-
-                {/* Último Aviso - Show only if exists */}
-                {hasActiveNotice && (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-green-500">
-                        <div>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <InfoIcon className="w-6 h-6 text-green-600" />
-                                </div>
-                                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">Novo</span>
-                            </div>
-                            <h3 className="text-sm font-medium text-gray-500 mb-1">Último Aviso</h3>
-                            <p className="text-lg font-bold text-gray-900 leading-tight line-clamp-2">
-                                {lastNotice.title}
-                            </p>
-                        </div>
-                        <a
-                            href="#avisos-section"
-                            className="text-sm text-green-600 font-medium mt-4 hover:underline text-left block"
-                        >
-                            Ler aviso &gt;
-                        </a>
                     </div>
                 )}
             </div>
@@ -345,100 +358,111 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-gray-200">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        {getGreeting()}, {currentUser?.name.split(' ')[0]}!
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                        {getGreeting()}, {currentUser?.name.split(' ')[0]}
                     </h1>
-                    <p className="text-gray-500 mt-1">
-                        Aqui está o resumo do seu condomínio hoje.
+                    <p className="text-gray-500 text-sm mt-1">
+                        Acompanhe os comunicados e atividades do condomínio.
                     </p>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex bg-gray-100 p-1 rounded-lg self-start md:self-auto">
+                    <button
+                        onClick={() => setActiveTab('active')}
+                        className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${activeTab === 'active' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Mural
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${activeTab === 'history' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Histórico
+                    </button>
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
-                <button
-                    onClick={() => setActiveTab('active')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'active' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                    Início
-                </button>
-                <button
-                    onClick={() => setActiveTab('history')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'history' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                    Histórico de Avisos
-                </button>
-            </div>
-
-            {/* Content */}
-            {activeTab === 'active' ? (
-                <>
-                    {/* Active Notices List - PRIORITY: Above Summary Cards */}
-                    {activeNotices.length > 0 && (
-                        <div id="avisos-section" className="space-y-6 pt-2 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Main Content - Notices (2/3) */}
+                <div className="lg:col-span-2 space-y-6">
+                    {activeTab === 'active' ? (
+                        <>
                             <div className="flex justify-between items-center">
-                                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                                    <InfoIcon className="w-6 h-6 text-indigo-600" />
-                                    Avisos Importantes
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <InfoIcon className="w-5 h-5 text-indigo-600" />
+                                    Quadro de Avisos
                                 </h2>
                                 {canManageNotices && (
                                     <button
-                                        onClick={() => setIsModalOpen(true)}
-                                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition shadow-sm"
+                                        onClick={handleOpenModal}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
                                     >
-                                        <PlusIcon className="w-5 h-5 mr-2" />
+                                        <PlusIcon className="w-4 h-4" />
                                         Novo Aviso
                                     </button>
                                 )}
                             </div>
-                            <div className="grid gap-6">
-                                {activeNotices.map(renderNoticeCard)}
-                            </div>
+
+                            {activeNotices.length > 0 ? (
+                                <div className="space-y-4">
+                                    {activeNotices.map(renderNoticeCard)}
+                                </div>
+                            ) : (
+                                /* Empty State */
+                                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-center">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                                        <InfoIcon className="w-8 h-8 text-gray-300" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-1">Nenhum aviso no momento</h3>
+                                    <p className="text-gray-500 text-sm max-w-xs mx-auto mb-6">
+                                        O quadro de avisos está vazio. Fique tranquilo, notificaremos você quando houver novidades.
+                                    </p>
+                                    {canManageNotices && (
+                                        <button
+                                            onClick={handleOpenModal}
+                                            className="text-indigo-600 font-medium text-sm hover:underline"
+                                        >
+                                            Criar um comunicado agora
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        /* History Tab */
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-bold text-gray-800">Histórico de Comunicados</h2>
+                            {historyNotices.length === 0 ? (
+                                <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    Nenhum aviso antigo encontrado.
+                                </p>
+                            ) : (
+                                historyNotices.map(renderNoticeCard)
+                            )}
                         </div>
                     )}
+                </div>
 
-                    {/* Summary Cards (Dynamic) */}
-                    <div className={activeNotices.length > 0 ? "pt-8 border-t border-gray-200" : "pt-2"}>
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">Resumo Geral</h2>
-                        <SummaryCards />
-                    </div>
-
-                    {/* If no notices, show Create button here too */}
-                    {activeNotices.length === 0 && canManageNotices && (
-                        <div className="flex justify-center pt-8 border-t border-gray-200">
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm"
-                            >
-                                <PlusIcon className="w-5 h-5 mr-2" />
-                                Criar Primeiro Aviso
-                            </button>
-                        </div>
-                    )}
-                </>
-            ) : (
-                <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Histórico de Avisos</h2>
-                    <div className="grid gap-6">
-                        {historyNotices.length === 0 ? (
-                            <p className="text-gray-500 text-center py-10">Nenhum aviso no histórico.</p>
-                        ) : (
-                            historyNotices.map(renderNoticeCard)
-                        )}
+                {/* Sidebar - Summary (1/3) */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4">Resumo Rápido</h2>
+                        <SummarySidebar />
                     </div>
                 </div>
-            )}
+            </div>
 
             {/* Modal de Novo Aviso */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                            <h3 className="text-xl font-bold text-gray-900">Novo Aviso</h3>
+                            <h3 className="text-xl font-bold text-gray-900">Novo Comunicado</h3>
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
@@ -450,7 +474,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                         <form onSubmit={handleCreateNotice} className="p-6 space-y-4">
                             <div>
                                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Título
+                                    Título do Aviso
                                 </label>
                                 <input
                                     type="text"
@@ -465,7 +489,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Início da Exibição</label>
                                     <input
                                         type="datetime-local"
                                         value={startDate}
@@ -475,7 +499,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Fim</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Fim da Exibição</label>
                                     <input
                                         type="datetime-local"
                                         value={endDate}
@@ -507,11 +531,11 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                 <div className="flex flex-wrap gap-2">
                                     {photos.map((photo, idx) => (
                                         <div key={idx} className="relative w-20 h-20">
-                                            <img src={photo} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                                            <img src={photo} alt="Preview" className="w-full h-full object-cover rounded-lg border border-gray-200" />
                                             <button
                                                 type="button"
                                                 onClick={() => removePhoto(idx)}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600"
+                                                className="absolute -top-2 -right-2 bg-white text-red-500 border border-gray-200 rounded-full p-1 shadow-sm hover:bg-red-50"
                                             >
                                                 <XIcon className="w-3 h-3" />
                                             </button>
@@ -525,18 +549,18 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
                                 >
                                     {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
                                 </button>
@@ -549,19 +573,19 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
             {/* Image Lightbox */}
             {selectedImage && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
                     onClick={() => setSelectedImage(null)}
                 >
                     <button
                         onClick={() => setSelectedImage(null)}
-                        className="absolute top-4 right-4 p-2 bg-white rounded-full hover:bg-gray-100 transition"
+                        className="absolute top-4 right-4 p-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition"
                     >
-                        <XIcon className="w-6 h-6 text-gray-800" />
+                        <XIcon className="w-6 h-6" />
                     </button>
                     <img
                         src={selectedImage}
                         alt="Ampliação"
-                        className="max-w-full max-h-full object-contain"
+                        className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>
