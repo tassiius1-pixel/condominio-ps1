@@ -47,21 +47,22 @@
   <script>
     if ("serviceWorker" in navigator) {
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      // Verifica se o app está instalado (modo standalone)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-      if (isIOS) {
-        // 🔥 iOS: Força a remoção de qualquer Service Worker existente
-        // Isso corrige a "tela branca" causada por SWs antigos ou incompatíveis
+      // Se for iOS e NÃO estiver instalado (estiver no navegador Safari), remove o SW para evitar bugs
+      if (isIOS && !isStandalone) {
+        console.log("iOS no navegador detectado: Desativando SW para evitar conflitos.");
         navigator.serviceWorker.getRegistrations().then((registrations) => {
           for (let registration of registrations) {
             registration.unregister();
-            console.log("Service Worker removido no iOS para evitar conflitos.");
           }
         });
       } else if (typeof Notification !== "undefined") {
-        // Android/Desktop: Registra normalmente
+        // Registra se for Android, Desktop OU iOS Instalado (Standalone)
         navigator.serviceWorker
           .register("/firebase-messaging-sw.js")
-          .then((reg) => console.log("FCM SW registrado:", reg))
+          .then((reg) => console.log("FCM SW registrado (PWA/Android/Desktop):", reg))
           .catch((err) => console.error("Erro ao registrar FCM SW:", err));
       }
     }
