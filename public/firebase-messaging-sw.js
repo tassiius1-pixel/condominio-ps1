@@ -31,7 +31,10 @@ messaging.onBackgroundMessage((payload) => {
 // ===============================
 // CACHE / PWA (Offline Support)
 // ===============================
-const CACHE_NAME = 'porto-seguro-v1';
+// ===============================
+// CACHE / PWA (Offline Support)
+// ===============================
+const CACHE_NAME = 'porto-seguro-v2'; // Bump version to force cache refresh
 const urlsToCache = [
     '/',
     '/index.html',
@@ -40,6 +43,7 @@ const urlsToCache = [
 
 // Install SW
 self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Force activation immediately
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
@@ -51,15 +55,31 @@ self.addEventListener('install', (event) => {
 
 // Listen for requests
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
-            })
-    );
+    // Strategy: Network First for HTML (navigation), Cache First for assets
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    return caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, response.clone());
+                        return response;
+                    });
+                })
+                .catch(() => {
+                    return caches.match(event.request);
+                })
+        );
+    } else {
+        event.respondWith(
+            caches.match(event.request)
+                .then((response) => {
+                    if (response) {
+                        return response;
+                    }
+                    return fetch(event.request);
+                })
+        );
+    }
 });
 
 // Activate the SW
