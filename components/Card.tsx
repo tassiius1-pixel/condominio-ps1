@@ -163,57 +163,57 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
           relative group
         `}
       >
-        <div className="flex gap-3 mb-3">
-          {/* Main Content Column */}
-          <div className="flex-1 min-w-0">
-            {/* Header: Title & Status */}
-            <div className="flex justify-between items-start gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className={`shrink-0 p-1 rounded-md ${isSuggestion ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-600'}`}>
-                  {typeIcons[request.type]}
-                </span>
-                <div className="min-w-0">
-                  <h4 className="font-bold text-gray-800 text-sm leading-tight truncate pr-2">{request.title}</h4>
-                  <p className="text-[11px] text-gray-500 truncate">{formattedDate} • {authorDisplay}</p>
-                </div>
+        <div className="mb-3">
+          {/* Header: Title & Status (Now Full Width) */}
+          <div className="flex justify-between items-start gap-2 mb-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={`shrink-0 p-1 rounded-md ${isSuggestion ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-600'}`}>
+                {typeIcons[request.type]}
+              </span>
+              <div className="min-w-0">
+                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate pr-2">{request.title}</h4>
+                <p className="text-[11px] text-gray-500 truncate">{formattedDate} • {authorDisplay}</p>
               </div>
-
-              {/* Status Badge - Compact */}
-              {request.status !== 'Pendente' && (
-                <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide
-                  ${(request.status === 'Concluído' || request.status === 'Aprovada') ? 'bg-green-100 text-green-700' :
-                    (request.status === 'Em Andamento' || request.status === 'Em Análise') ? 'bg-blue-100 text-blue-700' :
-                      request.status === 'Em Votação' ? 'bg-yellow-100 text-yellow-700' :
-                        request.status === 'Recusada' ? 'bg-red-100 text-red-700' :
-                          'bg-gray-100 text-gray-700'}`}>
-                  {request.status}
-                </span>
-              )}
             </div>
 
-            {/* Description */}
-            <p className="text-sm text-gray-700 mt-1.5 line-clamp-2 leading-relaxed">
-              {request.description}
-            </p>
-
-            {/* Admin Response Preview (Dynamic Colors) */}
-            {request.adminResponse && (
-              <div className={`mt-3 ${responseStyle.bg} border ${responseStyle.border} rounded-lg p-2.5 relative ${responseStyle.hover} transition-colors`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className={`w-1 h-3 ${responseStyle.bar} rounded-full`}></div>
-                  <span className={`text-[10px] font-bold ${responseStyle.label} uppercase tracking-wide`}>Resposta da Gestão</span>
-                </div>
-                <p className={`text-xs ${responseStyle.text} leading-relaxed pl-2.5 border-l ${responseStyle.borderL}`}>
-                  {request.adminResponse}
-                </p>
-              </div>
+            {/* Status Badge - Top Right */}
+            {request.status !== 'Pendente' && (
+              <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide
+                ${(request.status === 'Concluído' || request.status === 'Aprovada') ? 'bg-green-100 text-green-700' :
+                  (request.status === 'Em Andamento' || request.status === 'Em Análise') ? 'bg-blue-100 text-blue-700' :
+                    request.status === 'Em Votação' ? 'bg-yellow-100 text-yellow-700' :
+                      request.status === 'Recusada' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'}`}>
+                {request.status}
+              </span>
             )}
           </div>
 
-          {/* Image Thumbnail Column (Right Side) - Always render to keep alignment */}
-          <div className="shrink-0 relative w-20 h-20 ml-1">
+          {/* Body: Description + Image (Bottom Right) */}
+          <div className="flex gap-3">
+            <div className="flex-1 min-w-0">
+              {/* Description */}
+              <p className="text-sm text-gray-700 mt-1.5 line-clamp-2 leading-relaxed">
+                {request.description}
+              </p>
+
+              {/* Admin Response Preview */}
+              {request.adminResponse && (
+                <div className={`mt-3 ${responseStyle.bg} border ${responseStyle.border} rounded-lg p-2.5 relative ${responseStyle.hover} transition-colors`}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <div className={`w-1 h-3 ${responseStyle.bar} rounded-full`}></div>
+                    <span className={`text-[10px] font-bold ${responseStyle.label} uppercase tracking-wide`}>Resposta da Gestão</span>
+                  </div>
+                  <p className={`text-xs ${responseStyle.text} leading-relaxed pl-2.5 border-l ${responseStyle.borderL}`}>
+                    {request.adminResponse}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Image Thumbnail - Bottom Right of Content Area */}
             {request.photos.length > 0 && (
-              <>
+              <div className="shrink-0 relative w-20 h-20 self-end">
                 <img
                   src={request.photos[0]}
                   alt="Anexo"
@@ -228,7 +228,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                     <span className="text-white font-bold text-sm">+{request.photos.length - 1}</span>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         </div>
