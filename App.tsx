@@ -14,12 +14,16 @@ import Occurrences from "./components/Occurrences";
 import VotingModule from "./components/VotingModule";
 import Notices from "./components/Notices";
 import { useData } from "./hooks/useData";
+
 import {
   XIcon,
   CheckCircleIcon,
   AlertTriangleIcon,
   InfoIcon,
 } from "./components/Icons";
+
+// 🔥 IMPORTAÇÃO DO FCM
+import { requestPushPermission } from "./services/pushNotifications";
 
 const Toast: React.FC<{ toast: ToastType; onDismiss: (id: string) => void }> = ({
   toast,
@@ -84,7 +88,6 @@ const Toast: React.FC<{ toast: ToastType; onDismiss: (id: string) => void }> = (
   );
 };
 
-
 const App: React.FC = () => {
   const { currentUser } = useAuth();
   const { toasts, removeToast } = useData();
@@ -127,18 +130,21 @@ const App: React.FC = () => {
     setCondoLogo(logoBase64);
   };
 
+  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN
+  useEffect(() => {
+    if (currentUser) {
+      requestPushPermission(currentUser.id);
+    }
+  }, [currentUser]);
+
   const renderContent = () => {
-    // sem usuário logado → tela de login/cadastro
     if (!currentUser) {
       if (authView === "login") {
-        return (
-          <Login onSwitchToRegister={() => setAuthView("register")} />
-        );
+        return <Login onSwitchToRegister={() => setAuthView("register")} />;
       }
       return <Register onSwitchToLogin={() => setAuthView("login")} />;
     }
 
-    // com usuário logado → dashboard / usuários / relatórios
     switch (mainView) {
       case "notices":
         return <Notices setView={handleViewChange} />;
@@ -157,7 +163,9 @@ const App: React.FC = () => {
           <Dashboard setView={handleViewChange} />
         );
       case "reports":
-        return [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role) ? (
+        return [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(
+          currentUser.role
+        ) ? (
           <Reports />
         ) : (
           <Dashboard setView={handleViewChange} />
@@ -187,18 +195,14 @@ const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Container de toasts (notificações) */}
+      {/* Container de toasts */}
       <div
         aria-live="assertive"
         className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-[100]"
       >
         <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
           {toasts.map((toast) => (
-            <Toast
-              key={toast.id}
-              toast={toast}
-              onDismiss={removeToast}
-            />
+            <Toast key={toast.id} toast={toast} onDismiss={removeToast} />
           ))}
         </div>
       </div>
