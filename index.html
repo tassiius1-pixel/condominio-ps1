@@ -45,18 +45,24 @@
   <!-- 🔥 REGISTRO DO SERVICE WORKER FCM -->
   <!-- =============================== -->
   <script>
-    // Registrar o SW do FCM APENAS se o navegador suportar Messaging
-    if ("serviceWorker" in navigator && typeof Notification !== "undefined") {
-      // iOS NÃO suporta FCM Web Push → evita travamento
+    if ("serviceWorker" in navigator) {
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-      if (!isIOS) {
+      if (isIOS) {
+        // 🔥 iOS: Força a remoção de qualquer Service Worker existente
+        // Isso corrige a "tela branca" causada por SWs antigos ou incompatíveis
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let registration of registrations) {
+            registration.unregister();
+            console.log("Service Worker removido no iOS para evitar conflitos.");
+          }
+        });
+      } else if (typeof Notification !== "undefined") {
+        // Android/Desktop: Registra normalmente
         navigator.serviceWorker
           .register("/firebase-messaging-sw.js")
           .then((reg) => console.log("FCM SW registrado:", reg))
           .catch((err) => console.error("Erro ao registrar FCM SW:", err));
-      } else {
-        console.log("iOS detectado — FCM Web Push desabilitado.");
       }
     }
   </script>
