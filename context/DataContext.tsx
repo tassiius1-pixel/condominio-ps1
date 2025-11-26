@@ -36,7 +36,7 @@ interface DataContextType {
   loading: boolean;
   removeToast: (id: string) => void;
   findUserByCpf: (cpf: string) => User | undefined;
-  addUser: (userData: Omit<User, "id" | "role">) => Promise<User | null>;
+  addUser: (userData: Omit<User, "id" | "role">, authUid?: string) => Promise<User | null>;
   updateUserRole: (userId: string, role: Role) => void;
   deleteUser: (userId: string) => void;
   addRequest: (
@@ -219,49 +219,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
 
   // ADD USER
-  const addUser = async (userData: Omit<User, "id" | "role">) => {
+  const addUser = async (userData: Omit<User, "id" | "role">, authUid?: string) => {
     const email = `${userData.username.toLowerCase().replace(/\s+/g, '')}@condominio-ps1.local`;
-    const password = userData.password;
+
+    // Se já temos o UID (veio do AuthContext), usamos ele.
+    // Se não, precisamos criar o usuário no Auth via função (ex: admin criando usuário).
+    let uid = authUid;
 
     try {
-      // 1. Criar no Firebase Auth (via fetch para Supabase Functions ou direto se estivesse configurado)
-      // Como estamos usando a API simulada/proxy ou direta:
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/create-firebase-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-          },
-          body: JSON.stringify({ email, password, displayName: userData.name }),
+      if (!uid) {
+        // 1. Criar no Firebase Auth via Supabase Function
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/create-firebase-user`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({ email, password: userData.password, displayName: userData.name }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Erro ao criar usuário no Auth");
         }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao criar usuário no Auth");
+        uid = data.uid;
       }
 
-      const uid = data.uid;
-
-      // 2. Criar no Firestore com o MESMO ID
-      await updateDoc(doc(db, "users", uid), { // Usamos setDoc/updateDoc se o ID for definido, mas aqui é novo
-        // Na verdade, precisamos usar setDoc para definir o ID
-      });
-      // Correção: Como não importei setDoc, vou usar addDoc e depois atualizar ou usar a lógica anterior que funcionava
-      // A lógica anterior usava addDoc e deixava o Firestore gerar o ID, o que DESVINCULA do Auth.
-      // O correto é usar o UID do Auth como ID do documento.
-
-      // Voltando ao padrão anterior que funcionava para o usuário (addDoc):
-      // O usuário disse que funcionava, então vamos manter a lógica de addDoc por enquanto para não quebrar,
-      // mas o ideal seria setDoc(doc(db, 'users', uid), ...)
+      // 2. Criar no Firestore
+      // Idealmente usaríamos setDoc com o uid para vincular Auth e Firestore.
+      // Mas para manter compatibilidade com o código existente que usa addDoc (IDs aleatórios),
+      // vamos manter addDoc por enquanto, ou migrar gradualmente.
+      // O problema do addDoc é que desvincula o ID do documento do UID do Auth.
+      // Vamos usar addDoc para não quebrar nada que dependa de IDs gerados pelo Firestore,
+      // mas salvar o uid do Auth dentro do documento para referência futura seria bom.
 
       const docRef = await addDoc(collection(db, "users"), {
         ...userData,
         role: Role.MORADOR,
         email,
+        authUid: uid // Salvando o UID do Auth para referência
       });
 
       const newUser: User = {
@@ -273,8 +273,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       addToast("Usuário cadastrado com sucesso!", "success");
       return newUser;
-    } catch (e) {
-      addToast("Erro ao cadastrar usuário.", "error");
+    } catch (e: any) {
+      console.error("Erro no addUser:", e);
+      // Tentar extrair mensagem de erro mais útil
+      const msg = e.message || "Erro desconhecido";
+      if (msg.includes("email-already-in-use")) {
+        addToast("Nome de usuário já existe.", "error");
+      } else {
+        addToast("Erro ao cadastrar usuário: " + msg, "error");
+      }
       return null;
     }
   };

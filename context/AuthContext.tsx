@@ -94,17 +94,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const email = usernameToEmail(data.username);
 
       // 1) Cria no Firebase Auth
-      await createUserWithEmailAndPassword(auth, email, data.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, data.password);
+      const uid = userCredential.user.uid;
 
       // 2) Grava no Firestore
-      const newUser = await addUser(data);
+      // Passamos o UID para evitar que o addUser tente criar no Auth novamente
+      const newUser = await addUser(data, uid);
       if (!newUser) return false;
 
       setCurrentUser(newUser);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro ao registrar:", err);
-      addToast("Erro ao cadastrar usuário.", "error");
+
+      let msg = "Erro ao cadastrar usuário.";
+      if (err.code === 'auth/email-already-in-use') {
+        msg = "Este nome de usuário já está em uso.";
+      } else if (err.code === 'auth/weak-password') {
+        msg = "A senha é muito fraca.";
+      } else if (err.code === 'auth/invalid-email') {
+        msg = "Nome de usuário inválido.";
+      }
+
+      addToast(msg, "error");
       return false;
     }
   };
