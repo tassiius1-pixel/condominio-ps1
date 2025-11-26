@@ -6,30 +6,56 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Condomínio Porto Seguro 1</title>
+
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2563eb">
   <link rel="apple-touch-icon" href="/logo.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Import Map -->
   <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1"
+  {
+    "imports": {
+      "react/": "https://aistudiocdn.com/react@^19.2.0/",
+      "react": "https://aistudiocdn.com/react@^19.2.0",
+      "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+      "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1"
+    }
   }
-}
-</script>
+  </script>
 </head>
 
 <body class="bg-gray-100">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
+
+  <!-- =============================== -->
+  <!-- 🔥 REGISTRO DO SERVICE WORKER FCM -->
+  <!-- =============================== -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      // Service Worker do Firebase Cloud Messaging
+      navigator.serviceWorker
+        .register("/firebase-messaging-sw.js")
+        .then((reg) => {
+          console.log("FCM Service Worker registrado:", reg);
+        })
+        .catch((err) => console.error("Erro ao registrar FCM SW:", err));
+    }
+  </script>
+
 </body>
 
 </html>

@@ -141,15 +141,49 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
 
       {/* Footer para ativar notificações */}
       {
-        Notification.permission === 'default' && (
+        Notification.permission !== 'granted' && currentUser && (
           <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
             <button
-              onClick={() => {
-                Notification.requestPermission().then(permission => {
-                  if (permission === 'granted') {
-                    addToast("Notificações ativadas!", "success");
+              onClick={async () => {
+                try {
+                  const permission = await Notification.requestPermission();
+
+                  if (permission !== "granted") {
+                    addToast("Você precisa permitir notificações.", "error");
+                    return;
                   }
-                });
+
+                  // Importa messaging e VAPID key
+                  const { messagingPromise, vapidKey } = await import("../services/firebase");
+                  const messaging = await messagingPromise;
+
+                  if (!messaging) {
+                    addToast("Navegador não suporta notificações push.", "error");
+                    return;
+                  }
+
+                  // Obtém token FCM
+                  const { getToken } = await import("firebase/messaging");
+                  const token = await getToken(messaging, { vapidKey });
+
+                  if (!token) {
+                    addToast("Erro ao gerar token de notificações.", "error");
+                    return;
+                  }
+
+                  // Salva token no Firestore
+                  const { db } = await import("../services/firebase");
+                  const { doc, updateDoc } = await import("firebase/firestore");
+
+                  const userRef = doc(db, "users", currentUser.id);
+                  await updateDoc(userRef, { fcmToken: token });
+
+                  addToast("Notificações ativadas com sucesso!", "success");
+
+                } catch (error) {
+                  console.error("Erro ao ativar notificações:", error);
+                  addToast("Erro ao ativar notificações.", "error");
+                }
               }}
               className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors w-full py-1 rounded-lg hover:bg-blue-50"
             >
