@@ -3,7 +3,7 @@ import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, Occurrence } from '../types';
 import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon } from './Icons';
-import { fileToBase64 } from '../utils/fileUtils';
+import { uploadPhoto } from '../services/storage';
 
 interface OccurrencesProps {
     setView?: (view: any) => void;
@@ -28,10 +28,33 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
     const canManageOccurrences = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const base64 = await fileToBase64(e.target.files[0]);
-            setPhotos([...photos, base64]);
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        setIsUploading(true);
+        const file = e.target.files[0];
+
+        try {
+            addToast("Enviando foto...", "info");
+            // Use 'ocorrencias' folder in the storage bucket
+            const url = await uploadPhoto(file, "ocorrencias");
+
+            if (url) {
+                setPhotos(prev => [...prev, url]);
+                addToast("Foto adicionada com sucesso!", "success");
+            } else {
+                addToast("Erro ao enviar foto. Tente novamente.", "error");
+            }
+        } catch (error) {
+            console.error("Erro no upload:", error);
+            addToast("Erro ao processar a imagem.", "error");
+        } finally {
+            setIsUploading(false);
+            // Reset input value to allow selecting the same file again if needed
+            e.target.value = '';
         }
     };
 
@@ -43,21 +66,29 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         e.preventDefault();
         if (!currentUser) return;
 
-        await addOccurrence({
-            authorId: currentUser.id,
-            authorName: currentUser.name,
-            houseNumber: currentUser.houseNumber,
-            phone,
-            subject,
-            description,
-            photos
-        });
+        setIsSubmitting(true);
+        try {
+            await addOccurrence({
+                authorId: currentUser.id,
+                authorName: currentUser.name,
+                houseNumber: currentUser.houseNumber,
+                phone,
+                subject,
+                description,
+                photos
+            });
 
-        setIsFormOpen(false);
-        setPhone('');
-        setSubject('');
-        setDescription('');
-        setPhotos([]);
+            setIsFormOpen(false);
+            setPhone('');
+            setSubject('');
+            setDescription('');
+            setPhotos([]);
+        } catch (error) {
+            console.error("Erro ao registrar ocorrência:", error);
+            addToast("Erro ao registrar ocorrência. Verifique se as fotos não são muito grandes.", "error");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleAdminResponse = async (id: string) => {
@@ -334,9 +365,10 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                             </button>
                             <button
                                 type="submit"
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium"
+                                disabled={isSubmitting || isUploading}
+                                className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium ${(isSubmitting || isUploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                Registrar
+                                {isSubmitting ? 'Registrando...' : (isUploading ? 'Enviando foto...' : 'Registrar')}
                             </button>
                         </div>
                     </form>
