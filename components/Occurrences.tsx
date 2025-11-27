@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, Occurrence } from '../types';
-import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon } from './Icons';
+import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon } from './Icons';
 import { uploadPhoto } from '../services/storage';
 
 interface OccurrencesProps {
@@ -10,7 +10,7 @@ interface OccurrencesProps {
 }
 
 const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
-    const { occurrences, addOccurrence, updateOccurrence, addToast } = useData();
+    const { occurrences, addOccurrence, updateOccurrence, deleteOccurrence, addToast } = useData();
     const { currentUser } = useAuth();
     const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -20,6 +20,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
     const [description, setDescription] = useState('');
     const [photos, setPhotos] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [editingOccurrence, setEditingOccurrence] = useState<Occurrence | null>(null);
 
     // Admin Response State
     const [respondingTo, setRespondingTo] = useState<string | null>(null);
@@ -62,30 +63,56 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         setPhotos(photos.filter((_, i) => i !== index));
     };
 
+    const handleEdit = (occ: Occurrence) => {
+        setEditingOccurrence(occ);
+        setPhone(occ.phone);
+        setSubject(occ.subject);
+        setDescription(occ.description);
+        setPhotos(occ.photos || []);
+        setIsFormOpen(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (window.confirm("Tem certeza que deseja excluir esta ocorrência?")) {
+            await deleteOccurrence(id);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentUser) return;
 
         setIsSubmitting(true);
         try {
-            await addOccurrence({
-                authorId: currentUser.id,
-                authorName: currentUser.name,
-                houseNumber: currentUser.houseNumber,
-                phone,
-                subject,
-                description,
-                photos
-            });
+            if (editingOccurrence) {
+                await updateOccurrence(editingOccurrence.id, {
+                    phone,
+                    subject,
+                    description,
+                    photos
+                });
+                addToast("Ocorrência atualizada com sucesso!", "success");
+            } else {
+                await addOccurrence({
+                    authorId: currentUser.id,
+                    authorName: currentUser.name,
+                    houseNumber: currentUser.houseNumber,
+                    phone,
+                    subject,
+                    description,
+                    photos
+                });
+            }
 
             setIsFormOpen(false);
+            setEditingOccurrence(null);
             setPhone('');
             setSubject('');
             setDescription('');
             setPhotos([]);
         } catch (error) {
-            console.error("Erro ao registrar ocorrência:", error);
-            addToast("Erro ao registrar ocorrência. Verifique se as fotos não são muito grandes.", "error");
+            console.error("Erro ao salvar ocorrência:", error);
+            addToast("Erro ao salvar ocorrência.", "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -118,112 +145,137 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         }
     });
 
-    const renderOccurrenceCard = (occ: Occurrence) => (
-        <div key={occ.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-gray-900">{occ.subject}</h3>
-                        {occ.status === 'Resolvido' && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Resolvido</span>
+    const renderOccurrenceCard = (occ: Occurrence) => {
+        const isAuthor = currentUser?.id === occ.authorId;
+        const canEdit = isAuthor && !occ.adminResponse && occ.status === 'Aberto';
+
+        return (
+            <div key={occ.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition relative group">
+                {/* Edit/Delete Actions for Author */}
+                {canEdit && (
+                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                            onClick={() => handleEdit(occ)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition"
+                            title="Editar"
+                        >
+                            <EditIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => handleDelete(occ.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+                            title="Excluir"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
+
+                <div className="flex justify-between items-start mb-4 pr-16">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-gray-900">{occ.subject}</h3>
+                            {occ.status === 'Resolvido' && (
+                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Resolvido</span>
+                            )}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            Registrado por <span className="font-medium text-gray-900">{occ.authorName}</span> (Casa {occ.houseNumber})
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                            {new Date(occ.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    </div>
+                    <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-600 whitespace-nowrap">
+                        Tel: {occ.phone}
+                    </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                    {occ.description}
+                </div>
+
+                {/* Photos Display */}
+                {occ.photos && occ.photos.length > 0 && (
+                    <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                        {occ.photos.map((photo, idx) => (
+                            <img
+                                key={idx}
+                                src={photo}
+                                alt={`Anexo ${idx + 1}`}
+                                className="h-24 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition"
+                                onClick={() => setSelectedImage(photo)}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                {/* Admin Response Section */}
+                {(occ.adminResponse || (canManageOccurrences && occ.status === 'Aberto')) && (
+                    <div className="mt-6 border-t pt-4">
+                        <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <CheckCircleIcon className="w-4 h-4 text-indigo-600" />
+                            Retorno da Gestão
+                        </h4>
+
+                        {occ.adminResponse ? (
+                            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 text-indigo-900 text-sm">
+                                {occ.adminResponse}
+                            </div>
+                        ) : (
+                            canManageOccurrences && !respondingTo && (
+                                <button
+                                    onClick={() => setRespondingTo(occ.id)}
+                                    className="text-sm text-indigo-600 hover:underline font-medium"
+                                >
+                                    Responder
+                                </button>
+                            )
+                        )}
+
+                        {/* Admin Reply Form */}
+                        {respondingTo === occ.id && (
+                            <div className="mt-2 animate-fade-in">
+                                <textarea
+                                    value={responseText}
+                                    onChange={(e) => setResponseText(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    placeholder="Escreva uma resposta para o morador..."
+                                    rows={3}
+                                />
+                                <div className="flex justify-end gap-2 mt-2">
+                                    <button
+                                        onClick={() => setRespondingTo(null)}
+                                        className="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={() => handleAdminResponse(occ.id)}
+                                        className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                                    >
+                                        Enviar Resposta
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
-                    <p className="text-sm text-gray-500">
-                        Registrado por <span className="font-medium text-gray-900">{occ.authorName}</span> (Casa {occ.houseNumber})
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                        {new Date(occ.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                </div>
-                <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-600">
-                    Tel: {occ.phone}
-                </div>
+                )}
+
+                {/* Admin Actions */}
+                {canManageOccurrences && occ.status === 'Aberto' && (
+                    <div className="mt-4 flex justify-end">
+                        <button
+                            onClick={() => handleResolve(occ.id)}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm"
+                        >
+                            <CheckCircleIcon className="w-4 h-4" />
+                            Marcar como Resolvido
+                        </button>
+                    </div>
+                )}
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-                {occ.description}
-            </div>
-
-            {/* Photos Display */}
-            {occ.photos && occ.photos.length > 0 && (
-                <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-                    {occ.photos.map((photo, idx) => (
-                        <img
-                            key={idx}
-                            src={photo}
-                            alt={`Anexo ${idx + 1}`}
-                            className="h-24 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition"
-                            onClick={() => setSelectedImage(photo)}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {/* Admin Response Section */}
-            {(occ.adminResponse || (canManageOccurrences && occ.status === 'Aberto')) && (
-                <div className="mt-6 border-t pt-4">
-                    <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-                        <CheckCircleIcon className="w-4 h-4 text-indigo-600" />
-                        Retorno da Gestão
-                    </h4>
-
-                    {occ.adminResponse ? (
-                        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 text-indigo-900 text-sm">
-                            {occ.adminResponse}
-                        </div>
-                    ) : (
-                        canManageOccurrences && !respondingTo && (
-                            <button
-                                onClick={() => setRespondingTo(occ.id)}
-                                className="text-sm text-indigo-600 hover:underline font-medium"
-                            >
-                                Responder
-                            </button>
-                        )
-                    )}
-
-                    {/* Admin Reply Form */}
-                    {respondingTo === occ.id && (
-                        <div className="mt-2 animate-fade-in">
-                            <textarea
-                                value={responseText}
-                                onChange={(e) => setResponseText(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                                placeholder="Escreva uma resposta para o morador..."
-                                rows={3}
-                            />
-                            <div className="flex justify-end gap-2 mt-2">
-                                <button
-                                    onClick={() => setRespondingTo(null)}
-                                    className="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={() => handleAdminResponse(occ.id)}
-                                    className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                                >
-                                    Enviar Resposta
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Admin Actions */}
-            {canManageOccurrences && occ.status === 'Aberto' && (
-                <div className="mt-4 flex justify-end">
-                    <button
-                        onClick={() => handleResolve(occ.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm"
-                    >
-                        <CheckCircleIcon className="w-4 h-4" />
-                        Marcar como Resolvido
-                    </button>
-                </div>
-            )}
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -237,7 +289,14 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
                 {!isFormOpen && (
                     <button
-                        onClick={() => setIsFormOpen(true)}
+                        onClick={() => {
+                            setEditingOccurrence(null);
+                            setPhone('');
+                            setSubject('');
+                            setDescription('');
+                            setPhotos([]);
+                            setIsFormOpen(true);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm w-full md:w-auto justify-center"
                     >
                         <PlusIcon className="w-5 h-5" />
@@ -268,7 +327,9 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             {isFormOpen ? (
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 animate-slide-in">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Registrar Ocorrência</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                            {editingOccurrence ? 'Editar Ocorrência' : 'Registrar Ocorrência'}
+                        </h3>
                         <button onClick={() => setIsFormOpen(false)} className="text-gray-400 hover:text-gray-600">
                             <XIcon className="w-6 h-6" />
                         </button>
@@ -368,7 +429,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                                 disabled={isSubmitting || isUploading}
                                 className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium ${(isSubmitting || isUploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                {isSubmitting ? 'Registrando...' : (isUploading ? 'Enviando foto...' : 'Registrar')}
+                                {isSubmitting ? 'Salvando...' : (isUploading ? 'Enviando foto...' : 'Salvar')}
                             </button>
                         </div>
                     </form>

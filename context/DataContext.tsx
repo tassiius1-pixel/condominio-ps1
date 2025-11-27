@@ -63,16 +63,16 @@ interface DataContextType {
   votings: Voting[];
   addReservation: (reservation: Omit<Reservation, "id" | "createdAt">) => void;
   cancelReservation: (reservationId: string) => void;
-  addOccurrence: (data: Omit<Occurrence, 'id' | 'createdAt' | 'status'>) => void;
+  addOccurrence: (data: Omit<Occurrence, 'id' | 'createdAt' | 'status'>) => Promise<void>;
   addVoting: (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => void;
-  vote: (votingId: string, optionIds: string[], currentUser: User) => void;
-
+  vote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
   notices: Notice[];
-  addNotice: (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => void;
-  deleteNotice: (noticeId: string) => void;
-  toggleNoticeReaction: (noticeId: string, userId: string, type: 'like' | 'dislike') => void;
-  updateOccurrence: (id: string, data: Partial<Occurrence>) => void;
-  toggleRequestLike: (requestId: string, userId: string) => void;
+  addNotice: (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => Promise<void>;
+  deleteNotice: (noticeId: string) => Promise<void>;
+  toggleNoticeReaction: (noticeId: string, userId: string, type: 'like' | 'dislike') => Promise<void>;
+  updateOccurrence: (id: string, data: Partial<Occurrence>) => Promise<void>;
+  deleteOccurrence: (id: string) => Promise<void>;
+  toggleRequestLike: (requestId: string, userId: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -457,6 +457,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast("Ocorrência atualizada.", "success");
   };
 
+  const deleteOccurrence = async (id: string) => {
+    await deleteDoc(doc(db, "occurrences", id));
+    addToast("Ocorrência excluída.", "info");
+  };
+
   // COMMENTS
   const addComment = (
     requestId: string,
@@ -691,6 +696,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deleteNotice,
         toggleNoticeReaction,
         updateOccurrence,
+        deleteOccurrence,
         toggleRequestLike,
       }}
     >
