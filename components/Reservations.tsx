@@ -40,8 +40,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     };
 
     const isDateDisabled = (date: Date, type: 'churrasco' | 'salao') => {
-        // Admin bypasses all date restrictions
-        if (currentUser?.role === Role.ADMIN) return false;
+        // Admin and Sindico bypass all date restrictions
+        if (currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO) return false;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -73,8 +73,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
         let houseNumber = currentUser.houseNumber;
         let userName = currentUser.name;
 
-        // Admin can specify house number
-        if (currentUser.role === Role.ADMIN) {
+        // Admin and Sindico can specify house number
+        if (currentUser.role === Role.ADMIN || currentUser.role === Role.SINDICO) {
             const input = prompt("Digite o número da casa para a reserva (ex: 101):");
             if (!input) return;
             const parsed = parseInt(input);
@@ -83,7 +83,7 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                 return;
             }
             houseNumber = parsed;
-            userName = `Admin (Casa ${houseNumber})`; // Or fetch user name if needed, but this is simple
+            userName = `${currentUser.role === Role.ADMIN ? 'Admin' : 'Síndico'} (Casa ${houseNumber})`;
         }
 
         const dateString = selectedDate.toISOString().split('T')[0];
@@ -155,8 +155,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
             const isSelected = selectedDate?.toDateString() === date.toDateString();
             const isToday = new Date().toDateString() === date.toDateString();
             const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
-            const isAdmin = currentUser?.role === Role.ADMIN;
-            const isClickable = !isPast || isAdmin;
+            const isAdminOrSindico = currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO;
+            const isClickable = !isPast || isAdminOrSindico;
 
             // Indicators
             const hasSalao = dayReservations.some(r => r.area === 'salao_festas');
@@ -431,10 +431,10 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                                 <span className="font-bold">•</span>
                                 <span><strong>Exclusividade:</strong> Não é permitido reservar Salão e Churrasqueira no mesmo dia.</span>
                             </li>
-                            {currentUser?.role === Role.ADMIN && (
+                            {(currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO) && (
                                 <li className="flex gap-2 text-red-600 font-bold mt-2 pt-2 border-t border-blue-200">
                                     <span>•</span>
-                                    <span>ADMIN: Acesso irrestrito a datas e casas.</span>
+                                    <span>ADMIN/SÍNDICO: Acesso irrestrito a datas e casas.</span>
                                 </li>
                             )}
                         </ul>

@@ -74,6 +74,7 @@ interface DataContextType {
   deleteOccurrence: (id: string) => Promise<void>;
   toggleRequestLike: (requestId: string, userId: string) => Promise<void>;
   deleteVoting: (id: string) => Promise<void>;
+  clearLegacyData: () => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -665,6 +666,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  const clearLegacyData = async () => {
+    try {
+      // Delete all requests
+      const requestPromises = requests.map(r => deleteDoc(doc(db, "requests", r.id)));
+      // Delete all reservations
+      const reservationPromises = reservations.map(r => deleteDoc(doc(db, "reservations", r.id)));
+
+      await Promise.all([...requestPromises, ...reservationPromises]);
+      addToast("Dados antigos limpos com sucesso.", "success");
+    } catch (error) {
+      console.error("Erro ao limpar dados:", error);
+      addToast("Erro ao limpar dados.", "error");
+    }
+  };
+
   // PROVIDER
   const value = React.useMemo(() => ({
     users,
@@ -703,6 +719,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateOccurrence,
     deleteOccurrence,
     toggleRequestLike,
+    clearLegacyData,
   }), [
     users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices
   ]);

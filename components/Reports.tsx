@@ -81,7 +81,7 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
 type ReportTab = 'sugestoes' | 'reservas' | 'ocorrencias' | 'votacoes';
 
 const Reports: React.FC = () => {
-    const { requests, users, reservations, occurrences, votings } = useData();
+    const { requests, users, reservations, occurrences, votings, clearLegacyData } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('sugestoes');
     const [startDate, setStartDate] = useState('');
@@ -267,6 +267,19 @@ const Reports: React.FC = () => {
                     <div className="flex gap-2 w-full sm:w-auto">
                         <button onClick={handleExportPDF} className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors">PDF</button>
                         <button onClick={handleExportExcel} className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-colors">Excel</button>
+                        {currentUser?.role === Role.ADMIN && (
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Tem certeza que deseja limpar TODOS os dados de Sugestões e Reservas? Esta ação não pode ser desfeita.')) {
+                                        clearLegacyData();
+                                    }
+                                }}
+                                className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 rounded-md shadow-sm transition-colors"
+                                title="Limpar Sugestões e Reservas"
+                            >
+                                Limpar Dados
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
