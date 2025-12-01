@@ -156,12 +156,13 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
     const renderOccurrenceCard = (occ: Occurrence) => {
         const isAuthor = currentUser?.id === occ.authorId;
         const canEdit = isAuthor && !occ.adminResponse && occ.status === 'Aberto';
+        const canDelete = currentUser?.role === Role.ADMIN;
 
         return (
             <div key={occ.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition relative group">
-                {/* Edit/Delete Actions for Author */}
-                {canEdit && (
-                    <div className="absolute top-4 right-4 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
+                {/* Actions: Edit (Author) / Delete (Admin) */}
+                <div className="absolute top-4 right-4 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
+                    {canEdit && (
                         <button
                             onClick={() => handleEdit(occ)}
                             className="p-1.5 bg-white text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition border border-gray-100 shadow-sm"
@@ -169,15 +170,17 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                         >
                             <EditIcon className="w-4 h-4" />
                         </button>
+                    )}
+                    {canDelete && (
                         <button
                             onClick={() => handleDelete(occ.id)}
                             className="p-1.5 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition border border-gray-100 shadow-sm"
-                            title="Excluir"
+                            title="Excluir (Admin)"
                         >
                             <TrashIcon className="w-4 h-4" />
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
                     <div className="w-full pr-0 sm:pr-16">

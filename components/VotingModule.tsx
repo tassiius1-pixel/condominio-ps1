@@ -10,7 +10,7 @@ interface VotingModuleProps {
 }
 
 const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
-    const { votings, addVoting, vote, addToast, updateRequestStatus } = useData();
+    const { votings, addVoting, vote, addToast, updateRequestStatus, deleteVoting } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'active' | 'history' | 'create'>('active');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -117,6 +117,12 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         setActiveTab('active');
     };
 
+    const handleDeleteVoting = async (id: string) => {
+        if (window.confirm("Tem certeza que deseja excluir esta votação?")) {
+            await deleteVoting(id);
+        }
+    };
+
     // Voting Logic
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
 
@@ -189,10 +195,20 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         const hasVoted = voting.votes.some(v => v.houseNumber === currentUser?.houseNumber);
         const results = calculateResults(voting);
         const isAdmin = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
+        const canDelete = currentUser?.role === Role.ADMIN;
 
         return (
-            <div key={voting.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                <div className="flex justify-between items-start">
+            <div key={voting.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 relative group">
+                {canDelete && (
+                    <button
+                        onClick={() => handleDeleteVoting(voting.id)}
+                        className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition opacity-0 group-hover:opacity-100"
+                        title="Excluir Votação"
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                    </button>
+                )}
+                <div className="flex justify-between items-start pr-8">
                     <div>
                         <h3 className="text-lg font-bold text-gray-800">{voting.title}</h3>
                         <p className="text-sm text-gray-500">{voting.description}</p>

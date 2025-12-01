@@ -66,6 +66,15 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
         };
     }, [data, title, type]);
 
+    if (Object.keys(data).length === 0) {
+        return (
+            <div className="bg-white p-4 rounded-lg shadow h-80 flex flex-col items-center justify-center text-gray-400">
+                <p className="font-medium text-gray-500">{title}</p>
+                <p className="text-sm mt-2">Sem dados para exibir no período</p>
+            </div>
+        );
+    }
+
     return <div className="bg-white p-4 rounded-lg shadow h-80"><canvas ref={chartRef}></canvas></div>;
 };
 
@@ -236,7 +245,13 @@ const Reports: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">Relatórios e Análises</h2>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Relatórios e Análises</h2>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Atualizado em tempo real
+                    </p>
+                </div>
 
                 <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-end gap-4 w-full sm:w-auto">
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">

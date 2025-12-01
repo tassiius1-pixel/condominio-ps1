@@ -73,6 +73,7 @@ interface DataContextType {
   updateOccurrence: (id: string, data: Partial<Occurrence>) => Promise<void>;
   deleteOccurrence: (id: string) => Promise<void>;
   toggleRequestLike: (requestId: string, userId: string) => Promise<void>;
+  deleteVoting: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -567,6 +568,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast('Votação criada com sucesso!', 'success');
   };
 
+  const deleteVoting = async (id: string) => {
+    await deleteDoc(doc(db, 'votings', id));
+    addToast('Votação excluída.', 'info');
+  };
+
   const castVote = async (votingId: string, optionIds: string[], currentUser: User) => {
     if (!currentUser) return;
 
@@ -689,6 +695,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addOccurrence,
     addVoting,
     vote: castVote,
+    deleteVoting,
     notices,
     addNotice,
     deleteNotice,
