@@ -40,8 +40,6 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         const file = e.target.files[0];
 
         try {
-            addToast("Processando e enviando foto...", "info");
-
             // Compress image before upload
             const compressedBase64 = await compressImage(file, 1024, 1024, 0.8);
 
@@ -55,9 +53,9 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
             if (url) {
                 setPhotos(prev => [...prev, url]);
-                addToast("Foto adicionada com sucesso!", "success");
+                addToast("Foto adicionada!", "success");
             } else {
-                addToast("Erro ao enviar foto. Tente novamente.", "error");
+                addToast("Erro ao enviar foto.", "error");
             }
         } catch (error) {
             console.error("Erro no upload:", error);
@@ -101,7 +99,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     description,
                     photos
                 });
-                addToast("Ocorrência atualizada com sucesso!", "success");
+                // Toast handled by DataContext
             } else {
                 await addOccurrence({
                     authorId: currentUser.id,
@@ -163,17 +161,17 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             <div key={occ.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition relative group">
                 {/* Edit/Delete Actions for Author */}
                 {canEdit && (
-                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-4 right-4 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
                         <button
                             onClick={() => handleEdit(occ)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition"
+                            className="p-1.5 bg-white text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition border border-gray-100 shadow-sm"
                             title="Editar"
                         >
                             <EditIcon className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => handleDelete(occ.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+                            className="p-1.5 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition border border-gray-100 shadow-sm"
                             title="Excluir"
                         >
                             <TrashIcon className="w-4 h-4" />
@@ -181,38 +179,45 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     </div>
                 )}
 
-                <div className="flex justify-between items-start mb-4 pr-16">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-bold text-gray-900">{occ.subject}</h3>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
+                    <div className="w-full pr-0 sm:pr-16">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <h3 className="text-lg font-bold text-gray-900 leading-tight">{occ.subject}</h3>
                             {occ.status === 'Resolvido' && (
-                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Resolvido</span>
+                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide rounded-full">Resolvido</span>
                             )}
                         </div>
-                        <p className="text-sm text-gray-500">
-                            Registrado por <span className="font-medium text-gray-900">{occ.authorName}</span> (Casa {occ.houseNumber})
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                            {new Date(occ.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </p>
+
+                        <div className="flex flex-col gap-0.5">
+                            <p className="text-sm text-gray-600">
+                                <span className="text-gray-500">Por:</span> <span className="font-medium text-gray-900">{occ.authorName}</span>
+                                <span className="mx-1.5 text-gray-300 hidden sm:inline">|</span>
+                                <span className="block sm:inline text-gray-500">Casa {occ.houseNumber}</span>
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                {new Date(occ.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                        </div>
                     </div>
-                    <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-600 whitespace-nowrap">
-                        Tel: {occ.phone}
+
+                    <div className="bg-gray-50 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-100 self-start sm:self-auto">
+                        📞 {occ.phone}
                     </div>
                 </div>
+
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
                     {occ.description}
                 </div>
 
                 {/* Photos Display */}
                 {occ.photos && occ.photos.length > 0 && (
-                    <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                    <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide">
                         {occ.photos.map((photo, idx) => (
                             <img
                                 key={idx}
                                 src={photo}
                                 alt={`Anexo ${idx + 1}`}
-                                className="h-24 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition"
+                                className="h-24 w-24 rounded-lg object-cover cursor-pointer hover:opacity-90 transition border border-gray-200"
                                 onClick={() => setSelectedImage(photo)}
                             />
                         ))}
