@@ -6,40 +6,70 @@ import React, {
   useContext,
 } from "react";
 
-import { auth } from "../services/firebase";
+import { auth, db } from "../services/firebase";
 import { useData } from "../hooks/useData";
 import { User } from "../types";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 interface AuthContextType {
   currentUser: User | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   register: (data: Omit<User, "id" | "role">) => Promise<{ success: boolean; message?: string }>;
+  loadingAuth: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = sessionStorage.getItem("condo-currentUser");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
-  const { users, addUser, addToast, loading } = useData();
+  const { addUser, addToast } = useData();
 
-  // SALVAR login no sessionStorage
+  // LISTENER DE AUTH DO FIREBASE
   useEffect(() => {
-    if (currentUser) {
-      sessionStorage.setItem("condo-currentUser", JSON.stringify(currentUser));
-    } else {
-      sessionStorage.removeItem("condo-currentUser");
-    }
-  }, [currentUser]);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Usuário está logado no Firebase, buscar dados no Firestore
+        try {
+          // Tenta buscar pelo email (que é username@...)
+          const q = query(collection(db, "users"), where("email", "==", firebaseUser.email));
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data() as User;
+            setCurrentUser({ ...userData, id: querySnapshot.docs[0].id });
+          } else {
+            // Fallback: Tenta buscar pelo authUid se tiver salvo (menos provável no modelo atual mas bom ter)
+            const qUid = query(collection(db, "users"), where("authUid", "==", firebaseUser.uid));
+            const querySnapshotUid = await getDocs(qUid);
+            if (!querySnapshotUid.empty) {
+              const userData = querySnapshotUid.docs[0].data() as User;
+              setCurrentUser({ ...userData, id: querySnapshotUid.docs[0].id });
+            } else {
+              console.error("Usuário autenticado mas não encontrado no Firestore.");
+              setCurrentUser(null);
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao buscar usuário logado:", error);
+          setCurrentUser(null);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+      setLoadingAuth(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // TRANSFORMA username → email para Firebase
   const usernameToEmail = (username: string) =>
@@ -48,29 +78,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // LOGIN -------------------------------------------------------
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      // 1) Espera o DataContext carregar usuários
-      if (loading) {
-        addToast("Carregando dados... aguarde 1 segundo e tente novamente.", "info");
-        return false;
-      }
-
-      // 2) Autentica no Firebase
       const email = usernameToEmail(username);
       await signInWithEmailAndPassword(auth, email, password);
-
-      // 3) Busca o usuário no Firestore
-      const user = users.find((u) => u.username === username);
-
-      if (!user) {
-        addToast("Erro: usuário existe no Auth, mas não no cadastro.", "error");
-        return false;
-      }
-
-      setCurrentUser(user);
+      // O onAuthStateChanged vai lidar com o setCurrentUser
       return true;
     } catch (err) {
       console.error("Erro no login:", err);
-      addToast("Usuário ou senha incorretos.", "error");
       return false;
     }
   };
@@ -81,9 +94,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await signOut(auth);
     } catch (err) {
       console.error("Erro ao sair:", err);
-    } finally {
-      setCurrentUser(null);
     }
+    // onAuthStateChanged lidará com o null
   };
 
   // REGISTRO ------------------------------------------------------
@@ -98,13 +110,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const uid = userCredential.user.uid;
 
       // 2) Grava no Firestore
-      // Passamos o UID para evitar que o addUser tente criar no Auth novamente
       const newUser = await addUser(data, uid);
       if (!newUser) {
         return { success: false, message: "Erro ao salvar dados no banco de dados." };
       }
 
-      setCurrentUser(newUser);
+      // O onAuthStateChanged vai atualizar o currentUser automaticamente
       return { success: true };
     } catch (err: any) {
       console.error("Erro ao registrar:", err);
@@ -125,7 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, register }}>
+    <AuthContext.Provider value={{ currentUser, login, logout, register, loadingAuth }}>
       {children}
     </AuthContext.Provider>
   );

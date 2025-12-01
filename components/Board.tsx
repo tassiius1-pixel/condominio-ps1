@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
-import { RequestType, Status } from '../types';
+import { RequestType, Status, View } from '../types';
 import Card from './Card';
 
 interface BoardProps {
-  setView?: (view: any) => void;
+  setView?: (view: View) => void;
 }
 
 const Board: React.FC<BoardProps> = ({ setView }) => {
@@ -15,13 +15,13 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
     if (req.status !== Status.APROVADA && req.status !== Status.RECUSADA && req.status !== Status.CONCLUIDO) {
       return false;
     }
-    if (!req.statusUpdatedAt) return false; // Keep active if no update date (legacy or fresh)
 
-    const updateDate = new Date(req.statusUpdatedAt);
+    // Use statusUpdatedAt if available, otherwise fallback to createdAt for legacy items
+    const dateToCheck = req.statusUpdatedAt ? new Date(req.statusUpdatedAt) : new Date(req.createdAt);
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
-    return updateDate < threeDaysAgo;
+    return dateToCheck < threeDaysAgo;
   };
 
   const allSuggestions = requests

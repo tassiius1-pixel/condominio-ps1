@@ -321,7 +321,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       );
 
       const data = await response.json();
-      console.log("Supabase:", data);
+
 
       if (!response.ok) {
         addToast("Erro ao excluir usuário no Auth.", "error");
@@ -660,46 +660,48 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // PROVIDER
+  const value = React.useMemo(() => ({
+    users,
+    requests,
+    notifications,
+    toasts,
+    loading,
+    removeToast,
+    findUserByCpf,
+    addUser,
+    updateUserRole,
+    deleteUser,
+    addRequest,
+    updateRequest,
+    deleteRequest,
+    updateRequestStatus,
+    addComment,
+    deleteComment,
+    updateComment,
+    markAllNotificationsAsRead,
+    deleteNotification,
+    addToast,
+    reservations,
+    occurrences,
+    votings,
+    addReservation,
+    cancelReservation,
+    addOccurrence,
+    addVoting,
+    vote: castVote,
+    notices,
+    addNotice,
+    deleteNotice,
+    toggleNoticeReaction,
+    updateOccurrence,
+    deleteOccurrence,
+    toggleRequestLike,
+  }), [
+    users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices
+  ]);
+
   return (
-    <DataContext.Provider
-      value={{
-        users,
-        requests,
-        notifications,
-        toasts,
-        loading,
-        removeToast,
-        findUserByCpf,
-        addUser,
-        updateUserRole,
-        deleteUser,
-        addRequest,
-        updateRequest,
-        deleteRequest,
-        updateRequestStatus,
-        addComment,
-        deleteComment,
-        updateComment,
-        markAllNotificationsAsRead,
-        deleteNotification,
-        addToast,
-        reservations,
-        occurrences,
-        votings,
-        addReservation,
-        cancelReservation,
-        addOccurrence,
-        addVoting,
-        vote: castVote,
-        notices,
-        addNotice,
-        deleteNotice,
-        toggleNoticeReaction,
-        updateOccurrence,
-        deleteOccurrence,
-        toggleRequestLike,
-      }}
-    >
+    <DataContext.Provider value={value}>
       {children}
     </DataContext.Provider>
   );

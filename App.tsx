@@ -8,85 +8,21 @@ import Dashboard from "./components/Dashboard";
 import UserManagement from "./components/UserManagement";
 import Header from "./components/Header";
 import { Role, Toast as ToastType, View } from "./types";
-import Reports from "./components/Reports";
-import Reservations from "./components/Reservations";
-import Occurrences from "./components/Occurrences";
-import VotingModule from "./components/VotingModule";
-import Notices from "./components/Notices";
 import { useData } from "./hooks/useData";
 
-import {
-  XIcon,
-  CheckCircleIcon,
-  AlertTriangleIcon,
-  InfoIcon,
-} from "./components/Icons";
+
 
 // 🔥 IMPORTAÇÃO DO FCM
 import { requestPushPermission } from "./services/pushNotifications";
 
-const Toast: React.FC<{ toast: ToastType; onDismiss: (id: string) => void }> = ({
-  toast,
-  onDismiss,
-}) => {
-  useEffect(() => {
-    const timer = setTimeout(() => onDismiss(toast.id), 4500);
-    return () => clearTimeout(timer);
-  }, [toast.id, onDismiss]);
+// Lazy Loading Components
+const Reports = React.lazy(() => import("./components/Reports"));
+const Reservations = React.lazy(() => import("./components/Reservations"));
+const Occurrences = React.lazy(() => import("./components/Occurrences"));
+const VotingModule = React.lazy(() => import("./components/VotingModule"));
+const Notices = React.lazy(() => import("./components/Notices"));
 
-  const icons = {
-    success: <CheckCircleIcon className="w-6 h-6 text-green-500" />,
-    error: <AlertTriangleIcon className="w-6 h-6 text-red-500" />,
-    info: <InfoIcon className="w-6 h-6 text-blue-500" />,
-  };
-
-  return (
-    <div
-      className="
-        pointer-events-auto 
-        w-full max-w-sm 
-        bg-white/95 
-        backdrop-blur 
-        shadow-xl 
-        rounded-xl 
-        ring-1 ring-black/10 
-        flex items-center gap-3 
-        p-4 animate-slide-in
-      "
-      style={{ animation: "slide-in 0.25s ease-out" }}
-    >
-      <div className="flex-shrink-0">{icons[toast.type]}</div>
-
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-900 leading-snug">
-          {toast.message}
-        </p>
-      </div>
-
-      <button
-        onClick={() => onDismiss(toast.id)}
-        className="text-gray-400 hover:text-gray-600 transition"
-      >
-        <XIcon className="w-5 h-5" />
-      </button>
-
-      <style>
-        {`
-          @keyframes slide-in {
-            from {
-              opacity: 0;
-              transform: translateY(12px) scale(0.96);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-        `}
-      </style>
-    </div>
-  );
-};
+import Toast from "./components/Toast";
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
@@ -145,34 +81,44 @@ const App: React.FC = () => {
       return <Register onSwitchToLogin={() => setAuthView("login")} />;
     }
 
-    switch (mainView) {
-      case "notices":
-        return <Notices setView={handleViewChange} />;
-      case "dashboard":
-        return <Dashboard setView={handleViewChange} />;
-      case "reservations":
-        return <Reservations setView={handleViewChange} />;
-      case "occurrences":
-        return <Occurrences setView={handleViewChange} />;
-      case "voting":
-        return <VotingModule setView={handleViewChange} />;
-      case "users":
-        return currentUser.role === Role.ADMIN ? (
-          <UserManagement />
-        ) : (
-          <Dashboard setView={handleViewChange} />
-        );
-      case "reports":
-        return [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(
-          currentUser.role
-        ) ? (
-          <Reports />
-        ) : (
-          <Dashboard setView={handleViewChange} />
-        );
-      default:
-        return <Dashboard setView={handleViewChange} />;
-    }
+    return (
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      }>
+        {(() => {
+          switch (mainView) {
+            case "notices":
+              return <Notices setView={handleViewChange} />;
+            case "dashboard":
+              return <Dashboard setView={handleViewChange} />;
+            case "reservations":
+              return <Reservations setView={handleViewChange} />;
+            case "occurrences":
+              return <Occurrences setView={handleViewChange} />;
+            case "voting":
+              return <VotingModule setView={handleViewChange} />;
+            case "users":
+              return currentUser.role === Role.ADMIN ? (
+                <UserManagement />
+              ) : (
+                <Dashboard setView={handleViewChange} />
+              );
+            case "reports":
+              return [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(
+                currentUser.role
+              ) ? (
+                <Reports />
+              ) : (
+                <Dashboard setView={handleViewChange} />
+              );
+            default:
+              return <Dashboard setView={handleViewChange} />;
+          }
+        })()}
+      </React.Suspense>
+    );
   };
 
   return (

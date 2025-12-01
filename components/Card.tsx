@@ -264,6 +264,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                   onClick={(e) => handleStatusClick(e, 'approve')}
                   className="p-1.5 rounded-full text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors"
                   title="Aprovar"
+                  aria-label="Aprovar sugestão"
                 >
                   <CheckCircleIcon className="w-4 h-4" />
                 </button>
@@ -271,6 +272,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                   onClick={(e) => handleStatusClick(e, 'reject')}
                   className="p-1.5 rounded-full text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                   title="Recusar"
+                  aria-label="Recusar sugestão"
                 >
                   <XIcon className="w-4 h-4" />
                 </button>
@@ -278,6 +280,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                   onClick={(e) => handleStatusClick(e, 'analyze')}
                   className="p-1.5 rounded-full text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   title="Analisar"
+                  aria-label="Analisar sugestão"
                 >
                   <InfoIcon className="w-4 h-4" />
                 </button>
