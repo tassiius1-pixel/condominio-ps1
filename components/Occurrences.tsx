@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Role, Occurrence } from '../types';
 import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon } from './Icons';
 import { uploadPhoto } from '../services/storage';
+import { compressImage } from '../utils/fileUtils';
 
 interface OccurrencesProps {
     setView?: (view: any) => void;
@@ -39,9 +40,18 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         const file = e.target.files[0];
 
         try {
-            addToast("Enviando foto...", "info");
+            addToast("Processando e enviando foto...", "info");
+
+            // Compress image before upload
+            const compressedBase64 = await compressImage(file, 1024, 1024, 0.8);
+
+            // Convert base64 back to File object for upload
+            const res = await fetch(compressedBase64);
+            const blob = await res.blob();
+            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+
             // Use 'ocorrencias' folder in the storage bucket
-            const url = await uploadPhoto(file, "ocorrencias");
+            const url = await uploadPhoto(compressedFile, "ocorrencias");
 
             if (url) {
                 setPhotos(prev => [...prev, url]);
