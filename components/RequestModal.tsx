@@ -29,7 +29,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [isEditing, setIsEditing] = useState(!request);
   const [title, setTitle] = useState(request?.title || '');
   const [description, setDescription] = useState(request?.description || '');
-  const [sector, setSector] = useState<Sector>(request?.sector || SECTORS[0]);
+  const [sector, setSector] = useState<Sector>(request?.sector || Sector.OUTROS);
   const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
   const [justification, setJustification] = useState('');
@@ -303,14 +303,16 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {renderSelect(
+              {/* Setor field removed for simplicity as per recommendation. Defaults to OUTROS. 
+                  Can be re-enabled for Admins if needed, but for now it's hidden. */}
+              {/* {renderSelect(
                 'Setor',
                 sector,
                 v => setSector(v as Sector),
                 SECTORS,
                 !isEditing,
                 false
-              )}
+              )} */}
               {canManage && renderSelect(
                 'Status',
                 status,

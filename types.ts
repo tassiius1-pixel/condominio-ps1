@@ -34,7 +34,8 @@ export enum Sector {
   BANHEIROS = 'Banheiros',
   RUAS = 'Ruas',
   PORTARIA = 'Portaria',
-  JARDINS = 'Jardins'
+  JARDINS = 'Jardins',
+  OUTROS = 'Outros'
 }
 
 export enum RequestType {
