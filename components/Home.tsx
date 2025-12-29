@@ -188,7 +188,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                     />
 
                     <SummaryCard
-                        title={isAdminProfile ? "Reservas Pendentes" : "Sua Próxima Reserva"}
+                        title={isAdminProfile ? "Reservas Agendadas" : "Sua Próxima Reserva"}
                         value={isAdminProfile
                             ? reservations.filter(r => new Date(r.date + 'T12:00:00') >= new Date()).length
                             : nextReservation ? new Date(nextReservation.date + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não há reservas'}
