@@ -87,7 +87,7 @@ const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 ${visible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${mobileMenuOpen ? 'h-screen' : 'h-auto'}`}>
       <header className={`bg-white max-w-7xl mx-auto rounded-[2.5rem] transition-all duration-300 ${scrolled ? 'shadow-2xl shadow-indigo-200/50 border-b border-gray-100 py-1' : 'shadow-xl shadow-gray-200/50 border border-gray-100'}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
@@ -219,20 +219,21 @@ const Header: React.FC<HeaderProps> = ({
         {/* Mobile Menu Backdrop */}
         {mobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] lg:hidden animate-fade-in"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
 
         {/* Mobile Menu Drawer */}
         <div className={`
-        fixed top-4 left-4 bottom-4 w-72 bg-white/95 backdrop-blur-md shadow-2xl z-50 lg:hidden rounded-3xl
+        fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
         transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-[120%]'}
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        flex flex-col
       `}>
           <div className="h-full flex flex-col p-4">
             {/* Menu Header */}
-            <div className="flex items-center justify-between mb-8 px-2">
+            <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <img src={logoURL} alt="Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
                 <div>
@@ -278,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* Menu Footer */}
-            <div className="mt-auto px-4 pt-6 border-t border-gray-100 flex flex-col items-center">
+            <div className="mt-auto px-4 pt-6 border-t border-gray-100 flex flex-col items-center flex-shrink-0">
               <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>

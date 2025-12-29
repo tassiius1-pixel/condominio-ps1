@@ -69,7 +69,8 @@ const App: React.FC = () => {
   // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE SE NÃO ESTIVER NEGADO)
   useEffect(() => {
     if (currentUser) {
-      if (Notification.permission === 'granted' || Notification.permission === 'default') {
+      const hasNotificationSupport = 'Notification' in window;
+      if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
         requestPushPermission(currentUser.id);
       }
 
@@ -154,7 +155,7 @@ const App: React.FC = () => {
 
         <main
           className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-8" : ""}`}
-          style={currentUser ? { paddingTop: '105px' } : {}}
+          style={currentUser ? { paddingTop: '120px' } : {}}
         >
           {renderContent()}
         </main>
