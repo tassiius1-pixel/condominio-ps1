@@ -630,12 +630,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       votes: arrayUnion(newVote)
     });
 
-    // Notificar todos
-    await addNotification({
-      message: `Novo voto registrado na votação: "${votingData.title}"`,
-      userId: "all",
-      requestId: "",
-    });
+    // Removido notificação global para cada voto para evitar spam
 
     addToast('Voto registrado com sucesso!', 'success');
   };
