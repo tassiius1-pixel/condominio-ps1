@@ -12,13 +12,17 @@ interface HeaderProps {
   setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'notices') => void;
   condoLogo: string | null;
   setCondoLogo: (logo: string | null) => void;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (open: boolean) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   currentView,
   setView,
   condoLogo,
-  setCondoLogo
+  setCondoLogo,
+  mobileMenuOpen,
+  setMobileMenuOpen
 }) => {
   const { currentUser, logout } = useAuth();
   const {
@@ -28,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({
   } = useData();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // local mobileMenuOpen removed, using props
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -196,10 +200,10 @@ const Header: React.FC<HeaderProps> = ({
                 />
               </div>
 
-              {/* Mobile Hamburger (movido para depois das notificações) */}
+              {/* Mobile Hamburger (Deprecated - moved to BottomNav) */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2.5 rounded-xl text-gray-500 hover:bg-white/60 hover:text-indigo-600 transition-all active:scale-95"
+                className="hidden p-2.5 rounded-xl text-gray-500 hover:bg-white/60 hover:text-indigo-600 transition-all active:scale-95"
               >
                 {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
               </button>

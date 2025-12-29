@@ -14,6 +14,7 @@ import { useData } from "./hooks/useData";
 
 // 🔥 IMPORTAÇÃO DO FCM
 import { requestPushPermission, setupForegroundNotifications } from "./services/pushNotifications";
+import BottomNavigation from "./components/BottomNavigation";
 
 // Lazy Loading Components
 const Reports = React.lazy(() => import("./components/Reports"));
@@ -37,6 +38,8 @@ const App: React.FC = () => {
   const [condoLogo, setCondoLogo] = useState<string | null>(() => {
     return localStorage.getItem("condo-logo");
   });
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -150,16 +153,27 @@ const App: React.FC = () => {
             setView={handleViewChange}
             condoLogo={condoLogo}
             setCondoLogo={handleSetLogo}
+            mobileMenuOpen={mobileMenuOpen}
+            setMobileMenuOpen={setMobileMenuOpen}
           />
         )}
 
         <main
-          className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-8" : ""}`}
+          className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8" : ""}`}
           style={currentUser ? { paddingTop: '120px' } : {}}
         >
           {renderContent()}
         </main>
       </div>
+
+      {currentUser && (
+        <BottomNavigation
+          currentView={mainView}
+          setView={handleViewChange}
+          onToggleMenu={() => setMobileMenuOpen(true)}
+          hasUnreadNotifications={toasts.length > 0} // Using toasts as proxy or pass notifications logic later
+        />
+      )}
 
       {/* Container de toasts */}
       <div

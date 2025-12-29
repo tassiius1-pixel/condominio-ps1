@@ -39,10 +39,11 @@ const UserManagement: React.FC = () => {
       // 🔥 Correção: garantir await + tratamento correto de erro
       await deleteUser(user.id);
 
-      alert("Usuário excluído com sucesso.");
+      // Feedback via Toast handled by DataContext
     } catch (error) {
       console.error("Erro ao excluir usuário:", error);
-      alert("Ocorreu um erro ao excluir o usuário.");
+      // Error Toast handled by DataContext (if implemented there or add one here if generic)
+      // DataContext deleteUser has error toast, so we just log.
     }
   };
 

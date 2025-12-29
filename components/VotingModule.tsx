@@ -114,13 +114,13 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         setAllowMultiple(false);
         setOptions([{ text: '' }, { text: '' }]);
         setActiveTab('active');
-        addToast('Votação criada com sucesso!', 'success');
+        // addToast is handled by DataContext
     };
 
     const handleDeleteVoting = async (id: string) => {
         if (window.confirm("Tem certeza que deseja excluir esta votação?")) {
             await deleteVoting(id);
-            addToast('Votação excluída.', 'success');
+            // addToast is handled by DataContext
         }
     };
 
