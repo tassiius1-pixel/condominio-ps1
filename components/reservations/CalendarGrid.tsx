@@ -98,7 +98,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
     };
 
     return (
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200">
             {/* Header with Navigation - Moved inside Grid component or keep external? 
                  The prompt asked to extract CalendarGrid, usually implying the grid itself.
                  But the layout in Reservations.tsx has the nav separate.
