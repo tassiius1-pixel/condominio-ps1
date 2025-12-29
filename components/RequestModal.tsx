@@ -22,7 +22,7 @@ interface RequestModalProps {
 
 const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const { currentUser } = useAuth();
-  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, addToast } = useData();
+  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, toggleRequestLike, addToast, users } = useData();
 
   const MAX_PHOTOS = 3;
 
@@ -33,8 +33,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
   const [justification, setJustification] = useState('');
-  // Admin response is now handled via status change comments or quick actions, but we keep the state if needed for legacy or internal logic, 
-  // though we won't show the dedicated field anymore as requested.
   const [adminResponse, setAdminResponse] = useState(request?.adminResponse || '');
 
   // ===== COMENTÁRIOS =====
@@ -59,6 +57,16 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     currentUser.role === Role.SINDICO ||
     currentUser.role === Role.SUBSINDICO;
   const isAuthor = currentUser.id === request?.authorId;
+
+  const likesCount = request?.likes?.length || 0;
+  const isLiked = currentUser && request ? request.likes?.includes(currentUser.id) : false;
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentUser && request) {
+      await toggleRequestLike(request.id, currentUser.id);
+    }
+  };
 
   // =============================
   // Upload de Fotos
@@ -206,344 +214,294 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     setIsLightboxOpen(true);
   };
 
-  const renderSelect = (
-    label: string,
-    value: any,
-    onChange: (v: any) => void,
-    list: string[],
-    disabled: boolean,
-    loading?: boolean
-  ) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 flex items-center">
-        {label}
-        {loading && <LoaderCircleIcon className="w-4 h-4 ml-2 text-indigo-500" />}
-      </label>
-
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value as any)}
-        disabled={disabled}
-        className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300 
-                   focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200 text-gray-900"
-      >
-        {list.map(opt => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
+  const author = users.find(u => u.id === request?.authorId);
+  const formattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-          {/* Header */}
-          <div className="flex justify-between items-start">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {request ? 'Detalhes da Sugestão' : 'Nova Sugestão'}
-            </h2>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 animate-fade-in text-gray-900">
+        <div className="bg-slate-50 rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative animate-scale-in border border-white/20">
 
-            <div className="flex gap-2">
+          {/* Header Barra Superior */}
+          <div className="flex justify-between items-center p-6 bg-white border-b border-gray-100 z-10 shrink-0">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl ${request?.type === RequestType.SUGESTOES ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
+                {request ? (request.type === RequestType.SUGESTOES ? '💡' : '🔧') : '🆕'}
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none uppercase">
+                  {request ? 'Detalhes' : 'Nova Sugestão'}
+                </h2>
+                {request && (
+                  <p className="text-[10px] uppercase font-black text-gray-400 mt-1 tracking-widest">
+                    {request.status} • {formattedDate}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
               {request && (isAuthor || canManage) && !isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <EditIcon className="w-5 h-5 text-gray-600" />
+                <button onClick={() => setIsEditing(true)} className="p-2.5 hover:bg-indigo-50 text-indigo-600 rounded-xl transition-colors" title="Editar">
+                  <EditIcon className="w-5 h-5" />
                 </button>
               )}
               {request && (isAuthor || canManage) && (
-                <button
-                  onClick={handleDelete}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <TrashIcon className="w-5 h-5 text-red-600" />
+                <button onClick={handleDelete} className="p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors" title="Excluir">
+                  <TrashIcon className="w-5 h-5" />
                 </button>
               )}
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-                <XIcon className="w-6 h-6 text-gray-600" />
+              <button onClick={onClose} className="p-2.5 hover:bg-gray-100 text-gray-400 rounded-xl transition-colors">
+                <XIcon className="w-6 h-6" />
               </button>
             </div>
           </div>
 
-          {/* FORM */}
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            {/* Título */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Título</label>
-              <input
-                value={title}
-                disabled={!isEditing}
-                onChange={e => setTitle(e.target.value)}
-                className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300 
-                  focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200"
-              />
-              {errors.title && (
-                <p className="mt-1 text-xs text-red-600">{errors.title}</p>
-              )}
-            </div>
+          {/* Modal Body - Scrollable Area */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-8 scrollbar-thin">
 
-            {/* Descrição */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Descrição</label>
-              <textarea
-                value={description}
-                disabled={!isEditing}
-                onChange={e => setDescription(e.target.value)}
-                rows={4}
-                className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-gray-300 
-                  focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-200"
-              />
-              {errors.description && (
-                <p className="mt-1 text-xs text-red-600">{errors.description}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Setor field removed for simplicity as per recommendation. Defaults to OUTROS. 
-                  Can be re-enabled for Admins if needed, but for now it's hidden. */}
-              {/* {renderSelect(
-                'Setor',
-                sector,
-                v => setSector(v as Sector),
-                SECTORS,
-                !isEditing,
-                false
-              )} */}
-              {canManage && renderSelect(
-                'Status',
-                status,
-                v => setStatus(v as Status),
-                STATUSES,
-                !isEditing
-              )}
-            </div>
-
-            {/* Justificativa de Status (se status mudou) */}
-            {canManage && request && status !== request.status && (
-              <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">
-                <label className="block text-sm font-medium text-yellow-800">
-                  Justificativa da alteração de status (Obrigatório)
-                </label>
-                <textarea
-                  value={justification}
-                  onChange={e => setJustification(e.target.value)}
-                  rows={2}
-                  className="mt-1 block w-full border rounded-md px-3 py-2 bg-white border-yellow-300 
-                    focus:ring-yellow-500 focus:border-yellow-500"
-                  placeholder="Explique o motivo da alteração..."
-                />
-                {errors.justification && (
-                  <p className="mt-1 text-xs text-red-600">{errors.justification}</p>
-                )}
-              </div>
-            )}
-
-            {/* FOTOS */}
-            <div>
-              <label className="block text-sm">
-                Fotos ({photos.length}/{MAX_PHOTOS})
-              </label>
-
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-3 mt-2">
-                {photos.map((photo, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={photo}
-                      className="w-full h-24 rounded-md object-cover cursor-pointer"
-                      onClick={() => openLightbox(index)}
+            {/* 1. SEÇÃO DE CONTEÚDO (Título e Descrição) */}
+            <section className="space-y-6">
+              {isEditing ? (
+                <div className="space-y-4 animate-fade-in">
+                  <div>
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block px-1">Título</label>
+                    <input
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      placeholder="Ex: Melhoria no parquinho..."
+                      className="w-full bg-white border-2 border-gray-100 rounded-2xl px-4 py-3.5 focus:border-indigo-500 focus:ring-0 transition-all font-bold text-gray-800"
                     />
-
-                    {isEditing && (
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 
-                          group-hover:opacity-100 transition"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
-                    )}
+                    {errors.title && <p className="mt-1.5 px-2 text-[11px] font-bold text-red-500">{errors.title}</p>}
                   </div>
-                ))}
+                  <div>
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block px-1">Descrição Detalhada</label>
+                    <textarea
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      rows={5}
+                      placeholder="Conte mais sobre sua idéia ou necessidade..."
+                      className="w-full bg-white border-2 border-gray-100 rounded-2xl px-4 py-3.5 focus:border-indigo-500 focus:ring-0 transition-all font-medium text-gray-700 leading-relaxed"
+                    />
+                    {errors.description && <p className="mt-1.5 px-2 text-[11px] font-bold text-red-500">{errors.description}</p>}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 animate-fade-in">
+                  <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-tight">
+                    {request?.title}
+                  </h1>
 
-                {isEditing && photos.length < MAX_PHOTOS && (
-                  <label className="flex flex-col justify-center items-center border-2 border-dashed border-gray-300 rounded-md h-24 cursor-pointer bg-gray-50">
-                    <PlusIcon className="w-8 h-8 text-gray-500" />
-                    <span className="text-xs text-gray-500">Adicionar</span>
-                    <input type="file" multiple onChange={handlePhotoUpload} className="hidden" />
-                  </label>
+                  {/* Autor Meta info */}
+                  <div className="flex items-center gap-3 py-2 border-y border-gray-100/50">
+                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs uppercase shadow-sm">
+                      {author?.name.split(' ')[0][0]}{author?.name.split(' ').slice(-1)[0][0]}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-gray-900">{author?.name} • Unidade {author?.houseNumber}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Autor da Sugestão</p>
+                    </div>
+                  </div>
+
+                  <p className="text-lg text-gray-600 leading-relaxed font-normal whitespace-pre-wrap">
+                    {request?.description}
+                  </p>
+
+                  {/* Like Button Engagement */}
+                  <div className="flex items-center gap-4 pt-2">
+                    <button
+                      onClick={handleLike}
+                      className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl transition-all shadow-sm hover:shadow-md
+                        ${isLiked ? 'bg-red-50 text-red-600 ring-2 ring-red-100' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}
+                      `}
+                    >
+                      <span className={`text-xl ${isLiked ? 'animate-bounce' : ''}`}>❤️</span>
+                      <span className="text-sm font-black uppercase tracking-tight">{likesCount} Apoios</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* 2. STATUS MANAGEMENT (Admin Only) */}
+            {canManage && isEditing && request && (
+              <section className="bg-indigo-50/30 p-6 rounded-[2rem] border border-indigo-100/50 space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">Gestão do Status</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {STATUSES.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setStatus(s as Status)}
+                      className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border
+                        ${status === s ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200'}
+                      `}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                {status !== request.status && (
+                  <div className="space-y-2 mt-4">
+                    <label className="text-[11px] font-black uppercase text-indigo-900 opacity-60">Justificativa da Mudança</label>
+                    <textarea
+                      value={justification}
+                      onChange={e => setJustification(e.target.value)}
+                      rows={2}
+                      className="w-full bg-white border-2 border-indigo-100 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-0 text-sm"
+                      placeholder="Explique o motivo para os moradores..."
+                    />
+                    {errors.justification && <p className="text-xs font-bold text-red-500">{errors.justification}</p>}
+                  </div>
                 )}
-              </div>
-            </div>
-
-            {/* COMENTÁRIOS */}
-            {request && (
-              <div className="mt-6 border-t pt-4 space-y-3">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Comentários
-                </h3>
-
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {comments.length === 0 && (
-                    <p className="text-sm text-gray-500">
-                      Nenhum comentário ainda.
-                    </p>
-                  )}
-
-                  {[...comments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(comment => {
-                    const isStatusChange = comment.type === 'status_change';
-                    const isApproved = comment.newStatus === 'Aprovada' || comment.newStatus === 'Concluído';
-                    const isRejected = comment.newStatus === 'Recusada';
-
-                    // Cores dinâmicas para comentários de status
-                    let bgClass = 'bg-gray-50';
-                    let borderClass = '';
-                    let textClass = 'text-gray-800';
-                    let badgeClass = '';
-
-                    if (isStatusChange) {
-                      if (isApproved) {
-                        bgClass = 'bg-green-50';
-                        borderClass = 'border border-green-200';
-                        textClass = 'text-green-900 font-medium';
-                        badgeClass = 'bg-green-200 text-green-800';
-                      } else if (isRejected) {
-                        bgClass = 'bg-red-50';
-                        borderClass = 'border border-red-200';
-                        textClass = 'text-red-900 font-medium';
-                        badgeClass = 'bg-red-200 text-red-800';
-                      } else {
-                        bgClass = 'bg-blue-50';
-                        borderClass = 'border border-blue-200';
-                        textClass = 'text-blue-900 font-medium';
-                        badgeClass = 'bg-blue-200 text-blue-800';
-                      }
-                    }
-
-                    const isCommentAuthor = currentUser.id === comment.authorId;
-                    const canEditComment = isCommentAuthor || canManage;
-
-                    return (
-                      <div
-                        key={comment.id}
-                        className={`rounded-md px-3 py-2 ${bgClass} ${borderClass} group relative`}
-                      >
-                        {editingCommentId === comment.id ? (
-                          <div className="flex flex-col gap-2">
-                            <textarea
-                              value={editingCommentText}
-                              onChange={(e) => setEditingCommentText(e.target.value)}
-                              className="w-full text-sm p-2 border rounded"
-                              rows={2}
-                            />
-                            <div className="flex justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setEditingCommentId(null)}
-                                className="text-xs text-gray-500 hover:text-gray-700"
-                              >
-                                Cancelar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleSaveEditedComment(comment.id)}
-                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700"
-                              >
-                                Salvar
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex justify-between items-start">
-                              <p className={`text-sm whitespace-pre-wrap ${textClass}`}>
-                                {comment.text}
-                              </p>
-                              {isStatusChange && comment.newStatus && (
-                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 shrink-0 ${badgeClass}`}>
-                                  {comment.newStatus}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex justify-between items-end mt-1">
-                              <p className={`text-[11px] ${isStatusChange ? 'opacity-80' : 'text-gray-500'}`}>
-                                - {comment.authorName.split(' ')[0]} {comment.houseNumber ? `(Casa ${comment.houseNumber})` : ''}{' '}
-                                {comment.createdAt && new Date(comment.createdAt).toLocaleDateString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-
-                              {/* Action Buttons */}
-                              {canEditComment && !isStatusChange && (
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleEditComment(comment)}
-                                    className="text-gray-400 hover:text-indigo-600"
-                                    title="Editar"
-                                  >
-                                    <EditIcon className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteComment(comment.id)}
-                                    className="text-gray-400 hover:text-red-600"
-                                    title="Excluir"
-                                  >
-                                    <TrashIcon className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    placeholder="Adicione um comentário..."
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    onKeyDown={handleCommentKeyDown}
-                    className="flex-1 border rounded-md px-3 py-2 text-sm bg-white border-gray-300 
-                      focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddComment}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm"
-                  >
-                    Enviar
-                  </button>
-                </div>
-              </div>
+              </section>
             )}
 
-            {/* BOTÕES */}
-            {isEditing && (
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 border rounded-md bg-white"
-                >
+            {/* 3. GALERIA DE FOTOS */}
+            {(photos.length > 0 || isEditing) && (
+              <section className="space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Fotos anexadas ({photos.length}/{MAX_PHOTOS})</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="relative aspect-square group overflow-hidden rounded-[1.5rem] shadow-sm">
+                      <img
+                        src={photo}
+                        className="w-full h-full object-cover cursor-zoom-in transition-transform group-hover:scale-110"
+                        onClick={() => openLightbox(index)}
+                      />
+                      {isEditing && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 shadow-lg hover:scale-110 transition active:scale-95"
+                        >
+                          <XIcon className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {isEditing && photos.length < MAX_PHOTOS && (
+                    <label className="aspect-square flex flex-col justify-center items-center border-3 border-dashed border-gray-200 rounded-[1.5rem] cursor-pointer bg-white hover:bg-indigo-50 hover:border-indigo-200 transition-all text-gray-400 hover:text-indigo-500">
+                      <PlusIcon className="w-10 h-10 mb-1" />
+                      <span className="text-[10px] font-black uppercase">Adicionar</span>
+                      <input type="file" multiple onChange={handlePhotoUpload} className="hidden" />
+                    </label>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* 4. CHAT DE COMENTÁRIOS */}
+            {request && (
+              <section className="space-y-6 pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                    Comentários
+                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-black">{comments.length}</span>
+                  </h3>
+                </div>
+
+                {/* Bubble Chat List */}
+                <div className="space-y-6">
+                  {comments.length === 0 ? (
+                    <div className="text-center py-10 bg-white rounded-[2rem] border-2 border-dashed border-gray-100 flex flex-col items-center">
+                      <span className="text-3xl mb-2">💬</span>
+                      <p className="text-xs font-black uppercase tracking-widest text-gray-400">Ninguém comentou ainda</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {[...comments]
+                        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                        .map((comment, idx) => {
+                          const isSys = comment.type === 'status_change';
+                          const isMe = comment.authorId === currentUser.id;
+                          const commAuthor = users.find(u => u.id === comment.authorId);
+
+                          if (isSys) {
+                            return (
+                              <div key={comment.id} className="flex justify-center py-2 animate-fade-in">
+                                <div className="bg-indigo-50/80 backdrop-blur-sm border border-indigo-100 rounded-full px-5 py-1.5 flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest text-center">{comment.text}</span>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div key={comment.id} className={`flex gap-3 max-w-[85%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'} animate-slide-fade-in`}>
+                              {/* Avatar */}
+                              <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase shadow-sm mt-1
+                                ${isMe ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-100'}`}>
+                                {commAuthor?.name[0] || comment.authorName[0]}
+                              </div>
+
+                              {/* Bubble */}
+                              <div className={`space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
+                                {!isMe && (
+                                  <p className="px-1 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                                    {comment.authorName.split(' ')[0]} • Unidade {comment.houseNumber}
+                                  </p>
+                                )}
+                                <div className={`relative px-4 py-3 rounded-2xl shadow-sm group
+                                  ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'}`}>
+                                  <p className="text-sm font-medium leading-relaxed">{comment.text}</p>
+
+                                  {/* Delete Action Overlay */}
+                                  {(isMe || canManage) && (
+                                    <button
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                    >
+                                      <XIcon className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                                <p className={`px-1 text-[9px] font-bold text-gray-400 tracking-tighter mt-1 ${isMe ? 'text-right' : ''}`}>
+                                  {new Date(comment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Modal Footer / Comment Input Area */}
+          <div className="p-4 bg-white border-t border-gray-100 shrink-0 z-10">
+            {isEditing ? (
+              <div className="flex justify-end gap-3 p-2">
+                <button type="button" onClick={onClose} className="px-6 py-3 font-black uppercase tracking-widest text-xs text-gray-400 hover:text-gray-600 transition-colors">
                   Cancelar
                 </button>
+                <button onClick={handleSubmit} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95 transition-all">
+                  Publicar Sugestão
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-3 bg-slate-50 p-2 rounded-3xl border border-gray-100 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+                <input
+                  type="text"
+                  placeholder="Diga sua opinião..."
+                  value={newComment}
+                  onChange={e => setNewComment(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                  className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-4 text-gray-700 placeholder:text-gray-400"
+                />
                 <button
-                  type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md"
+                  type="button"
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim()}
+                  className="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-90"
                 >
-                  Salvar
+                  <PlusIcon className="w-5 h-5 rotate-45" />
                 </button>
               </div>
             )}
-          </form>
+          </div>
         </div>
       </div>
 
@@ -552,16 +510,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           images={photos}
           currentIndex={currentImageIndex}
           onClose={() => setIsLightboxOpen(false)}
-          onPrev={() =>
-            setCurrentImageIndex(prev =>
-              prev > 0 ? prev - 1 : photos.length - 1
-            )
-          }
-          onNext={() =>
-            setCurrentImageIndex(prev =>
-              prev < photos.length - 1 ? prev + 1 : 0
-            )
-          }
+          onPrev={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : photos.length - 1)}
+          onNext={() => setCurrentImageIndex(prev => prev < photos.length - 1 ? prev + 1 : 0)}
         />
       )}
     </>
