@@ -16,6 +16,8 @@ import {
     CheckCircleIcon
 } from './Icons';
 import ConfirmModal from './ConfirmModal';
+import RequestModal from './RequestModal';
+import QuickActions from './QuickActions';
 import { fileToBase64, compressImage } from '../utils/fileUtils';
 
 interface NoticesProps {
@@ -36,6 +38,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
     // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false); // For "Quick Action" suggestion
     const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
     const [noticeToDelete, setNoticeToDelete] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -391,6 +394,14 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                 {/* Main Content - Notices (2/3) */}
                 {(activeTab === 'history' || activeNotices.length > 0 || canManageNotices) && (
                     <div className="lg:col-span-2 space-y-6">
+                        {/* Quick Actions for Residents (Always visible if space permits, or top of feed) */}
+                        {!canManageNotices && (activeNotices.length > 0 || activeTab === 'history') && (
+                            <QuickActions
+                                setView={setView}
+                                onNewSuggestion={() => setIsSuggestionModalOpen(true)}
+                            />
+                        )}
+
                         {activeTab === 'active' ? (
                             <>
                                 <div className="flex justify-between items-center">
@@ -441,6 +452,20 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                 )}
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Empty State for Residents - Show Quick Actions largely */}
+                {activeTab === 'active' && activeNotices.length === 0 && !canManageNotices && (
+                    <div className="lg:col-span-3 space-y-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center mb-6">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Bem-vindo, {currentUser?.name.split(' ')[0]}!</h2>
+                            <p className="text-gray-500 mb-8">Não há novos comunicados no momento. O que você gostaria de fazer?</p>
+                            <QuickActions
+                                setView={setView}
+                                onNewSuggestion={() => setIsSuggestionModalOpen(true)}
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -596,6 +621,9 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                 confirmText="Sim, Excluir"
                 cancelText="Cancelar"
             />
+            {isSuggestionModalOpen && (
+                <RequestModal onClose={() => setIsSuggestionModalOpen(false)} />
+            )}
         </div>
     );
 };
