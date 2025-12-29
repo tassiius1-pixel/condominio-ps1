@@ -229,50 +229,54 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
           <div className="flex items-center gap-1">
             {canManage && isSuggestion && (
               <>
-                <div className="flex items-center bg-gray-50 rounded-xl p-1 gap-1">
-
+                <div className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-2xl p-1.5 gap-2 shadow-inner">
                   <button
+                    type="button"
                     onClick={(e) => handleStatusClick(e, 'reject')}
-                    className="p-2 rounded-lg text-red-600 hover:bg-white hover:shadow-sm transition-all"
+                    className="p-3 rounded-xl text-red-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
                     title="Recusar"
                   >
-                    <XIcon className="w-4 h-4" />
+                    <XIcon className="w-5 h-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => handleStatusClick(e, 'analyze')}
-                    className="p-2 rounded-lg text-blue-600 hover:bg-white hover:shadow-sm transition-all"
+                    className="p-3 rounded-xl text-blue-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
                     title="Analisar"
                   >
-                    <InfoIcon className="w-4 h-4" />
+                    <InfoIcon className="w-5 h-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => handleStatusClick(e, 'in_progress')}
-                    className="p-2 rounded-lg text-orange-600 hover:bg-white hover:shadow-sm transition-all"
+                    className="p-3 rounded-xl text-orange-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
                     title="Em Andamento"
                   >
-                    <WrenchScrewdriverIcon className="w-4 h-4" />
+                    <WrenchScrewdriverIcon className="w-5 h-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => handleStatusClick(e, 'conclude')}
-                    className="p-2 rounded-lg text-green-600 hover:bg-white hover:shadow-sm transition-all"
+                    className="p-3 rounded-xl text-green-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
                     title="Concluir"
                   >
-                    <CheckCircleIcon className="w-4 h-4" />
+                    <CheckCircleIcon className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="w-px h-5 bg-gray-200 mx-1"></div>
+                <div className="w-px h-6 bg-gray-200 mx-1"></div>
 
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (onCreateVoting) {
                       onCreateVoting(request.title, request.description);
                     }
                   }}
-                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-100 hover-lift active:scale-95"
+                  className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95"
                 >
-                  <BarChartIcon className="w-3.5 h-3.5" />
+                  <BarChartIcon className="w-4 h-4" />
                   Votar
                 </button>
               </>
@@ -317,7 +321,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                 }`}>
                 {statusModal.action === 'conclude' ? 'Concluir Sugestão' :
                   statusModal.action === 'reject' ? 'Recusar Sugestão' :
-                    statusModal.action === 'in_progress' ? 'Iniciar Atendimento' :
+                    statusModal.action === 'in_progress' ? 'Em Andamento' :
                       'Analisar Sugestão'}
               </h3>
               <p className="text-xs text-gray-600 mt-1">
