@@ -292,17 +292,19 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
             <div className="space-y-4">
                 {/* Votações */}
                 {hasActiveVoting && (
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-purple-100 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div className="bg-gradient-to-br from-purple-50 to-white p-4 rounded-xl shadow-sm border border-purple-100 relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100/50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                         <div className="relative">
                             <div className="flex items-center gap-2 mb-2">
-                                <BarChartIcon className="w-4 h-4 text-purple-600" />
-                                <span className="text-xs font-bold text-purple-600 uppercase tracking-wide">Votação Ativa</span>
+                                <div className="p-1.5 bg-purple-100 rounded-lg text-purple-600">
+                                    <BarChartIcon className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-bold text-purple-700 uppercase tracking-wide">Votação Ativa</span>
                             </div>
-                            <h3 className="font-bold text-gray-900 leading-tight mb-3">{activeVoting.title}</h3>
+                            <h3 className="font-bold text-gray-900 leading-tight mb-3 line-clamp-2">{activeVoting.title}</h3>
                             <button
                                 onClick={() => setView('voting')}
-                                className="text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 px-3 py-1.5 rounded-lg transition w-full text-center"
+                                className="text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition w-full text-center shadow-sm"
                             >
                                 Participar
                             </button>
@@ -312,22 +314,24 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
                 {/* Próxima Reserva */}
                 {hasNextReservation && (
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                         <div className="relative">
                             <div className="flex items-center gap-2 mb-2">
-                                <CalendarIcon className="w-4 h-4 text-blue-600" />
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">Sua Reserva</span>
+                                <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+                                    <CalendarIcon className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Sua Reserva</span>
                             </div>
-                            <p className="text-lg font-bold text-gray-900">
-                                {new Date(nextReservation.date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                            <p className="text-xl font-extrabold text-gray-900 leading-none mb-1">
+                                {new Date(nextReservation.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                             </p>
-                            <p className="text-xs text-gray-600 mb-3">
+                            <p className="text-xs font-medium text-gray-600 mb-4 bg-white/60 inline-block px-2 py-0.5 rounded-md">
                                 {nextReservation.area === 'salao_festas' ? 'Salão de Festas' : nextReservation.area === 'churrasco1' ? 'Churrasqueira 1' : 'Churrasqueira 2'}
                             </p>
                             <button
                                 onClick={() => setView('reservations')}
-                                className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition w-full text-center"
+                                className="text-xs font-bold text-blue-600 bg-white border border-blue-200 hover:bg-blue-50 px-4 py-2 rounded-lg transition w-full text-center"
                             >
                                 Ver Detalhes
                             </button>
@@ -337,19 +341,21 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
                 {/* Ocorrências */}
                 {hasOpenOccurrences && (
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-orange-100 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-orange-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div className="bg-gradient-to-br from-orange-50 to-white p-4 rounded-xl shadow-sm border border-orange-100 relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-orange-100/50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                         <div className="relative">
                             <div className="flex items-center gap-2 mb-2">
-                                <AlertTriangleIcon className="w-4 h-4 text-orange-600" />
-                                <span className="text-xs font-bold text-orange-600 uppercase tracking-wide">Pendente</span>
+                                <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600">
+                                    <AlertTriangleIcon className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-bold text-orange-700 uppercase tracking-wide">Pendente</span>
                             </div>
-                            <p className="text-sm text-gray-800 mb-3">
-                                Você tem <span className="font-bold">{openOccurrences}</span> ocorrência(s) em aberto.
+                            <p className="text-sm text-gray-800 mb-4 font-medium">
+                                Você tem <span className="text-lg font-bold text-orange-600 mx-1">{openOccurrences}</span> ocorrência(s) em aberto.
                             </p>
                             <button
                                 onClick={() => setView('occurrences')}
-                                className="text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition w-full text-center"
+                                className="text-xs font-bold text-orange-600 bg-white border border-orange-200 hover:bg-orange-50 px-4 py-2 rounded-lg transition w-full text-center"
                             >
                                 Acompanhar
                             </button>
@@ -391,88 +397,78 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content - Notices (2/3) */}
-                {(activeTab === 'history' || activeNotices.length > 0 || canManageNotices) && (
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Quick Actions for Residents (Always visible if space permits, or top of feed) */}
-                        {!canManageNotices && (activeNotices.length > 0 || activeTab === 'history') && (
-                            <QuickActions
-                                setView={setView}
-                                onNewSuggestion={() => setIsSuggestionModalOpen(true)}
-                            />
-                        )}
+                {/* Main Content - Notices and Empty Action State (2/3) */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Quick Actions - Always Top if Resident */}
+                    {!canManageNotices && (
+                        <QuickActions
+                            setView={setView}
+                            onNewSuggestion={() => setIsSuggestionModalOpen(true)}
+                        />
+                    )}
 
-                        {activeTab === 'active' ? (
-                            <>
-                                <div className="flex justify-between items-center">
-                                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                        <InfoIcon className="w-5 h-5 text-indigo-600" />
-                                        Quadro de Avisos
-                                    </h2>
+                    {/* Notice Board Logic */}
+                    {activeTab === 'active' ? (
+                        <>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <InfoIcon className="w-5 h-5 text-indigo-600" />
+                                    Quadro de Avisos
+                                </h2>
+                                {canManageNotices && (
+                                    <button
+                                        onClick={handleOpenModal}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
+                                    >
+                                        <PlusIcon className="w-4 h-4" />
+                                        Novo Aviso
+                                    </button>
+                                )}
+                            </div>
+
+                            {activeNotices.length > 0 ? (
+                                <div className="space-y-4">
+                                    {activeNotices.map(renderNoticeCard)}
+                                </div>
+                            ) : (
+                                /* Empty state with NO redundant greeting */
+                                <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+                                        <InfoIcon className="w-8 h-8 text-gray-300" />
+                                    </div>
+                                    <p className="text-gray-500 font-medium max-w-xs mx-auto">
+                                        Não há novos comunicados no momento.
+                                    </p>
                                     {canManageNotices && (
                                         <button
                                             onClick={handleOpenModal}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
+                                            className="text-indigo-600 font-bold text-xs mt-3 uppercase tracking-widest hover:underline"
                                         >
-                                            <PlusIcon className="w-4 h-4" />
-                                            Novo Aviso
+                                            Criar primeiro aviso
                                         </button>
                                     )}
                                 </div>
-
-                                {activeNotices.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {activeNotices.map(renderNoticeCard)}
-                                    </div>
-                                ) : (
-                                    /* Empty state simplified for Admins */
-                                    canManageNotices && (
-                                        <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
-                                            <p className="text-sm text-gray-400 font-medium">O mural está vazio no momento.</p>
-                                            <button
-                                                onClick={handleOpenModal}
-                                                className="text-indigo-600 font-bold text-xs mt-2 uppercase tracking-widest hover:underline"
-                                            >
-                                                Criar primeiro aviso
-                                            </button>
-                                        </div>
-                                    )
-                                )}
-                            </>
-                        ) : (
-                            /* History Tab */
-                            <div className="space-y-4">
-                                <h2 className="text-lg font-bold text-gray-800">Histórico de Comunicados</h2>
-                                {historyNotices.length === 0 ? (
-                                    <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                        Nenhum aviso antigo encontrado.
-                                    </p>
-                                ) : (
-                                    historyNotices.map(renderNoticeCard)
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Empty State for Residents - Show Quick Actions largely */}
-                {activeTab === 'active' && activeNotices.length === 0 && !canManageNotices && (
-                    <div className="lg:col-span-3 space-y-6">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Bem-vindo, {currentUser?.name.split(' ')[0]}!</h2>
-                            <p className="text-gray-500 mb-8">Não há novos comunicados no momento. O que você gostaria de fazer?</p>
-                            <QuickActions
-                                setView={setView}
-                                onNewSuggestion={() => setIsSuggestionModalOpen(true)}
-                            />
+                            )}
+                        </>
+                    ) : (
+                        /* History Tab */
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-bold text-gray-800 mb-4">Histórico de Comunicados</h2>
+                            {historyNotices.length === 0 ? (
+                                <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    Nenhum aviso antigo encontrado.
+                                </p>
+                            ) : (
+                                historyNotices.map(renderNoticeCard)
+                            )}
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
-                {/* Sidebar - Summary (1/3) */}
-                <div className={(activeTab === 'history' || activeNotices.length > 0 || canManageNotices) ? "lg:col-span-1" : "lg:col-span-3"}>
+                {/* Sidebar - Summary (1/3) - Always Visible now to balance layout */}
+                <div className="lg:col-span-1">
                     <div className="sticky top-28">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">Resumo Rápido</h2>
+                        <h2 className="text-lg font-bold text-gray-800 mb-4 px-1">Resumo Rápido</h2>
                         <SummarySidebar />
                     </div>
                 </div>
