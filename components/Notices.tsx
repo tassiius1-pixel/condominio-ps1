@@ -409,7 +409,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
                     {/* Notice Board Logic */}
                     {activeTab === 'active' ? (
-                        (activeNotices.length > 0 || canManageNotices) && (
+                        (activeNotices.length > 0 || canManageNotices) ? (
                             <>
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -432,7 +432,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                         {activeNotices.map(renderNoticeCard)}
                                     </div>
                                 ) : (
-                                    { canManageNotices && (
+                                    canManageNotices ? (
                                         <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
                                             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
                                                 <InfoIcon className="w-8 h-8 text-gray-300" />
@@ -447,188 +447,181 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
                                                 Criar primeiro aviso
                                             </button>
                                         </div>
-                                    )}
+                                    ) : null
+                                )}
                             </>
-                        )}
-                </>
-                )
-                : (
-                /* History Tab */
-                <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4">Histórico de Comunicados</h2>
-                    {historyNotices.length === 0 ? (
-                        <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                            Nenhum aviso antigo encontrado.
-                        </p>
+                        ) : null
                     ) : (
-                        historyNotices.map(renderNoticeCard)
+                        /* History Tab */
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-bold text-gray-800 mb-4">Histórico de Comunicados</h2>
+                            {historyNotices.length === 0 ? (
+                                <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    Nenhum aviso antigo encontrado.
+                                </p>
+                            ) : (
+                                historyNotices.map(renderNoticeCard)
+                            )}
+                        </div>
                     )}
                 </div>
-                    )}
-            </div>
 
-            {/* Sidebar - Summary (1/3) - Always Visible now to balance layout */}
-            <div className="lg:col-span-1">
-                <div className="sticky top-28">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 px-1">Resumo Rápido</h2>
-                    <SummarySidebar />
-                </div>
-            </div>
-        </div>
-
-            {/* Modal de Novo Aviso */ }
-    {
-        isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-                <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
-                    <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                        <h3 className="text-xl font-bold text-gray-900">Novo Comunicado</h3>
-                        <button
-                            onClick={() => setIsModalOpen(false)}
-                            className="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
-                        >
-                            <XIcon className="w-6 h-6" />
-                        </button>
+                {/* Sidebar - Summary (1/3) - Always Visible now to balance layout */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-28">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4 px-1">Resumo Rápido</h2>
+                        <SummarySidebar />
                     </div>
-
-                    <form onSubmit={handleCreateNotice} className="p-6 space-y-4">
-                        <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                                Título do Aviso
-                            </label>
-                            <input
-                                type="text"
-                                id="title"
-                                value={newTitle}
-                                onChange={(e) => setNewTitle(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                                placeholder="Ex: Manutenção na Piscina"
-                                required
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Início da Exibição</label>
-                                <input
-                                    type="datetime-local"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Fim da Exibição</label>
-                                <input
-                                    type="datetime-local"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-                                Conteúdo
-                            </label>
-                            <textarea
-                                id="content"
-                                value={newContent}
-                                onChange={(e) => setNewContent(e.target.value)}
-                                rows={6}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
-                                placeholder="Descreva o aviso detalhadamente..."
-                                required
-                            />
-                        </div>
-
-                        {/* Photos */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Anexos (Fotos)</label>
-                            <div className="flex flex-wrap gap-2">
-                                {photos.map((photo, idx) => (
-                                    <div key={idx} className="relative w-20 h-20">
-                                        <img src={photo} alt="Preview" className="w-full h-full object-cover rounded-lg border border-gray-200" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removePhoto(idx)}
-                                            className="absolute -top-2 -right-2 bg-white text-red-500 border border-gray-200 rounded-full p-1 shadow-sm hover:bg-red-50"
-                                        >
-                                            <XIcon className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                ))}
-                                <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition">
-                                    <UploadIcon className="w-6 h-6 text-gray-400" />
-                                    <span className="text-xs text-gray-500 mt-1">Add</span>
-                                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                            <button
-                                type="button"
-                                onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
-                            >
-                                {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
-        )
-    }
 
-    {/* Image Lightbox */ }
-    {
-        selectedImage && (
-            <div
-                className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-                onClick={() => setSelectedImage(null)}
-            >
-                <button
+            {/* Modal de Novo Aviso */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                            <h3 className="text-xl font-bold text-gray-900">Novo Comunicado</h3>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
+                            >
+                                <XIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateNotice} className="p-6 space-y-4">
+                            <div>
+                                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Título do Aviso
+                                </label>
+                                <input
+                                    type="text"
+                                    id="title"
+                                    value={newTitle}
+                                    onChange={(e) => setNewTitle(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                    placeholder="Ex: Manutenção na Piscina"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Início da Exibição</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Fim da Exibição</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Conteúdo
+                                </label>
+                                <textarea
+                                    id="content"
+                                    value={newContent}
+                                    onChange={(e) => setNewContent(e.target.value)}
+                                    rows={6}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
+                                    placeholder="Descreva o aviso detalhadamente..."
+                                    required
+                                />
+                            </div>
+
+                            {/* Photos */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Anexos (Fotos)</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {photos.map((photo, idx) => (
+                                        <div key={idx} className="relative w-20 h-20">
+                                            <img src={photo} alt="Preview" className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                                            <button
+                                                type="button"
+                                                onClick={() => removePhoto(idx)}
+                                                className="absolute -top-2 -right-2 bg-white text-red-500 border border-gray-200 rounded-full p-1 shadow-sm hover:bg-red-50"
+                                            >
+                                                <XIcon className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition">
+                                        <UploadIcon className="w-6 h-6 text-gray-400" />
+                                        <span className="text-xs text-gray-500 mt-1">Add</span>
+                                        <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                                >
+                                    {isSubmitting ? 'Publicando...' : 'Publicar Aviso'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Lightbox */}
+            {selectedImage && (
+                <div
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
                     onClick={() => setSelectedImage(null)}
-                    className="absolute top-4 right-4 p-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition"
                 >
-                    <XIcon className="w-6 h-6" />
-                </button>
-                <img
-                    src={selectedImage}
-                    alt="Ampliação"
-                    className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                    onClick={(e) => e.stopPropagation()}
-                />
-            </div>
-        )
-    }
+                    <button
+                        onClick={() => setSelectedImage(null)}
+                        className="absolute top-4 right-4 p-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition"
+                    >
+                        <XIcon className="w-6 h-6" />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Ampliação"
+                        className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
 
-    <ConfirmModal
-        isOpen={!!noticeToDelete}
-        onClose={() => setNoticeToDelete(null)}
-        onConfirm={confirmDelete}
-        title="Excluir Aviso"
-        message="Tem certeza que deseja excluir este aviso? Esta ação não pode ser desfeita."
-        confirmText="Sim, Excluir"
-        cancelText="Cancelar"
-    />
-    {
-        isSuggestionModalOpen && (
-            <RequestModal onClose={() => setIsSuggestionModalOpen(false)} />
-        )
-    }
-        </div >
+            <ConfirmModal
+                isOpen={!!noticeToDelete}
+                onClose={() => setNoticeToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Excluir Aviso"
+                message="Tem certeza que deseja excluir este aviso? Esta ação não pode ser desfeita."
+                confirmText="Sim, Excluir"
+                cancelText="Cancelar"
+            />
+            {isSuggestionModalOpen && (
+                <RequestModal onClose={() => setIsSuggestionModalOpen(false)} />
+            )}
+        </div>
     );
 };
 
