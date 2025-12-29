@@ -17,79 +17,82 @@ const AdminReservationModal: React.FC<AdminReservationModalProps> = ({ isOpen, o
         e.preventDefault();
         const number = parseInt(houseNumber);
         if (!isNaN(number)) {
-            // Se o nome estiver vazio, usa um padrão
             const finalName = userName.trim() || `Admin (Casa ${number})`;
             onConfirm(number, finalName);
-            // Reset
             setHouseNumber('');
             setUserName('');
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-900">Reservar para Morador</h3>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in">
+            <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50">
+                <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50/50 to-white/0">
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 tracking-tight">Nova Reserva</h3>
+                        <p className="text-xs font-medium text-indigo-600 uppercase tracking-widest mt-1">Área Administrativa</p>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-200"
+                        className="text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50"
                     >
-                        <XIcon className="w-5 h-5" />
+                        <XIcon className="w-6 h-6" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                Número da Casa/Unidade <span className="text-red-500">*</span>
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    <div className="space-y-5">
+                        <div className="group">
+                            <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">
+                                Unidade / Casa <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="number"
                                 value={houseNumber}
                                 onChange={(e) => setHouseNumber(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-lg font-medium placeholder-gray-300"
-                                placeholder="Ex: 101"
+                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 rounded-2xl outline-none transition-all text-xl font-bold text-gray-900 placeholder-gray-300 shadow-inner"
+                                placeholder="000"
                                 required
                                 autoFocus
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                Nome do Responsável (Opcional)
+                            <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">
+                                Responsável (Opcional)
                             </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <UsersIcon className="h-5 w-5 text-gray-400" />
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <UsersIcon className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                                 </div>
                                 <input
                                     type="text"
                                     value={userName}
                                     onChange={(e) => setUserName(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                                    placeholder="Ex: João da Silva"
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 rounded-2xl outline-none transition-all font-medium text-gray-900 placeholder-gray-400"
+                                    placeholder="Nome do morador..."
                                 />
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Se deixado em branco, será salvo como "Admin (Casa X)".</p>
+                            <p className="text-[10px] font-bold text-gray-400 mt-2 pl-1 uppercase tracking-wider">
+                                {userName ? 'Reserva será registrada para este nome' : 'Será salvo como "Admin (Casa X)"'}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <div className="flex gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition"
+                            className="flex-1 px-4 py-3.5 text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 shadow-lg shadow-indigo-200"
+                            className="flex-[2] px-4 py-3.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 flex justify-center items-center gap-2"
                         >
                             <CheckCircleIcon className="w-5 h-5" />
-                            Confirmar Reserva
+                            Confirmar
                         </button>
                     </div>
                 </form>

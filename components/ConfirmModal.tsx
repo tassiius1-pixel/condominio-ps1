@@ -24,41 +24,34 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
     if (!isOpen) return null;
 
+    const isDanger = type === 'danger';
+
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in">
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-scale-in"
+                className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50"
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-title"
             >
-                <div className="p-6">
-                    <div className="flex items-start gap-4">
-                        <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${type === 'danger' ? 'bg-red-100' : 'bg-blue-100'}`}>
-                            <AlertTriangleIcon className={`w-6 h-6 ${type === 'danger' ? 'text-red-600' : 'text-blue-600'}`} />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-900" id="modal-title">
-                                {title}
-                            </h3>
-                            <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-                                {message}
-                            </p>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-500 transition p-1 rounded-full hover:bg-gray-100"
-                        >
-                            <XIcon className="w-5 h-5" />
-                        </button>
+                <div className="p-6 text-center">
+                    <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDanger ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'
+                        } animate-bounce-slow`}>
+                        <AlertTriangleIcon className="w-8 h-8" />
                     </div>
+
+                    <h3 className="text-xl font-bold text-gray-900 tracking-tight mb-2">
+                        {title}
+                    </h3>
+                    <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                        {message}
+                    </p>
                 </div>
 
-                <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <div className="bg-gray-50/50 px-6 py-4 flex gap-3 border-t border-gray-100">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition shadow-sm"
+                        className="flex-1 px-4 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors shadow-sm"
                     >
                         {cancelText}
                     </button>
@@ -68,9 +61,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                             onConfirm();
                             onClose();
                         }}
-                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition shadow-sm ${type === 'danger'
-                                ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                                : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                        className={`flex-1 px-4 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all hover:-translate-y-0.5 ${isDanger
+                                ? 'bg-red-500 hover:bg-red-600 shadow-red-200'
+                                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
                             }`}
                     >
                         {confirmText}
