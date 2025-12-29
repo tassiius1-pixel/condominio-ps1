@@ -21,8 +21,8 @@ const Reports = React.lazy(() => import("./components/Reports"));
 const Reservations = React.lazy(() => import("./components/Reservations"));
 const Occurrences = React.lazy(() => import("./components/Occurrences"));
 const VotingModule = React.lazy(() => import("./components/VotingModule"));
-const Notices = React.lazy(() => import("./components/Notices"));
 const Documents = React.lazy(() => import("./components/Documents"));
+const Home = React.lazy(() => import("./components/Home"));
 
 import Toast from "./components/Toast";
 
@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<"login" | "register">("login");
   const [mainView, setMainView] = useState<View>(() => {
     const params = new URLSearchParams(window.location.search);
-    return (params.get("view") as View) || "notices";
+    return (params.get("view") as View) || "home";
   });
 
   const [condoLogo, setCondoLogo] = useState<string | null>(() => {
@@ -113,8 +113,8 @@ const App: React.FC = () => {
       }>
         {(() => {
           switch (mainView) {
-            case "notices":
-              return <Notices setView={handleViewChange} />;
+            case "home":
+              return <Home setView={handleViewChange} />;
             case "dashboard":
               return <Dashboard setView={handleViewChange} />;
             case "reservations":

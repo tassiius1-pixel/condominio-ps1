@@ -190,4 +190,4 @@ export interface Document {
   createdAt: string;
 }
 
-export type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "notices" | "documents";
+export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents";

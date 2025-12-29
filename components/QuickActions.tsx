@@ -1,6 +1,7 @@
 import React from 'react';
-import { View } from '../types';
-import { CalendarIcon, AlertTriangleIcon, LightbulbIcon } from './Icons';
+import { View, Role } from '../types';
+import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, UsersIcon, BarChartIcon } from './Icons';
+import { useAuth } from '../hooks/useAuth';
 
 interface QuickActionsProps {
     setView?: (view: View) => void;
@@ -8,69 +9,89 @@ interface QuickActionsProps {
 }
 
 const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion }) => {
+    const { currentUser } = useAuth();
+
     // Helper to safely navigate
     const handleNavigation = (view: View) => {
         if (setView) setView(view);
     };
 
+    const isAdminProfile = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
+
+    const ActionCard: React.FC<{
+        title: string;
+        subtitle: string;
+        icon: React.ReactNode;
+        gradient: string;
+        onClick: () => void;
+    }> = ({ title, subtitle, icon, gradient, onClick }) => (
+        <div
+            onClick={onClick}
+            className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.03] active:scale-95 cursor-pointer`}
+        >
+            <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/20 blur-3xl transition-all group-hover:bg-white/30" />
+            <div className="relative z-10 flex items-center gap-5">
+                <div className="rounded-xl bg-white/20 p-3 backdrop-blur-md shrink-0 border border-white/20 group-hover:bg-white/30 transition-colors">
+                    {icon}
+                </div>
+                <div>
+                    <h3 className="text-lg font-black leading-tight tracking-tight">{title}</h3>
+                    <p className="text-xs text-white/80 mt-1 font-medium leading-snug">
+                        {subtitle}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-            {/* Reservation Card */}
-            <div
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {/* Common Quick Actions */}
+            <ActionCard
+                title="Reservar"
+                subtitle="Churrasqueira ou Salão"
+                icon={<CalendarIcon className="h-6 w-6 text-white" />}
+                gradient="from-indigo-600 to-indigo-800"
                 onClick={() => handleNavigation('reservations')}
-                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 p-4 text-white shadow-md transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer"
-            >
-                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/20 blur-2xl transition-all group-hover:bg-white/30" />
-                <div className="relative z-10 flex items-center gap-4">
-                    <div className="rounded-lg bg-white/20 p-2.5 backdrop-blur-sm shrink-0">
-                        <CalendarIcon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                        <h3 className="text-base font-bold leading-tight">Reservar</h3>
-                        <p className="text-xs text-indigo-100 mt-0.5 leading-snug">
-                            Churrasqueira ou Salão
-                        </p>
-                    </div>
-                </div>
-            </div>
+            />
 
-            {/* Occurrence Card */}
-            <div
+            <ActionCard
+                title="Ocorrência"
+                subtitle="Algo errado? Avise aqui"
+                icon={<AlertTriangleIcon className="h-6 w-6 text-white" />}
+                gradient="from-amber-500 to-orange-600"
                 onClick={() => handleNavigation('occurrences')}
-                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 p-4 text-white shadow-md transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer"
-            >
-                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/20 blur-2xl transition-all group-hover:bg-white/30" />
-                <div className="relative z-10 flex items-center gap-4">
-                    <div className="rounded-lg bg-white/20 p-2.5 backdrop-blur-sm shrink-0">
-                        <AlertTriangleIcon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                        <h3 className="text-base font-bold leading-tight">Ocorrência</h3>
-                        <p className="text-xs text-orange-100 mt-0.5 leading-snug">
-                            Algo errado? Avise aqui
-                        </p>
-                    </div>
-                </div>
-            </div>
+            />
 
-            {/* Suggestion Card */}
-            <div
-                onClick={onNewSuggestion}
-                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-4 text-white shadow-md transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer"
-            >
-                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/20 blur-2xl transition-all group-hover:bg-white/30" />
-                <div className="relative z-10 flex items-center gap-4">
-                    <div className="rounded-lg bg-white/20 p-2.5 backdrop-blur-sm shrink-0">
-                        <LightbulbIcon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                        <h3 className="text-base font-bold leading-tight">Sugestão</h3>
-                        <p className="text-xs text-emerald-100 mt-0.5 leading-snug">
-                            Ajude a melhorar
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {isAdminProfile && currentUser?.role === Role.ADMIN && (
+                <ActionCard
+                    title="Usuários"
+                    subtitle="Gerenciar perfis"
+                    icon={<UsersIcon className="h-6 w-6 text-white" />}
+                    gradient="from-blue-600 to-indigo-900"
+                    onClick={() => handleNavigation('users')}
+                />
+            )}
+
+            {isAdminProfile && (
+                <ActionCard
+                    title="Relatórios"
+                    subtitle="Visualizar desempenho"
+                    icon={<BarChartIcon className="h-6 w-6 text-white" />}
+                    gradient="from-purple-600 to-pink-700"
+                    onClick={() => handleNavigation('reports')}
+                />
+            )}
+
+            {!isAdminProfile && (
+                <ActionCard
+                    title="Sugestão"
+                    subtitle="Ajude a melhorar"
+                    icon={<LightbulbIcon className="h-6 w-6 text-white" />}
+                    gradient="from-emerald-400 to-teal-600"
+                    onClick={onNewSuggestion}
+                />
+            )}
         </div>
     );
 };

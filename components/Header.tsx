@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon } from './Icons';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -9,7 +9,7 @@ import NotificationsDropdown from './NotificationsDropdown';
 
 interface HeaderProps {
   currentView: string;
-  setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'notices' | 'documents') => void;
+  setView: (view: 'home' | 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'documents') => void;
   condoLogo: string | null;
   setCondoLogo: (logo: string | null) => void;
   mobileMenuOpen: boolean;
@@ -81,8 +81,8 @@ const Header: React.FC<HeaderProps> = ({
     "/favicon.png";
 
   const navItems = [
-    { id: "notices", label: "Início", icon: InfoIcon },
-    { id: "dashboard", label: "Sugestões", icon: LayoutDashboardIcon },
+    { id: "home", label: "Início", icon: LayoutDashboardIcon },
+    { id: "dashboard", label: "Sugestões", icon: LightbulbIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
@@ -91,13 +91,25 @@ const Header: React.FC<HeaderProps> = ({
     { id: "reports", label: "Relatórios", icon: BarChartIcon, adminOnly: true },
   ];
 
+  const isManagement = [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
+
+  const topLevelItems = isManagement
+    ? navItems.filter(i => ['home', 'dashboard'].includes(i.id))
+    : navItems.filter(i => !i.adminOnly);
+
+  const secondaryItems = isManagement
+    ? navItems.filter(i => ['reservations', 'occurrences', 'voting', 'documents'].includes(i.id))
+    : [];
+
+  const managementItems = navItems.filter(i => i.adminOnly);
+
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 ${visible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${mobileMenuOpen ? 'h-screen' : 'h-auto'}`}>
-      <header className={`bg-white max-w-7xl mx-auto rounded-[2.5rem] transition-all duration-300 ${scrolled ? 'shadow-2xl shadow-indigo-200/50 border-b border-gray-100 py-1' : 'shadow-xl shadow-gray-200/50 border border-gray-100'}`}>
+      <header className={`bg-white max-w-7xl mx-auto rounded-[2.5rem] transition-all duration-300 shadow-xl shadow-gray-200/50 border border-gray-100 ${scrolled ? 'shadow-2xl shadow-indigo-200/50 border-b border-gray-100 py-1' : ''}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* LOGO */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="relative group flex-shrink-0 w-10 h-10">
                 <img
                   src={logoURL}
@@ -125,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* TÍTULO */}
-              <div className="hidden sm:flex flex-col justify-center">
+              <div className="hidden xl:flex flex-col justify-center">
                 <h1 className="text-lg font-bold text-gray-900 leading-tight tracking-tight">
                   Porto Seguro 1
                 </h1>
@@ -133,12 +145,11 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* MENU */}
-            <div className="flex items-center space-x-2 md:space-x-4">
-
-              {/* NAV */}
-              <nav className="hidden lg:flex items-center space-x-1 mr-2">
-                {navItems.filter(i => !i.adminOnly).map(item => {
+            {/* NAVIGATION & PROFILE */}
+            <div className="flex items-center space-x-1 sm:space-x-3">
+              {/* Desktop Nav Group */}
+              <nav className="hidden lg:flex items-center space-x-1">
+                {topLevelItems.map(item => {
                   const Icon = item.icon;
                   const isActive = currentView === item.id;
 
@@ -147,9 +158,9 @@ const Header: React.FC<HeaderProps> = ({
                       key={item.id}
                       onClick={() => setView(item.id as any)}
                       className={`
-                                 flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl cursor-pointer transition-all
-                                 ${isActive ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "text-gray-600 hover:bg-white/50 hover:text-gray-900"}
-                             `}
+                        flex items-center px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer transition-all
+                        ${isActive ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                      `}
                     >
                       <Icon className={`h-4.5 w-4.5 mr-2 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                       {item.label}
@@ -157,28 +168,64 @@ const Header: React.FC<HeaderProps> = ({
                   );
                 })}
 
-                {/* ADMIN DROPDOWN */}
-                {[Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role) && (
-                  <div className="relative group ml-1">
+                {/* MODULOS DROPDOWN (Management Only Grouping) */}
+                {isManagement && (
+                  <div className="relative group">
                     <button
                       className={`
-                                 flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl cursor-pointer transition-all
-                                 ${currentView === 'users' || currentView === 'reports' ? "bg-indigo-100 text-indigo-700" : "text-gray-600 hover:bg-white/50 hover:text-gray-900"}
-                             `}
+                        flex items-center px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer transition-all
+                        ${secondaryItems.some(i => i.id === currentView) ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                      `}
                     >
-                      <LayoutDashboardIcon className="h-4.5 w-4.5 mr-2 text-gray-400" />
-                      Gestão
-                      <svg className="w-4 h-4 ml-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <MenuIcon className="h-4.5 w-4.5 mr-2 text-gray-400" />
+                      Módulos
+                      <svg className="w-4 h-4 ml-1 opacity-50 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
 
-                    {/* Dropdown Content */}
                     <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] translate-y-2 group-hover:translate-y-0">
-                      {navItems.filter(i => i.adminOnly).map(item => {
-                        // Specific check for Users tab (Admin only)
-                        if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+                      {secondaryItems.map(item => {
+                        const Icon = item.icon;
+                        const isActive = currentView === item.id;
 
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setView(item.id as any)}
+                            className={`
+                              w-full flex items-center px-4 py-3 text-sm font-semibold transition-all
+                              ${isActive ? "text-indigo-600 bg-indigo-50" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                            `}
+                          >
+                            <Icon className={`h-4.5 w-4.5 mr-3 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* GESTÃO DROPDOWN */}
+                {[Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role) && (
+                  <div className="relative group">
+                    <button
+                      className={`
+                        flex items-center px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer transition-all
+                        ${managementItems.some(i => i.id === currentView) ? "bg-indigo-50 text-indigo-100 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                      `}
+                    >
+                      <LayoutDashboardIcon className="h-4.5 w-4.5 mr-2 text-gray-400" />
+                      Gestão
+                      <svg className="w-4 h-4 ml-1 opacity-50 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] translate-y-2 group-hover:translate-y-0">
+                      {managementItems.map(item => {
+                        if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
                         const Icon = item.icon;
                         const isActive = currentView === item.id;
 
@@ -201,60 +248,54 @@ const Header: React.FC<HeaderProps> = ({
                 )}
               </nav>
 
-              {/* USER INFO */}
-              <div className="hidden md:flex items-center gap-3 bg-white/40 px-3 py-1.5 rounded-2xl border border-white/50">
-                <div className="text-right leading-tight">
-                  <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
-                    {currentUser.name}
-                  </p>
-                  <p className="text-[11px] font-medium text-gray-500 whitespace-nowrap">
-                    Unidade {currentUser.houseNumber}
-                  </p>
+              {/* Profile & Secondary Actions Group */}
+              <div className="flex items-center gap-1 sm:gap-2 pl-2 border-l border-gray-100">
+                {/* USER INFO COMPACT */}
+                <div className="hidden sm:flex items-center gap-2 bg-gray-50/50 px-2 py-1.5 rounded-xl border border-gray-100 overflow-hidden">
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-700 font-bold text-xs shrink-0">
+                    {currentUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col justify-center leading-none min-w-0">
+                    <p className="text-[10px] font-black text-gray-900 truncate uppercase tracking-tight">
+                      {currentUser.name.split(' ')[0]}
+                    </p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                      Unidade {currentUser.houseNumber}
+                    </p>
+                  </div>
                 </div>
-                <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm border-2 border-white shadow-sm">
-                  {currentUser.name.charAt(0).toUpperCase()}
-                </div>
-              </div>
 
-              {/* NOTIFICAÇÕES */}
-              <div className="relative">
+                {/* NOTIFICATIONS */}
+                <div className="relative">
+                  <button
+                    ref={bellRef}
+                    onClick={() => setShowNotifications(prev => !prev)}
+                    className="relative p-2.5 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-indigo-600 transition-all active:scale-95"
+                  >
+                    <BellIcon className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 h-4.5 w-4.5 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-black border-2 border-white shadow-sm animate-pulse">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <NotificationsDropdown
+                    open={showNotifications}
+                    onClose={() => setShowNotifications(false)}
+                    triggerRef={bellRef}
+                  />
+                </div>
+
+                {/* LOGOUT */}
                 <button
-                  ref={bellRef}
-                  onClick={() => setShowNotifications(prev => !prev)}
-                  className="relative p-2.5 rounded-xl text-gray-500 hover:bg-white/60 hover:text-indigo-600 transition-all active:scale-95"
+                  onClick={logout}
+                  className="p-2.5 rounded-xl text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all active:scale-95"
+                  title="Sair do App"
                 >
-                  <BellIcon className="h-6 w-6" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 h-5 w-5 bg-red-500 text-white 
-                                         rounded-full text-[10px] flex items-center justify-center font-black border-2 border-white shadow-sm animate-pulse">
-                      {unreadCount}
-                    </span>
-                  )}
+                  <LogOutIcon className="h-5 w-5" />
                 </button>
-
-                <NotificationsDropdown
-                  open={showNotifications}
-                  onClose={() => setShowNotifications(false)}
-                  triggerRef={bellRef}
-                />
               </div>
-
-              {/* Mobile Hamburger (Deprecated - moved to BottomNav) */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="hidden p-2.5 rounded-xl text-gray-500 hover:bg-white/60 hover:text-indigo-600 transition-all active:scale-95"
-              >
-                {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
-              </button>
-
-              {/* LOGOUT */}
-              <button
-                onClick={logout}
-                className="p-2.5 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all active:scale-95 ml-1"
-                title="Sair do App"
-              >
-                <LogOutIcon className="h-6 w-6" />
-              </button>
             </div>
           </div>
         </div>
@@ -269,11 +310,11 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Menu Drawer */}
         <div className={`
-        fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
-        transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        flex flex-col
-      `}>
+          fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
+          transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          flex flex-col
+        `}>
           <div className="h-full flex flex-col p-4">
             {/* Menu Header */}
             <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
