@@ -17,7 +17,7 @@ interface DocumentsProps {
     setView: (view: View) => void;
 }
 
-const CATEGORIES = ['Todos', 'Regimento', 'Atas', 'Financeiro', 'Comunicados', 'Outros'];
+const CATEGORIES = ['Todos', 'Regimento', 'Atas', 'Financeiro', 'Outros'];
 
 const Documents: React.FC<DocumentsProps> = () => {
     const { documents, addDocument, deleteDocument, loading } = useData();
