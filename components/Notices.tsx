@@ -389,67 +389,63 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content - Notices (2/3) */}
-                <div className="lg:col-span-2 space-y-6">
-                    {activeTab === 'active' ? (
-                        <>
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                    <InfoIcon className="w-5 h-5 text-indigo-600" />
-                                    Quadro de Avisos
-                                </h2>
-                                {canManageNotices && (
-                                    <button
-                                        onClick={handleOpenModal}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
-                                    >
-                                        <PlusIcon className="w-4 h-4" />
-                                        Novo Aviso
-                                    </button>
-                                )}
-                            </div>
-
-                            {activeNotices.length > 0 ? (
-                                <div className="space-y-4">
-                                    {activeNotices.map(renderNoticeCard)}
-                                </div>
-                            ) : (
-                                /* Empty State */
-                                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-center">
-                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-                                        <InfoIcon className="w-8 h-8 text-gray-300" />
-                                    </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-1">Nenhum aviso no momento</h3>
-                                    <p className="text-gray-500 text-sm max-w-xs mx-auto mb-6">
-                                        O quadro de avisos está vazio. Fique tranquilo, notificaremos você quando houver novidades.
-                                    </p>
+                {(activeTab === 'history' || activeNotices.length > 0 || canManageNotices) && (
+                    <div className="lg:col-span-2 space-y-6">
+                        {activeTab === 'active' ? (
+                            <>
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                        <InfoIcon className="w-5 h-5 text-indigo-600" />
+                                        Quadro de Avisos
+                                    </h2>
                                     {canManageNotices && (
                                         <button
                                             onClick={handleOpenModal}
-                                            className="text-indigo-600 font-medium text-sm hover:underline"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
                                         >
-                                            Criar um comunicado agora
+                                            <PlusIcon className="w-4 h-4" />
+                                            Novo Aviso
                                         </button>
                                     )}
                                 </div>
-                            )}
-                        </>
-                    ) : (
-                        /* History Tab */
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-bold text-gray-800">Histórico de Comunicados</h2>
-                            {historyNotices.length === 0 ? (
-                                <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                    Nenhum aviso antigo encontrado.
-                                </p>
-                            ) : (
-                                historyNotices.map(renderNoticeCard)
-                            )}
-                        </div>
-                    )}
-                </div>
+
+                                {activeNotices.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {activeNotices.map(renderNoticeCard)}
+                                    </div>
+                                ) : (
+                                    /* Empty state simplified for Admins */
+                                    canManageNotices && (
+                                        <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+                                            <p className="text-sm text-gray-400 font-medium">O mural está vazio no momento.</p>
+                                            <button
+                                                onClick={handleOpenModal}
+                                                className="text-indigo-600 font-bold text-xs mt-2 uppercase tracking-widest hover:underline"
+                                            >
+                                                Criar primeiro aviso
+                                            </button>
+                                        </div>
+                                    )
+                                )}
+                            </>
+                        ) : (
+                            /* History Tab */
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-bold text-gray-800">Histórico de Comunicados</h2>
+                                {historyNotices.length === 0 ? (
+                                    <p className="text-gray-500 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                        Nenhum aviso antigo encontrado.
+                                    </p>
+                                ) : (
+                                    historyNotices.map(renderNoticeCard)
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Sidebar - Summary (1/3) */}
-                <div className="lg:col-span-1">
+                <div className={(activeTab === 'history' || activeNotices.length > 0 || canManageNotices) ? "lg:col-span-1" : "lg:col-span-3"}>
                     <div className="sticky top-28">
                         <h2 className="text-lg font-bold text-gray-800 mb-4">Resumo Rápido</h2>
                         <SummarySidebar />
