@@ -10,6 +10,7 @@ import {
   BarChartIcon, CheckCircleIcon, XIcon, InfoIcon
 } from './Icons';
 import ImageLightbox from './ImageLightbox';
+import { getStatusStyle } from '../utils/statusUtils';
 
 interface CardProps {
   request: Request;
@@ -115,34 +116,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
   const authorFirstName = author ? author.name.split(' ')[0] : 'Desconhecido';
   const authorDisplay = author ? `${authorFirstName} • Unidade ${author.houseNumber}` : request.authorName;
   const formattedDate = new Date(request.createdAt).toLocaleDateString('pt-BR');
-
-  // Dynamic Styles for Admin Response
-  const getResponseStyles = () => {
-    if (request.status === 'Aprovada' || request.status === 'Concluído') {
-      return {
-        bg: 'bg-green-50/50', border: 'border-green-100', text: 'text-green-800',
-        label: 'text-green-600', bar: 'bg-green-500', hover: 'hover:bg-green-100/70', borderL: 'border-green-200'
-      };
-    }
-    if (request.status === 'Recusada') {
-      return {
-        bg: 'bg-red-50/50', border: 'border-red-100', text: 'text-red-800',
-        label: 'text-red-600', bar: 'bg-red-500', hover: 'hover:bg-red-100/70', borderL: 'border-red-200'
-      };
-    }
-    if (request.status === 'Em Votação') {
-      return {
-        bg: 'bg-yellow-50/50', border: 'border-yellow-100', text: 'text-yellow-800',
-        label: 'text-yellow-600', bar: 'bg-yellow-500', hover: 'hover:bg-yellow-100/70', borderL: 'border-yellow-200'
-      };
-    }
-    return {
-      bg: 'bg-blue-50/50', border: 'border-blue-100', text: 'text-blue-800',
-      label: 'text-blue-600', bar: 'bg-blue-500', hover: 'hover:bg-blue-100/70', borderL: 'border-blue-200'
-    };
-  };
-
-  const responseStyle = getResponseStyles();
+  const style = getStatusStyle(request.status);
 
   return (
     <>
@@ -177,16 +151,9 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
             </div>
 
             {/* Status Badge */}
-            {request.status !== 'Pendente' && (
-              <span className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border
-                ${(request.status === 'Concluído' || request.status === 'Aprovada') ? 'bg-green-50 text-green-700 border-green-100' :
-                  (request.status === 'Em Andamento' || request.status === 'Em Análise') ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                    request.status === 'Em Votação' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
-                      request.status === 'Recusada' ? 'bg-red-50 text-red-700 border-red-100' :
-                        'bg-gray-50 text-gray-700 border-gray-100'}`}>
-                {request.status}
-              </span>
-            )}
+            <span className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all group-hover:scale-105 active:scale-95 ${style.bg} ${style.text} ${style.border}`}>
+              {request.status}
+            </span>
           </div>
 
           {/* Body: Description + Image */}
@@ -199,12 +166,13 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
 
               {/* Admin Response Preview */}
               {request.adminResponse && (
-                <div className={`mt-4 ${responseStyle.bg} border ${responseStyle.border} rounded-xl p-3 relative transition-colors overflow-hidden group/resp`}>
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${responseStyle.bar} opacity-60`}></div>
+                <div className={`mt-4 ${style.bg}/50 border ${style.border}/50 rounded-xl p-3 relative transition-colors overflow-hidden group/resp`}>
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`text-[9px] font-black ${responseStyle.label} uppercase tracking-widest`}>Resposta da Gestão</span>
+                    <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>Resposta da Gestão</span>
+                    <span className="text-xs">{style.icon}</span>
                   </div>
-                  <p className={`text-xs ${responseStyle.text} leading-relaxed font-semibold pl-1`}>
+                  <p className={`text-xs ${style.text} leading-relaxed font-semibold pl-1`}>
                     {request.adminResponse}
                   </p>
                 </div>

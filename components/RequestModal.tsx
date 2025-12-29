@@ -14,6 +14,7 @@ import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
 import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
+import { getStatusStyle } from '../utils/statusUtils';
 
 interface RequestModalProps {
   request?: Request;
@@ -216,6 +217,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
 
   const author = users.find(u => u.id === request?.authorId);
   const formattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+  const style = getStatusStyle(request?.status || status);
 
   return (
     <>
@@ -233,9 +235,14 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                   {request ? 'Detalhes' : 'Nova Sugestão'}
                 </h2>
                 {request && (
-                  <p className="text-[10px] uppercase font-black text-gray-400 mt-1 tracking-widest">
-                    {request.status} • {formattedDate}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border}`}>
+                      {request.status}
+                    </span>
+                    <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap">
+                      • {formattedDate}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -328,18 +335,26 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               <section className="bg-indigo-50/30 p-6 rounded-[2rem] border border-indigo-100/50 space-y-4">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">Gestão do Status</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {STATUSES.map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setStatus(s as Status)}
-                      className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border
-                        ${status === s ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200'}
-                      `}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {STATUSES.map(s => {
+                    const btnStyle = getStatusStyle(s);
+                    const isSelected = status === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setStatus(s as Status)}
+                        className={`px-4 py-3 rounded-xl text-xs font-black transition-all border flex items-center gap-2
+                          ${isSelected
+                            ? `${btnStyle.bg} ${btnStyle.text} ${btnStyle.border} shadow-lg shadow-indigo-100 scale-[1.02]`
+                            : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                          }
+                        `}
+                      >
+                        <span className="text-base">{btnStyle.icon}</span>
+                        {s}
+                      </button>
+                    );
+                  })}
                 </div>
                 {status !== request.status && (
                   <div className="space-y-2 mt-4">

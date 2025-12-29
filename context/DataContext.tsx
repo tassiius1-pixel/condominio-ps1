@@ -11,6 +11,7 @@ import {
   orderBy,
   getDoc,
   arrayUnion,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "../services/firebase";
 import {
@@ -274,6 +275,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
 
       addToast("Usuário cadastrado com sucesso!", "success");
+
+      // Notificar todos
+      await addNotification({
+        message: `Novo morador cadastrado: ${userData.name} (Unidade ${userData.houseNumber})`,
+        userId: "all",
+        requestId: "",
+      });
+
       return newUser;
     } catch (e: any) {
       console.error("Erro no addUser:", e);
@@ -412,9 +421,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    updateDoc(doc(db, "requests", requestId), updateData).then(() =>
-      addToast("Status atualizado.", "info")
-    );
+    updateDoc(doc(db, "requests", requestId), updateData).then(() => {
+      const request = requests.find(r => r.id === requestId);
+      if (request) {
+        addNotification({
+          message: `Status da sugestão "${request.title}" alterado para ${newStatus}`,
+          userId: "all",
+          requestId: request.id,
+        });
+      }
+      addToast("Status atualizado.", "info");
+    });
   };
 
   // RESERVATIONS
@@ -423,6 +440,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ...reservation,
       createdAt: new Date().toISOString(),
     });
+
     addToast("Reserva realizada com sucesso!", "success");
   };
 
@@ -438,6 +456,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       createdAt: new Date().toISOString(),
       status: 'Aberto',
     });
+
     addToast("Ocorrência registrada.", "success");
   };
 
@@ -483,14 +502,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateDoc(doc(db, "requests", requestId), {
       comments: updatedComments,
     }).then(() => {
-      // Notificar o autor da sugestão se quem comentou não for ele mesmo
-      if (request.authorId !== commentData.authorId) {
-        addNotification({
-          message: `Novo comentário em sua sugestão: "${request.title}"`,
-          userId: request.authorId,
-          requestId: request.id,
-        });
-      }
+      // Notificar todos
+      addNotification({
+        message: `${commentData.authorName} comentou em: "${request.title}"`,
+        userId: "all",
+        requestId: request.id,
+      });
       addToast("Comentário adicionado.", "success");
     });
   };
@@ -542,11 +559,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // MARCAR COMO LIDAS
   const markAllNotificationsAsRead = async (userId: string) => {
     const unread = notifications.filter((n) => !n.readBy?.includes(userId));
+    if (unread.length === 0) return;
 
-    for (const n of unread) {
-      updateDoc(doc(db, "notifications", n.id), {
-        readBy: [...(n.readBy || []), userId],
+    try {
+      const batch = writeBatch(db);
+      unread.forEach((n) => {
+        batch.update(doc(db, "notifications", n.id), {
+          readBy: [...(n.readBy || []), userId],
+        });
       });
+      await batch.commit();
+    } catch (err) {
+      console.error("Erro ao marcar como lidas:", err);
     }
   };
 
@@ -605,6 +629,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(votingRef, {
       votes: arrayUnion(newVote)
     });
+
+    // Notificar todos
+    await addNotification({
+      message: `Novo voto registrado na votação: "${votingData.title}"`,
+      userId: "all",
+      requestId: "",
+    });
+
     addToast('Voto registrado com sucesso!', 'success');
   };
 

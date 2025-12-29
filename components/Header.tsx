@@ -34,10 +34,8 @@ const Header: React.FC<HeaderProps> = ({
 
   if (!currentUser) return null;
 
-  const userNotifications = notifications;
-
-  const unreadCount = userNotifications.filter(
-    (n) => !n.readBy.includes(currentUser.id)
+  const unreadCount = notifications.filter(
+    (n) => (n.userId === "all" || n.userId === currentUser.id) && !n.readBy.includes(currentUser.id)
   ).length;
 
   // Upload da logo
