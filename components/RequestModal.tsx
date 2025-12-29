@@ -498,7 +498,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                                   )}
                                 </div>
                                 <p className={`px-1 text-[9px] font-bold text-gray-400 tracking-tighter mt-1 ${isMe ? 'text-right' : ''}`}>
-                                  {new Date(comment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(comment.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               </div>
                             </div>
