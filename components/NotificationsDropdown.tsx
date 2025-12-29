@@ -5,6 +5,7 @@ import type { Notification } from "../types";
 import { db } from "../services/firebase";
 import { doc, writeBatch } from "firebase/firestore";
 import { TrashIcon, XIcon } from "./Icons";
+import { requestPushPermission } from "../services/pushNotifications";
 
 interface Props {
   open: boolean;
@@ -145,44 +146,15 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
           <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
             <button
               onClick={async () => {
-                try {
-                  const permission = await Notification.requestPermission();
-
-                  if (permission !== "granted") {
-                    addToast("Você precisa permitir notificações.", "error");
-                    return;
-                  }
-
-                  // Importa messaging e VAPID key
-                  const { messagingPromise, vapidKey } = await import("../services/firebase");
-                  const messaging = await messagingPromise;
-
-                  if (!messaging) {
-                    addToast("Navegador não suporta notificações push.", "error");
-                    return;
-                  }
-
-                  // Obtém token FCM
-                  const { getToken } = await import("firebase/messaging");
-                  const token = await getToken(messaging, { vapidKey });
-
-                  if (!token) {
-                    addToast("Erro ao gerar token de notificações.", "error");
-                    return;
-                  }
-
-                  // Salva token no Firestore
-                  const { db } = await import("../services/firebase");
-                  const { doc, updateDoc } = await import("firebase/firestore");
-
-                  const userRef = doc(db, "users", currentUser.id);
-                  await updateDoc(userRef, { fcmToken: token });
-
+                const result = await requestPushPermission(currentUser.id);
+                if (result.status === 'granted') {
                   addToast("Notificações ativadas com sucesso!", "success");
-
-                } catch (error) {
-                  console.error("Erro ao ativar notificações:", error);
-                  addToast("Erro ao ativar notificações.", "error");
+                } else if (result.status === 'blocked') {
+                  addToast("Notificações bloqueadas no navegador. Redefina as permissões no cadeado da barra de endereços.", "error");
+                } else if (result.status === 'denied') {
+                  addToast("Permissão negada. Clique novamente para permitir no navegador.", "info");
+                } else {
+                  addToast("Não foi possível ativar as notificações.", "error");
                 }
               }}
               className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors w-full py-1 rounded-lg hover:bg-blue-50"

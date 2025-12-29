@@ -13,7 +13,7 @@ import { useData } from "./hooks/useData";
 
 
 // 🔥 IMPORTAÇÃO DO FCM
-import { requestPushPermission } from "./services/pushNotifications";
+import { requestPushPermission, setupForegroundNotifications } from "./services/pushNotifications";
 
 // Lazy Loading Components
 const Reports = React.lazy(() => import("./components/Reports"));
@@ -26,7 +26,7 @@ import Toast from "./components/Toast";
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
-  const { toasts, removeToast } = useData();
+  const { toasts, removeToast, addToast } = useData();
 
   const [authView, setAuthView] = useState<"login" | "register">("login");
   const [mainView, setMainView] = useState<View>(() => {
@@ -66,12 +66,31 @@ const App: React.FC = () => {
     setCondoLogo(logoBase64);
   };
 
-  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN
+  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE SE NÃO ESTIVER NEGADO)
   useEffect(() => {
     if (currentUser) {
-      requestPushPermission(currentUser.id);
+      if (Notification.permission === 'granted' || Notification.permission === 'default') {
+        requestPushPermission(currentUser.id);
+      }
+
+      let unsubscribe: (() => void) | undefined;
+
+      const initFCM = async () => {
+        const unsub = await setupForegroundNotifications((payload) => {
+          const title = payload.notification?.title || "Nova Notificação";
+          const body = payload.notification?.body || "";
+          addToast(`${title}: ${body}`, "info");
+        });
+        if (unsub) unsubscribe = unsub;
+      };
+
+      initFCM();
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
     }
-  }, [currentUser]);
+  }, [currentUser, addToast]);
 
   const renderContent = () => {
     if (!currentUser) {

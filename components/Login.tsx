@@ -41,61 +41,65 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   const logoURL = "https://hjrhipbzuzkxrzlffwlb.supabase.co/storage/v1/object/public/logotipos/WhatsApp%20Image%202025-11-17%20at%2011.06.58.jpeg";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-24 h-24 bg-white rounded-full shadow-md flex items-center justify-center mb-4 overflow-hidden p-2">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+      {/* Animated Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/40 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+      <div className="w-full max-w-md glass rounded-3xl shadow-2xl overflow-hidden relative z-10 animate-scale-in">
+        <div className="p-8 sm:p-10">
+          <div className="flex flex-col items-center mb-10">
+            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-6 overflow-hidden p-3 hover-lift">
               <img
                 src={logoURL}
                 alt="Condomínio Porto Seguro 1"
                 className="w-full h-full object-contain"
               />
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 text-center">Bem-vindo</h2>
-            <p className="text-gray-500 text-center mt-2">Condomínio Porto Seguro 1</p>
+            <h2 className="text-3xl font-bold text-gray-900 text-center tracking-tight">Bem-vindo</h2>
+            <p className="text-gray-500 text-center mt-2 font-medium">Condomínio Porto Seguro 1</p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded">
+            <div className="mb-6 p-4 bg-red-50/80 border-l-4 border-red-500 text-red-700 text-sm rounded-xl animate-fade-in">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                 Usuário
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
-                placeholder="Digite seu usuário"
+                className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/50 focus:bg-white outline-none shadow-sm"
+                placeholder="Seu usuário"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                 Senha
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
-                placeholder="Digite sua senha"
+                className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/50 focus:bg-white outline-none shadow-sm"
+                placeholder="••••••••"
                 required
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-1">
               <button
                 type="button"
                 onClick={() => setShowForgotModal(true)}
-                className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
               >
                 Esqueci minha senha
               </button>
@@ -104,55 +108,60 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all hover-lift active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4"
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Entrando...
+                </span>
+              ) : "Entrar no App"}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500 font-medium">
               Ainda não tem acesso?{" "}
               <button
                 onClick={onSwitchToRegister}
-                className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors ml-1"
               >
-                Criar conta
+                Criar conta agora
               </button>
             </p>
           </div>
         </div>
-        <div className="bg-gray-50 px-8 py-4 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Condomínio Porto Seguro 1. Todos os direitos reservados.
+        <div className="bg-gray-50/50 px-8 py-5 border-t border-gray-100/50 text-center">
+          <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">
+            © {new Date().getFullYear()} Porto Seguro 1 • Todos os direitos reservados
           </p>
         </div>
       </div>
 
       {showForgotModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 relative animate-fade-in">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 relative animate-scale-in">
             <button
               onClick={() => setShowForgotModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
             >
               <XIcon className="w-5 h-5" />
             </button>
 
             <div className="text-center">
-              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔑</span>
+              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 transform rotate-12">
+                <span className="text-3xl">🔑</span>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Recuperação de Senha</h3>
-              <p className="text-sm text-gray-600 mb-6">
-                Como o sistema utiliza identificação interna, a redefinição de senha deve ser solicitada diretamente à administração.
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Recuperação de Senha</h3>
+              <p className="text-sm text-gray-600 mb-8 leading-relaxed font-medium">
+                Por segurança, a redefinição de senha deve ser solicitada diretamente à administração.
               </p>
-              <p className="text-sm font-medium text-indigo-800 bg-indigo-50 p-3 rounded-lg">
+              <div className="text-sm font-bold text-indigo-800 bg-indigo-50 p-4 rounded-2xl border border-indigo-100 mb-8">
                 Entre em contato com o síndico ou gestão para solicitar o reset.
-              </p>
+              </div>
               <button
                 onClick={() => setShowForgotModal(false)}
-                className="mt-6 w-full py-2 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition"
+                className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all hover-lift"
               >
                 Entendi
               </button>

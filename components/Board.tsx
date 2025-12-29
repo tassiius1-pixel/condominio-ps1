@@ -49,47 +49,65 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
   };
 
   return (
-    <div className="max-w-4xl space-y-6 pb-12">
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-200/50 p-1 rounded-xl w-fit">
-        <button
-          onClick={() => setActiveTab('active')}
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'active'
-            ? 'bg-white text-indigo-600 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700'
-            }`}
-        >
-          Ativas ({activeSuggestions.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('archived')}
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'archived'
-            ? 'bg-white text-indigo-600 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700'
-            }`}
-        >
-          Arquivadas ({archivedSuggestions.length})
-        </button>
+    <div className="max-w-4xl space-y-8 pb-12 animate-fade-in">
+      {/* Tabs System */}
+      <div className="flex items-center justify-between">
+        <div className="flex p-1 bg-gray-200/50 rounded-2xl backdrop-blur-sm border border-gray-200/50">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`
+              flex items-center gap-2 px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all
+              ${activeTab === 'active'
+                ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-100/50 ring-1 ring-black/5'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}
+            `}
+          >
+            🔥 Ativas
+            <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === 'active' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
+              {activeSuggestions.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('archived')}
+            className={`
+              flex items-center gap-2 px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all
+              ${activeTab === 'archived'
+                ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-100/50 ring-1 ring-black/5'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}
+            `}
+          >
+            📦 Arquivadas
+            <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === 'archived' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
+              {archivedSuggestions.length}
+            </span>
+          </button>
+        </div>
       </div>
 
       {displayedSuggestions.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-          <p className="text-gray-500 text-lg">
-            {activeTab === 'active' ? 'Nenhuma sugestão ativa.' : 'Nenhuma sugestão arquivada.'}
+        <div className="text-center py-20 glass rounded-3xl border-2 border-dashed border-gray-200 shadow-inner">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-4xl">✨</span>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">
+            {activeTab === 'active' ? 'Nenhuma sugestão ativa' : 'Nenhuma sugestão arquivada'}
+          </h3>
+          <p className="text-sm text-gray-500 font-medium max-w-xs mx-auto">
+            {activeTab === 'active' ? 'Seja o primeiro a compartilhar uma ideia para melhorar nosso condomínio!' : 'Ainda não há itens no histórico.'}
           </p>
-          {activeTab === 'active' && (
-            <p className="text-gray-400 text-sm mt-2">Seja o primeiro a compartilhar uma ideia!</p>
-          )}
         </div>
       ) : (
-        displayedSuggestions.map(request => (
-          <Card
-            key={request.id}
-            request={request}
-            onDragStart={() => { }}
-            onCreateVoting={(title, desc) => handleCreateVoting(title, desc, request.id)}
-          />
-        ))
+        <div className="grid grid-cols-1 gap-6">
+          {displayedSuggestions.map((request, idx) => (
+            <div key={request.id} className="animate-slideFadeIn" style={{ animationDelay: `${idx * 0.05}s` }}>
+              <Card
+                request={request}
+                onDragStart={() => { }}
+                onCreateVoting={(title, desc) => handleCreateVoting(title, desc, request.id)}
+              />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

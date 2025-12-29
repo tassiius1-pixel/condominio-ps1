@@ -113,32 +113,32 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
 
   const author = users.find(u => u.id === request.authorId);
   const authorFirstName = author ? author.name.split(' ')[0] : 'Desconhecido';
-  const authorDisplay = author ? `${authorFirstName} - Casa ${author.houseNumber}` : request.authorName;
+  const authorDisplay = author ? `${authorFirstName} • Unidade ${author.houseNumber}` : request.authorName;
   const formattedDate = new Date(request.createdAt).toLocaleDateString('pt-BR');
 
   // Dynamic Styles for Admin Response
   const getResponseStyles = () => {
     if (request.status === 'Aprovada' || request.status === 'Concluído') {
       return {
-        bg: 'bg-green-50', border: 'border-green-100', text: 'text-green-900',
-        label: 'text-green-700', bar: 'bg-green-500', hover: 'group-hover:bg-green-100/50', borderL: 'border-green-200'
+        bg: 'bg-green-50/50', border: 'border-green-100', text: 'text-green-800',
+        label: 'text-green-600', bar: 'bg-green-500', hover: 'hover:bg-green-100/70', borderL: 'border-green-200'
       };
     }
     if (request.status === 'Recusada') {
       return {
-        bg: 'bg-red-50', border: 'border-red-100', text: 'text-red-900',
-        label: 'text-red-700', bar: 'bg-red-500', hover: 'group-hover:bg-red-100/50', borderL: 'border-red-200'
+        bg: 'bg-red-50/50', border: 'border-red-100', text: 'text-red-800',
+        label: 'text-red-600', bar: 'bg-red-500', hover: 'hover:bg-red-100/70', borderL: 'border-red-200'
       };
     }
     if (request.status === 'Em Votação') {
       return {
-        bg: 'bg-yellow-50', border: 'border-yellow-100', text: 'text-yellow-900',
-        label: 'text-yellow-700', bar: 'bg-yellow-500', hover: 'group-hover:bg-yellow-100/50', borderL: 'border-yellow-200'
+        bg: 'bg-yellow-50/50', border: 'border-yellow-100', text: 'text-yellow-800',
+        label: 'text-yellow-600', bar: 'bg-yellow-500', hover: 'hover:bg-yellow-100/70', borderL: 'border-yellow-200'
       };
     }
     return {
-      bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-900',
-      label: 'text-blue-700', bar: 'bg-blue-500', hover: 'group-hover:bg-blue-100/50', borderL: 'border-blue-200'
+      bg: 'bg-blue-50/50', border: 'border-blue-100', text: 'text-blue-800',
+      label: 'text-blue-600', bar: 'bg-blue-500', hover: 'hover:bg-blue-100/70', borderL: 'border-blue-200'
     };
   };
 
@@ -155,77 +155,77 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
         role="button"
         aria-label={`Abrir detalhes da sugestão: ${request.title}`}
         className={`
-          bg-white p-3 rounded-xl shadow-sm border-l-4 border-y border-r border-gray-200
+          bg-white p-4 rounded-2xl shadow-sm border-l-4 border-y border-r border-gray-100
           ${priorityColors[request.priority] || 'border-gray-500'} 
           ${canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} 
-          hover:shadow-md transition-all duration-200
-          ${isSuggestion ? 'bg-purple-50/30' : ''}
+          hover-lift hover:shadow-xl transition-all duration-300 animate-scale-in
+          ${isSuggestion ? 'bg-indigo-50/10' : ''}
           relative group
         `}
       >
-        <div className="mb-3">
-          {/* Header: Title & Status (Now Full Width) */}
-          <div className="flex justify-between items-start gap-2 mb-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className={`shrink-0 p-1 rounded-md ${isSuggestion ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-600'}`}>
+        <div className="mb-4">
+          {/* Header: Title & Status */}
+          <div className="flex justify-between items-start gap-2 mb-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={`shrink-0 p-2 rounded-xl shadow-sm ${isSuggestion ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'}`}>
                 {typeIcons[request.type]}
               </span>
               <div className="min-w-0">
-                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate pr-2">{request.title}</h4>
-                <p className="text-[11px] text-gray-500 truncate">{formattedDate} • {authorDisplay}</p>
+                <h4 className="font-bold text-gray-900 text-sm leading-tight truncate pr-2 tracking-tight">{request.title}</h4>
+                <p className="text-[10px] uppercase font-bold text-gray-400 mt-0.5 tracking-wider">{formattedDate} • {authorDisplay}</p>
               </div>
             </div>
 
-            {/* Status Badge - Top Right */}
+            {/* Status Badge */}
             {request.status !== 'Pendente' && (
-              <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide
-                ${(request.status === 'Concluído' || request.status === 'Aprovada') ? 'bg-green-100 text-green-700' :
-                  (request.status === 'Em Andamento' || request.status === 'Em Análise') ? 'bg-blue-100 text-blue-700' :
-                    request.status === 'Em Votação' ? 'bg-yellow-100 text-yellow-700' :
-                      request.status === 'Recusada' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'}`}>
+              <span className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border
+                ${(request.status === 'Concluído' || request.status === 'Aprovada') ? 'bg-green-50 text-green-700 border-green-100' :
+                  (request.status === 'Em Andamento' || request.status === 'Em Análise') ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                    request.status === 'Em Votação' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                      request.status === 'Recusada' ? 'bg-red-50 text-red-700 border-red-100' :
+                        'bg-gray-50 text-gray-700 border-gray-100'}`}>
                 {request.status}
               </span>
             )}
           </div>
 
-          {/* Body: Description + Image (Bottom Right) */}
-          <div className="flex gap-3">
+          {/* Body: Description + Image */}
+          <div className="flex gap-4">
             <div className="flex-1 min-w-0">
               {/* Description */}
-              <p className="text-sm text-gray-700 mt-1.5 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed font-medium">
                 {request.description}
               </p>
 
               {/* Admin Response Preview */}
               {request.adminResponse && (
-                <div className={`mt-3 ${responseStyle.bg} border ${responseStyle.border} rounded-lg p-2.5 relative ${responseStyle.hover} transition-colors`}>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <div className={`w-1 h-3 ${responseStyle.bar} rounded-full`}></div>
-                    <span className={`text-[10px] font-bold ${responseStyle.label} uppercase tracking-wide`}>Resposta da Gestão</span>
+                <div className={`mt-4 ${responseStyle.bg} border ${responseStyle.border} rounded-xl p-3 relative transition-colors overflow-hidden group/resp`}>
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${responseStyle.bar} opacity-60`}></div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={`text-[9px] font-black ${responseStyle.label} uppercase tracking-widest`}>Resposta da Gestão</span>
                   </div>
-                  <p className={`text-xs ${responseStyle.text} leading-relaxed pl-2.5 border-l ${responseStyle.borderL}`}>
+                  <p className={`text-xs ${responseStyle.text} leading-relaxed font-semibold pl-1`}>
                     {request.adminResponse}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Image Thumbnail - Bottom Right of Content Area */}
+            {/* Image Thumbnail */}
             {request.photos.length > 0 && (
-              <div className="shrink-0 relative w-20 h-20 self-end">
+              <div className="shrink-0 relative w-20 h-20 self-end mb-1">
                 <img
                   src={request.photos[0]}
                   alt="Anexo"
-                  className="w-full h-full object-cover rounded-lg border border-gray-100 shadow-sm cursor-zoom-in hover:opacity-95 transition"
+                  className="w-full h-full object-cover rounded-xl border-2 border-white shadow-md cursor-zoom-in hover:brightness-110 transition transition-transform hover:scale-105"
                   onClick={(e) => openLightbox(e, 0)}
                 />
                 {request.photos.length > 1 && (
                   <div
-                    className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg cursor-pointer backdrop-blur-[1px]"
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl cursor-pointer backdrop-blur-[1.5px]"
                     onClick={(e) => openLightbox(e, 0)}
                   >
-                    <span className="text-white font-bold text-sm">+{request.photos.length - 1}</span>
+                    <span className="text-white font-black text-xs">+{request.photos.length - 1}</span>
                   </div>
                 )}
               </div>
@@ -233,59 +233,58 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
           </div>
         </div>
 
-        {/* Footer Actions - Full Width Bottom */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-3">
+        {/* Footer Actions */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100/60">
+          <div className="flex items-center gap-4">
             {isSuggestion && (
               <button
                 onClick={handleLike}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md transition-colors text-xs font-medium
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all text-[11px] font-black uppercase tracking-tight
                   ${isLiked
-                    ? 'text-red-600 bg-red-50'
-                    : 'text-gray-500 hover:bg-gray-100'}
+                    ? 'text-red-600 bg-red-50 shadow-sm shadow-red-100'
+                    : 'text-gray-500 hover:bg-gray-50'}
                   `}
                 title="Apoiar sugestão"
               >
-                <HeartIcon className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                <HeartIcon className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
                 <span>{likesCount}</span>
               </button>
             )}
 
-            <div className="flex items-center gap-1 text-gray-400 text-xs">
-              <MessageSquareIcon className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 text-gray-400 text-xs font-bold">
+              <MessageSquareIcon className="w-4 h-4" />
               <span>{request.comments.length}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {canManage && isSuggestion && (
               <>
-                <button
-                  onClick={(e) => handleStatusClick(e, 'approve')}
-                  className="p-1.5 rounded-full text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors"
-                  title="Aprovar"
-                  aria-label="Aprovar sugestão"
-                >
-                  <CheckCircleIcon className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => handleStatusClick(e, 'reject')}
-                  className="p-1.5 rounded-full text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
-                  title="Recusar"
-                  aria-label="Recusar sugestão"
-                >
-                  <XIcon className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => handleStatusClick(e, 'analyze')}
-                  className="p-1.5 rounded-full text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                  title="Analisar"
-                  aria-label="Analisar sugestão"
-                >
-                  <InfoIcon className="w-4 h-4" />
-                </button>
+                <div className="flex items-center bg-gray-50 rounded-xl p-1 gap-1">
+                  <button
+                    onClick={(e) => handleStatusClick(e, 'approve')}
+                    className="p-2 rounded-lg text-green-600 hover:bg-white hover:shadow-sm transition-all"
+                    title="Aprovar"
+                  >
+                    <CheckCircleIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleStatusClick(e, 'reject')}
+                    className="p-2 rounded-lg text-red-600 hover:bg-white hover:shadow-sm transition-all"
+                    title="Recusar"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleStatusClick(e, 'analyze')}
+                    className="p-2 rounded-lg text-blue-600 hover:bg-white hover:shadow-sm transition-all"
+                    title="Analisar"
+                  >
+                    <InfoIcon className="w-4 h-4" />
+                  </button>
+                </div>
 
-                <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                <div className="w-px h-5 bg-gray-200 mx-1"></div>
 
                 <button
                   onClick={(e) => {
@@ -294,10 +293,10 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                       onCreateVoting(request.title, request.description);
                     }
                   }}
-                  className="flex items-center gap-1.5 text-[10px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 hover:border-indigo-200 px-3 py-1.5 rounded-full transition-all shadow-sm"
+                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-100 hover-lift active:scale-95"
                 >
-                  <BarChartIcon className="w-3 h-3" />
-                  Criar Votação
+                  <BarChartIcon className="w-3.5 h-3.5" />
+                  Votar
                 </button>
               </>
             )}

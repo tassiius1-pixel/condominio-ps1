@@ -63,26 +63,26 @@ const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="glass sticky top-0 z-40 border-b border-white/20 shadow-sm px-4">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center h-20">
           {/* LOGO */}
           <div className="flex items-center gap-4">
-            <div className="relative group flex-shrink-0 w-16 h-16">
+            <div className="relative group flex-shrink-0 w-14 h-14">
               <img
                 src={logoURL}
                 alt="Logo do Condomínio"
-                className="w-full h-full object-contain rounded-md bg-white shadow-sm"
+                className="w-full h-full object-contain rounded-xl bg-white shadow-md p-1 hover-lift"
               />
 
               {currentUser.role === Role.ADMIN && (
                 <div
-                  className="absolute inset-0 bg-black bg-opacity-40 rounded-md
+                  className="absolute inset-0 bg-black/40 rounded-xl
                                  flex items-center justify-center opacity-0 
-                                 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[2px]"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <UploadIcon className="h-6 w-6 text-white" />
+                  <UploadIcon className="h-5 w-5 text-white" />
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -95,27 +95,19 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* TÍTULO */}
-            <div className="flex flex-col justify-center">
-              <h1 className="text-lg md:text-xl font-bold text-gray-800 leading-tight">
+            <div className="hidden sm:flex flex-col justify-center">
+              <h1 className="text-lg font-bold text-gray-900 leading-tight tracking-tight">
                 Porto Seguro 1
               </h1>
-
-              {currentUser.role === Role.ADMIN && condoLogo && (
-                <button
-                  onClick={() => setCondoLogo(null)}
-                  className="text-xs text-red-500 hover:underline text-left mt-1"
-                >
-                  Remover logo
-                </button>
-              )}
+              <p className="text-[10px] uppercase font-extrabold text-blue-600 tracking-widest">Condomínio Residencial</p>
             </div>
           </div>
 
           {/* MENU */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
 
             {/* NAV */}
-            <nav className="hidden md:flex items-center space-x-1 mr-2">
+            <nav className="hidden lg:flex items-center space-x-1 mr-2">
               {navItems.map(item => {
                 if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
 
@@ -130,11 +122,11 @@ const Header: React.FC<HeaderProps> = ({
                     key={item.id}
                     onClick={() => setView(item.id as any)}
                     className={`
-                                flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors
-                                ${isActive ? "bg-gray-100 text-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
-                            `}
+                                 flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl cursor-pointer transition-all
+                                 ${isActive ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "text-gray-600 hover:bg-white/50 hover:text-gray-900"}
+                             `}
                   >
-                    <Icon className={`h-5 w-5 mr-2 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <Icon className={`h-4.5 w-4.5 mr-2 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                     {item.label}
                   </button>
                 );
@@ -142,26 +134,31 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* USER INFO */}
-            <div className="text-right hidden sm:block leading-tight">
-              <p className="text-sm font-medium text-gray-800 whitespace-nowrap">
-                {currentUser.name}
-              </p>
-              <p className="text-xs text-gray-500 whitespace-nowrap">
-                Casa: {currentUser.houseNumber} — {currentUser.role}
-              </p>
+            <div className="hidden md:flex items-center gap-3 bg-white/40 px-3 py-1.5 rounded-2xl border border-white/50">
+              <div className="text-right leading-tight">
+                <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                  {currentUser.name}
+                </p>
+                <p className="text-[11px] font-medium text-gray-500 whitespace-nowrap">
+                  Unidade {currentUser.houseNumber}
+                </p>
+              </div>
+              <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm border-2 border-white shadow-sm">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
             </div>
 
-            {/* NOTIFICAÇÕES (movido para direita) */}
+            {/* NOTIFICAÇÕES */}
             <div className="relative">
               <button
                 ref={bellRef}
                 onClick={() => setShowNotifications(prev => !prev)}
-                className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
+                className="relative p-2.5 rounded-xl text-gray-500 hover:bg-white/60 hover:text-indigo-600 transition-all active:scale-95"
               >
                 <BellIcon className="h-6 w-6" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 h-5 w-5 bg-red-500 text-white 
-                                         rounded-full text-xs flex items-center justify-center font-bold">
+                                         rounded-full text-[10px] flex items-center justify-center font-black border-2 border-white shadow-sm animate-pulse">
                     {unreadCount}
                   </span>
                 )}
@@ -177,7 +174,7 @@ const Header: React.FC<HeaderProps> = ({
             {/* Mobile Hamburger (movido para depois das notificações) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="lg:hidden p-2.5 rounded-xl text-gray-500 hover:bg-white/60 hover:text-indigo-600 transition-all active:scale-95"
             >
               {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
             </button>
@@ -185,7 +182,8 @@ const Header: React.FC<HeaderProps> = ({
             {/* LOGOUT */}
             <button
               onClick={logout}
-              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2.5 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all active:scale-95 ml-1"
+              title="Sair do App"
             >
               <LogOutIcon className="h-6 w-6" />
             </button>
@@ -196,32 +194,38 @@ const Header: React.FC<HeaderProps> = ({
       {/* Mobile Menu Backdrop */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       {/* Mobile Menu Drawer */}
       <div className={`
-        fixed top-0 left-0 bottom-0 w-64 bg-white shadow-2xl z-50 md:hidden
-        transform transition-transform duration-300 ease-in-out
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        fixed top-4 left-4 bottom-4 w-72 bg-white/95 backdrop-blur-md shadow-2xl z-50 lg:hidden rounded-3xl
+        transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-[120%]'}
       `}>
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col p-4">
           {/* Menu Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-800">Menu</h2>
+          <div className="flex items-center justify-between mb-8 px-2">
+            <div className="flex items-center gap-3">
+              <img src={logoURL} alt="Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 tracking-tight">Menu</h2>
+                <p className="text-[10px] font-bold text-blue-600 uppercase">Porto Seguro 1</p>
+              </div>
+            </div>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-full text-gray-500 hover:bg-gray-100"
+              className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
             >
               <XIcon className="h-5 w-5" />
             </button>
           </div>
 
           {/* Menu Items */}
-          <nav className="flex-1 overflow-y-auto py-4">
-            {navItems.map(item => {
+          <nav className="flex-1 space-y-2 overflow-y-auto px-1">
+            {navItems.map((item, idx) => {
               if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
               if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
 
@@ -235,12 +239,13 @@ const Header: React.FC<HeaderProps> = ({
                     setView(item.id as any);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center px-6 py-4 text-base font-medium transition-colors ${isActive
-                    ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
-                    : 'text-gray-700 hover:bg-gray-50'
+                  className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn ${isActive
+                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
+                  style={{ animationDelay: `${idx * 0.05}s` }}
                 >
-                  <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                   {item.label}
                 </button>
               );
@@ -248,14 +253,15 @@ const Header: React.FC<HeaderProps> = ({
           </nav>
 
           {/* Menu Footer */}
-          <div className="p-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 text-center">
-              {currentUser.role === Role.ADMIN && 'Administrador'}
-              {currentUser.role === Role.GESTAO && 'Gestão'}
-              {currentUser.role === Role.SINDICO && 'Síndico'}
-              {currentUser.role === Role.SUBSINDICO && 'Subsíndico'}
-              {currentUser.role === Role.MORADOR && 'Morador'}
-              {' • Casa '}{currentUser.houseNumber}
+          <div className="mt-auto px-4 pt-6 border-t border-gray-100 flex flex-col items-center">
+            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
+              {currentUser.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">{currentUser.name}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                {currentUser.role} • Unidade {currentUser.houseNumber}
+              </p>
             </div>
           </div>
         </div>
