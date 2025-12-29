@@ -225,7 +225,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
         <div className="bg-slate-50 rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative animate-scale-in border border-white/20">
 
           {/* Header Barra Superior */}
-          <div className="flex justify-between items-center p-6 bg-white border-b border-gray-100 z-10 shrink-0">
+          <div className="flex justify-between items-center p-4 sm:p-6 bg-white border-b border-gray-100 z-10 shrink-0">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-2xl ${request?.type === RequestType.SUGESTOES ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
                 {request ? (request.type === RequestType.SUGESTOES ? '💡' : '🔧') : '🆕'}
@@ -265,7 +265,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           </div>
 
           {/* Modal Body - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-8 scrollbar-thin">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-8 scrollbar-thin">
 
             {/* 1. SEÇÃO DE CONTEÚDO (Título e Descrição) */}
             <section className="space-y-6">
@@ -295,7 +295,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                 </div>
               ) : (
                 <div className="space-y-4 animate-fade-in">
-                  <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight leading-tight">
                     {request?.title}
                   </h1>
 
@@ -310,7 +310,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                     </div>
                   </div>
 
-                  <p className="text-lg text-gray-600 leading-relaxed font-normal whitespace-pre-wrap">
+                  <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-normal whitespace-pre-wrap">
                     {request?.description}
                   </p>
 
