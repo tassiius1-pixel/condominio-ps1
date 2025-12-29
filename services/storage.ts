@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-export async function uploadPhoto(file: File, folder: string) {
+export async function uploadFile(file: File, folder: string, bucket: string = "pendencias") {
   try {
     const fileExt = file.name.split('.').pop();
     const fileName =
@@ -9,7 +9,7 @@ export async function uploadPhoto(file: File, folder: string) {
     const filePath = `${folder}/${fileName}`;
 
     const { error } = await supabase.storage
-      .from("pendencias")
+      .from(bucket)
       .upload(filePath, file, {
         cacheControl: "3600",
         upsert: false, // NÃO sobrescreve
@@ -21,11 +21,14 @@ export async function uploadPhoto(file: File, folder: string) {
     }
 
     // retornar URL pública
-    const { data } = supabase.storage.from("pendencias").getPublicUrl(filePath);
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
     return data.publicUrl;
 
   } catch (err) {
-    console.error("Erro ao enviar foto:", err);
+    console.error("Erro ao enviar arquivo:", err);
     return null;
   }
 }
+
+// Mantendo para compatibilidade
+export const uploadPhoto = uploadFile;

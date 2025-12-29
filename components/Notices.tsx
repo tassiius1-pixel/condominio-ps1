@@ -18,6 +18,7 @@ import {
 import ConfirmModal from './ConfirmModal';
 import RequestModal from './RequestModal';
 import QuickActions from './QuickActions';
+import Skeleton from './Skeleton';
 import { fileToBase64, compressImage } from '../utils/fileUtils';
 
 interface NoticesProps {
@@ -32,7 +33,8 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
         toggleNoticeReaction,
         votings,
         reservations,
-        occurrences
+        occurrences,
+        loading
     } = useData();
     const { currentUser } = useAuth();
 
@@ -366,8 +368,41 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
         );
     };
 
+    if (loading) {
+        return (
+            <div className="space-y-6 animate-pulse">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-gray-200">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64 rounded-lg" />
+                        <Skeleton className="h-4 w-48 rounded-lg" />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-40 w-full rounded-2xl" />
+                        <div className="flex gap-2">
+                            <Skeleton className="h-8 w-20 rounded-lg" />
+                            <Skeleton className="h-8 w-20 rounded-lg" />
+                        </div>
+                        <div className="space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="lg:col-span-1 space-y-4">
+                        <Skeleton className="h-10 w-32 rounded-lg" />
+                        <Skeleton className="h-32 w-full rounded-2xl" />
+                        <Skeleton className="h-32 w-full rounded-2xl" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-gray-200">
                 <div>

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon } from './Icons';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -9,7 +9,7 @@ import NotificationsDropdown from './NotificationsDropdown';
 
 interface HeaderProps {
   currentView: string;
-  setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'notices') => void;
+  setView: (view: 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'notices' | 'documents') => void;
   condoLogo: string | null;
   setCondoLogo: (logo: string | null) => void;
   mobileMenuOpen: boolean;
@@ -86,6 +86,7 @@ const Header: React.FC<HeaderProps> = ({
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
+    { id: "documents", label: "Documentos", icon: FileIcon },
     { id: "users", label: "Usuários", icon: UsersIcon, adminOnly: true },
     { id: "reports", label: "Relatórios", icon: BarChartIcon, adminOnly: true },
   ];
@@ -137,12 +138,7 @@ const Header: React.FC<HeaderProps> = ({
 
               {/* NAV */}
               <nav className="hidden lg:flex items-center space-x-1 mr-2">
-                {navItems.map(item => {
-                  if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
-
-                  // Specific check for Users tab (Admin only)
-                  if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
-
+                {navItems.filter(i => !i.adminOnly).map(item => {
                   const Icon = item.icon;
                   const isActive = currentView === item.id;
 
@@ -160,6 +156,49 @@ const Header: React.FC<HeaderProps> = ({
                     </button>
                   );
                 })}
+
+                {/* ADMIN DROPDOWN */}
+                {[Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role) && (
+                  <div className="relative group ml-1">
+                    <button
+                      className={`
+                                 flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl cursor-pointer transition-all
+                                 ${currentView === 'users' || currentView === 'reports' ? "bg-indigo-100 text-indigo-700" : "text-gray-600 hover:bg-white/50 hover:text-gray-900"}
+                             `}
+                    >
+                      <LayoutDashboardIcon className="h-4.5 w-4.5 mr-2 text-gray-400" />
+                      Gestão
+                      <svg className="w-4 h-4 ml-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Dropdown Content */}
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] translate-y-2 group-hover:translate-y-0">
+                      {navItems.filter(i => i.adminOnly).map(item => {
+                        // Specific check for Users tab (Admin only)
+                        if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+
+                        const Icon = item.icon;
+                        const isActive = currentView === item.id;
+
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setView(item.id as any)}
+                            className={`
+                              w-full flex items-center px-4 py-3 text-sm font-semibold transition-all
+                              ${isActive ? "text-indigo-600 bg-indigo-50" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                            `}
+                          >
+                            <Icon className={`h-4.5 w-4.5 mr-3 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </nav>
 
               {/* USER INFO */}

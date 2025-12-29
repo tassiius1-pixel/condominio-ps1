@@ -26,7 +26,8 @@ import {
   Comment,
   Voting,
   Vote,
-  Notice
+  Notice,
+  Document as DocumentType
 } from "../types";
 
 interface DataContextType {
@@ -76,6 +77,10 @@ interface DataContextType {
   toggleRequestLike: (requestId: string, userId: string) => Promise<void>;
   deleteVoting: (id: string) => Promise<void>;
   clearLegacyData: () => Promise<void>;
+
+  documents: DocumentType[];
+  addDocument: (docData: Omit<DocumentType, 'id' | 'createdAt'>) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -89,6 +94,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [votings, setVotings] = useState<Voting[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminSeeded, setAdminSeeded] = useState(false);
 
@@ -124,6 +130,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setNotices(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notice)));
     });
 
+    const unsubDocuments = onSnapshot(collection(db, "documents"), (snapshot) => {
+      setDocuments(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as DocumentType)));
+    });
+
     setLoading(false);
 
     return () => {
@@ -134,6 +144,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       unsubOccurrences();
       unsubVotings();
       unsubNotices();
+      unsubDocuments();
     };
   }, []);
 
@@ -708,6 +719,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // --- DOCUMENTS ---
+  const addDocument = async (docData: Omit<DocumentType, 'id' | 'createdAt'>) => {
+    await addDoc(collection(db, 'documents'), {
+      ...docData,
+      createdAt: new Date().toISOString(),
+    });
+
+    addToast('Documento adicionado com sucesso!', 'success');
+  };
+
+  const deleteDocument = async (id: string) => {
+    await deleteDoc(doc(db, 'documents', id));
+    addToast('Documento removido.', 'info');
+  };
+
   // PROVIDER
   const value = React.useMemo(() => ({
     users,
@@ -747,8 +773,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     deleteOccurrence,
     toggleRequestLike,
     clearLegacyData,
+    documents,
+    addDocument,
+    deleteDocument,
   }), [
-    users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices
+    users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices, documents
   ]);
 
   return (

@@ -177,4 +177,17 @@ export interface Notice {
   dislikes: string[]; // IDs of users who disliked
 }
 
-export type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "notices";
+export interface Document {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export type View = "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "notices" | "documents";

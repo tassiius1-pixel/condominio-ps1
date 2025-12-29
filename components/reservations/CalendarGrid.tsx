@@ -24,20 +24,41 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
     onSelectDate,
     direction
 }) => {
-    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const daysInPrevMonthToShow = firstDayOfMonth;
+
+    // Calculate total days to show (6 rows x 7 days = 42)
+    const totalDaysToShow = 42;
+    const daysInNextMonthToShow = totalDaysToShow - (daysInPrevMonthToShow + daysInMonth);
 
     const renderCalendarDays = () => {
         const days = [];
-        const emptyDays = firstDayOfMonth;
 
-        // Empty cells for previous month
-        for (let i = 0; i < emptyDays; i++) {
-            days.push(<div key={`empty-${i}`} className="h-14 md:h-24 bg-gray-50/30 border-b border-r border-gray-100"></div>);
+        // Previous month days
+        for (let i = daysInPrevMonthToShow - 1; i >= 0; i--) {
+            const day = prevMonthLastDay - i;
+            const date = new Date(year, month - 1, day);
+            days.push(
+                <div
+                    key={`prev-${day}`}
+                    className="h-14 md:h-24 bg-gray-50/50 border-b border-r border-gray-100 p-1 opacity-40 grayscale-[0.5] cursor-default"
+                >
+                    <span className="text-xs md:text-sm font-medium text-gray-400 w-6 h-6 md:w-7 md:h-7 flex items-center justify-center">
+                        {day}
+                    </span>
+                </div>
+            );
         }
 
+        // Current month days
         for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+            const date = new Date(year, month, day);
             const dateString = date.toISOString().split('T')[0];
             const dayReservations = reservations.filter(r => r.date === dateString);
             const isSelected = selectedDate?.toDateString() === date.toDateString();
@@ -50,68 +71,74 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
             const hasSalao = dayReservations.some(r => r.area === 'salao_festas');
             const hasChurrasco1 = dayReservations.some(r => r.area === 'churrasco1');
             const hasChurrasco2 = dayReservations.some(r => r.area === 'churrasco2');
+            const isFullyBooked = hasSalao && hasChurrasco1 && hasChurrasco2;
 
             days.push(
                 <div
-                    key={day}
+                    key={`curr-${day}`}
                     onClick={() => isClickable && onSelectDate(date)}
                     className={`
                         h-14 md:h-24 border-b border-r p-1 transition-all relative flex flex-col items-center justify-start gap-0.5 group
-                        ${isPast ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-100'}
-                        ${!isClickable ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer hover:bg-white hover:shadow-inner'}
-                        ${isSelected ? '!bg-blue-50/50 ring-inset ring-2 ring-blue-500 z-10' : ''}
+                        ${isPast ? 'bg-gray-50/80 border-gray-100' : 'bg-white border-gray-100'}
+                        ${!isClickable ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-white hover:shadow-inner hover:z-10'}
+                        ${isSelected ? '!bg-indigo-50/50 ring-inset ring-2 ring-indigo-500 z-10' : ''}
+                        ${isFullyBooked && !isSelected ? 'bg-red-50/30' : ''}
                     `}
                 >
                     <span className={`
-                        text-xs md:text-sm font-medium w-6 h-6 md:w-7 md:h-7 flex items-center justify-center rounded-full transition-colors
-                        ${isToday ? 'bg-blue-600 text-white shadow-md' : (isSelected ? 'text-blue-700 font-bold' : 'text-gray-700')}
-                        ${!isClickable && !isToday ? 'text-gray-300' : ''}
+                        text-xs md:text-sm font-semibold w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full transition-all
+                        ${isToday ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-110' : (isSelected ? 'text-indigo-700 font-bold' : 'text-gray-700')}
+                        ${!isClickable && !isToday ? 'text-gray-400' : ''}
+                        ${isSelected ? 'bg-indigo-100' : ''}
                     `}>
                         {day}
                     </span>
 
-                    {/* Dot Indicators for Month View */}
-                    <div className="flex gap-0.5 md:gap-1 mt-0.5 flex-wrap justify-center content-start w-full px-0.5">
+                    {/* Dot Indicators */}
+                    <div className="flex gap-1 mt-1 flex-wrap justify-center content-start w-full px-0.5">
                         {hasSalao && (
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-500 shadow-sm" title="Salão de Festas Reservado"></div>
+                            <div className="w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full bg-purple-500 shadow-sm ring-1 ring-white" title="Salão de Festas"></div>
                         )}
                         {hasChurrasco1 && (
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-orange-500 shadow-sm" title="Churrasqueira 1 Reservada"></div>
+                            <div className="w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shadow-sm ring-1 ring-white" title="Churrasqueira 1"></div>
                         )}
                         {hasChurrasco2 && (
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-amber-400 shadow-sm" title="Churrasqueira 2 Reservada"></div>
+                            <div className="w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full bg-amber-400 shadow-sm ring-1 ring-white" title="Churrasqueira 2"></div>
                         )}
                     </div>
 
-                    {/* Text Labels (Desktop Only - if space permits, or on hover) */}
-                    <div className="hidden md:flex flex-col gap-0.5 w-full mt-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {dayReservations.length > 0 && (
-                            <span className="text-[9px] text-center text-gray-500 font-medium bg-gray-100 rounded-full py-0.5 px-1 mx-auto scale-90">
-                                {dayReservations.length}
-                            </span>
-                        )}
-                    </div>
+                    {isFullyBooked && (
+                        <div className="absolute bottom-1 right-1 hidden md:block">
+                            <span className="text-[8px] font-black text-red-500 uppercase tracking-tighter opacity-70">Lotado</span>
+                        </div>
+                    )}
                 </div>
             );
         }
+
+        // Next month days
+        for (let day = 1; day <= daysInNextMonthToShow; day++) {
+            days.push(
+                <div
+                    key={`next-${day}`}
+                    className="h-14 md:h-24 bg-gray-50/50 border-b border-r border-gray-100 p-1 opacity-40 grayscale-[0.5] cursor-default"
+                >
+                    <span className="text-xs md:text-sm font-medium text-gray-400 w-6 h-6 md:w-7 md:h-7 flex items-center justify-center">
+                        {day}
+                    </span>
+                </div>
+            );
+        }
+
         return days;
     };
 
     return (
-        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200">
-            {/* Header with Navigation - Moved inside Grid component or keep external? 
-                 The prompt asked to extract CalendarGrid, usually implying the grid itself.
-                 But the layout in Reservations.tsx has the nav separate.
-                 However, to make this component self-contained, including the header (Day names) is good.
-                 The Month navigation was outside in the main controller. Let's keep Month nav outside or pass it in?
-                 Actually, looking at the layout, the Month Nav is top right. The grid is below.
-                 The grid includes the Weekday headers.
-             */}
-
+        <div className="w-full bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/50">
+            <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50/30">
                 {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                    <div key={day} className="py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <div key={day} className="py-4 text-center text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
                         {day}
                     </div>
                 ))}
@@ -120,24 +147,24 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
             {/* Days Grid */}
             <div
                 key={currentDate.toString()}
-                className={`grid grid-cols-7 bg-gray-100 gap-px border-b border-gray-200 ${direction === 'forward' ? 'animate-slide-right' : direction === 'backward' ? 'animate-slide-left' : ''}`}
+                className={`grid grid-cols-7 bg-gray-200 gap-px ${direction === 'forward' ? 'animate-slide-right' : direction === 'backward' ? 'animate-slide-left' : ''}`}
             >
                 {renderCalendarDays()}
             </div>
 
             {/* Legend Footer */}
-            <div className="p-4 bg-gray-50 flex flex-wrap gap-4 justify-center md:justify-start border-t border-gray-200">
-                <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-                    <span className="text-xs text-gray-600 font-medium">Salão de Festas</span>
+            <div className="p-5 bg-white flex flex-wrap gap-6 justify-center md:justify-start">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-purple-100"></div>
+                    <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Salão</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
-                    <span className="text-xs text-gray-600 font-medium">Churrasqueira 1</span>
+                <div className="flex items-center gap-2.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500 ring-2 ring-orange-100"></div>
+                    <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Churrasq. 1</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
-                    <span className="text-xs text-gray-600 font-medium">Churrasqueira 2</span>
+                <div className="flex items-center gap-2.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-amber-100"></div>
+                    <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Churrasq. 2</span>
                 </div>
             </div>
         </div>

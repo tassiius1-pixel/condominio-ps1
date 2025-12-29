@@ -8,13 +8,14 @@ import ConfirmModal from './ConfirmModal';
 import AdminReservationModal from './reservations/AdminReservationModal';
 import CalendarGrid from './reservations/CalendarGrid';
 import FacilityList from './reservations/FacilityList';
+import Skeleton from './Skeleton';
 
 interface ReservationsProps {
     setView?: (view: any) => void;
 }
 
 const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
-    const { reservations, addReservation, cancelReservation, addToast } = useData();
+    const { reservations, addReservation, cancelReservation, addToast, loading } = useData();
     const { currentUser } = useAuth();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -150,8 +151,29 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="space-y-8 animate-pulse pb-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-48 rounded-lg" />
+                        <Skeleton className="h-4 w-64 rounded-lg" />
+                    </div>
+                    <Skeleton className="h-12 w-48 rounded-xl" />
+                </div>
+                <div className="flex flex-col lg:flex-row gap-8">
+                    <Skeleton className="flex-1 h-[500px] rounded-3xl" />
+                    <div className="w-full lg:w-96 space-y-4">
+                        <Skeleton className="h-48 w-full rounded-3xl" />
+                        <Skeleton className="h-48 w-full rounded-3xl" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="space-y-8 animate-fade-in pb-10">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -160,16 +182,28 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
                 </div>
 
                 {/* Month Navigation */}
-                <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200 p-1 self-start">
-                    <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition">
-                        <ChevronLeftIcon className="w-5 h-5" />
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            setDirection(null);
+                            setCurrentDate(new Date());
+                            setSelectedDate(new Date());
+                        }}
+                        className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold uppercase tracking-wider rounded-xl border border-gray-200 transition-all shadow-sm active:scale-95"
+                    >
+                        Hoje
                     </button>
-                    <span className="px-4 text-sm font-bold text-gray-800 min-w-[140px] text-center capitalize">
-                        {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                    </span>
-                    <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition">
-                        <ChevronRightIcon className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200 p-1">
+                        <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition active:scale-90">
+                            <ChevronLeftIcon className="w-5 h-5" />
+                        </button>
+                        <span className="px-4 text-sm font-bold text-gray-800 min-w-[140px] text-center capitalize">
+                            {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                        </span>
+                        <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition active:scale-90">
+                            <ChevronRightIcon className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 

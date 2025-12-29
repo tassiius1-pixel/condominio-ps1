@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { RequestType, Status, View } from '../types';
 import Card from './Card';
+import Skeleton from './Skeleton';
 
 interface BoardProps {
   setView?: (view: View) => void;
@@ -38,7 +39,19 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
   const displayedSuggestions = activeTab === 'active' ? activeSuggestions : archivedSuggestions;
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Carregando sugestões...</div>;
+    return (
+      <div className="max-w-4xl space-y-8 pb-12 animate-pulse">
+        <div className="flex gap-2">
+          <Skeleton className="h-12 w-32 rounded-2xl" />
+          <Skeleton className="h-12 w-38 rounded-2xl" />
+        </div>
+        <div className="space-y-6">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-48 w-full rounded-[2.5rem]" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const handleCreateVoting = (title: string, description: string, requestId: string) => {

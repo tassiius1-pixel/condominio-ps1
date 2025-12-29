@@ -22,6 +22,7 @@ const Reservations = React.lazy(() => import("./components/Reservations"));
 const Occurrences = React.lazy(() => import("./components/Occurrences"));
 const VotingModule = React.lazy(() => import("./components/VotingModule"));
 const Notices = React.lazy(() => import("./components/Notices"));
+const Documents = React.lazy(() => import("./components/Documents"));
 
 import Toast from "./components/Toast";
 
@@ -136,6 +137,8 @@ const App: React.FC = () => {
               ) : (
                 <Dashboard setView={handleViewChange} />
               );
+            case "documents":
+              return <Documents setView={handleViewChange} />;
             default:
               return <Dashboard setView={handleViewChange} />;
           }
