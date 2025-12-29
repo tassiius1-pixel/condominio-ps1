@@ -450,7 +450,7 @@ const Notices: React.FC<NoticesProps> = ({ setView }) => {
 
                 {/* Sidebar - Summary (1/3) */}
                 <div className="lg:col-span-1">
-                    <div className="sticky top-6">
+                    <div className="sticky top-28">
                         <h2 className="text-lg font-bold text-gray-800 mb-4">Resumo Rápido</h2>
                         <SummarySidebar />
                     </div>

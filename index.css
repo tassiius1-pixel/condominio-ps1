@@ -4,8 +4,8 @@
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.5);
 }
 
 body {
@@ -24,9 +24,9 @@ h4 {
 /* Glassmorphism Utilities */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .glass-dark {

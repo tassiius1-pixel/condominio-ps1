@@ -153,8 +153,8 @@ const App: React.FC = () => {
         )}
 
         <main
-          className={`max-w-7xl mx-auto ${currentUser ? "p-4 sm:p-6 lg:p-8" : ""
-            }`}
+          className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-8" : ""}`}
+          style={currentUser ? { paddingTop: '105px' } : {}}
         >
           {renderContent()}
         </main>

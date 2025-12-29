@@ -38,7 +38,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     }
   };
 
-  const logoURL = "https://hjrhipbzuzkxrzlffwlb.supabase.co/storage/v1/object/public/logotipos/WhatsApp%20Image%202025-11-17%20at%2011.06.58.jpeg";
+  const logoURL = "/favicon.png";
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
