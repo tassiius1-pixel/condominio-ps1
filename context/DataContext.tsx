@@ -411,7 +411,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: `comment-${Date.now()}`,
           authorId: author.id,
           authorName: author.name,
-          text: adminResponse ? `Alterou o status para "${newStatus}". Justificativa: ${adminResponse}` : `Alterou o status para "${newStatus}"`,
+          text: `Alterou o status para "${newStatus}".${adminResponse ? ` Justificativa: ${adminResponse}` : ''}`,
           createdAt: new Date().toISOString(),
           type: 'status_change',
           newStatus: newStatus

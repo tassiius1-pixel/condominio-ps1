@@ -145,7 +145,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
         sector,
         status,
         photos,
-        adminResponse: finalAdminResponse,
+        adminResponse: adminResponse, // Use the state directly
       };
       updateRequest(updated);
     } else {
@@ -314,6 +314,20 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                     {request?.description}
                   </p>
 
+                  {/* Resposta da Gestão (Box Estilizado) */}
+                  {request?.adminResponse && (
+                    <div className={`mt-4 ${style.bg}/50 border ${style.border}/50 rounded-[2rem] p-6 relative transition-colors overflow-hidden animate-slide-fade-in`}>
+                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className={`text-xs font-black ${style.text} uppercase tracking-[0.2em]`}>Resposta da Gestão</span>
+                        <span className="text-xl">{style.icon}</span>
+                      </div>
+                      <p className={`text-sm ${style.text} leading-relaxed font-bold pl-1`}>
+                        {request.adminResponse}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Like Button Engagement */}
                   <div className="flex items-center gap-4 pt-2">
                     <button
@@ -369,6 +383,18 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                     {errors.justification && <p className="text-xs font-bold text-red-500">{errors.justification}</p>}
                   </div>
                 )}
+
+                {/* Official Response Field (Always visible for editing) */}
+                <div className="space-y-2 mt-4 pt-4 border-t border-indigo-100/30">
+                  <label className="text-[11px] font-black uppercase text-indigo-900 opacity-60">Resposta Oficial da Gestão</label>
+                  <textarea
+                    value={adminResponse}
+                    onChange={e => setAdminResponse(e.target.value)}
+                    rows={4}
+                    className="w-full bg-white border-2 border-indigo-100 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-0 text-sm font-medium"
+                    placeholder="Escreva aqui o posicionamento oficial do condomínio..."
+                  />
+                </div>
               </section>
             )}
 
@@ -436,7 +462,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                             return (
                               <div key={comment.id} className="flex justify-center py-2 animate-fade-in">
                                 <div className="bg-indigo-50/80 backdrop-blur-sm border border-indigo-100 rounded-full px-5 py-1.5 flex items-center gap-2">
-                                  <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest text-center">{comment.text}</span>
+                                  <span className="text-[10px] font-black text-indigo-600 tracking-widest text-center lowercase first-letter:uppercase">{comment.text}</span>
                                 </div>
                               </div>
                             );
