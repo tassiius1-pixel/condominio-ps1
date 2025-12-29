@@ -40,7 +40,7 @@ const typeIcons: Record<RequestType, React.ReactNode> = {
   [RequestType.SUGESTOES]: <LightbulbIcon className="w-4 h-4" />,
 };
 
-type StatusAction = 'approve' | 'reject' | 'analyze';
+type StatusAction = 'conclude' | 'reject' | 'analyze' | 'in_progress';
 
 const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => {
   const { currentUser } = useAuth();
@@ -103,9 +103,10 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
     if (!statusModal.action) return;
 
     let newStatus = '';
-    if (statusModal.action === 'approve') newStatus = 'Aprovada'; // Or 'Concluído' depending on workflow
+    if (statusModal.action === 'conclude') newStatus = 'Concluído';
     if (statusModal.action === 'reject') newStatus = 'Recusada';
     if (statusModal.action === 'analyze') newStatus = 'Em Análise';
+    if (statusModal.action === 'in_progress') newStatus = 'Em Andamento';
 
     await updateRequestStatus(request.id, newStatus as any, justification, currentUser?.id);
     setStatusModal({ isOpen: false, action: null });
@@ -229,13 +230,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
             {canManage && isSuggestion && (
               <>
                 <div className="flex items-center bg-gray-50 rounded-xl p-1 gap-1">
-                  <button
-                    onClick={(e) => handleStatusClick(e, 'approve')}
-                    className="p-2 rounded-lg text-green-600 hover:bg-white hover:shadow-sm transition-all"
-                    title="Aprovar"
-                  >
-                    <CheckCircleIcon className="w-4 h-4" />
-                  </button>
+
                   <button
                     onClick={(e) => handleStatusClick(e, 'reject')}
                     className="p-2 rounded-lg text-red-600 hover:bg-white hover:shadow-sm transition-all"
@@ -249,6 +244,20 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                     title="Analisar"
                   >
                     <InfoIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleStatusClick(e, 'in_progress')}
+                    className="p-2 rounded-lg text-orange-600 hover:bg-white hover:shadow-sm transition-all"
+                    title="Em Andamento"
+                  >
+                    <WrenchScrewdriverIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleStatusClick(e, 'conclude')}
+                    className="p-2 rounded-lg text-green-600 hover:bg-white hover:shadow-sm transition-all"
+                    title="Concluir"
+                  >
+                    <CheckCircleIcon className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -296,17 +305,20 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
       {statusModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => e.stopPropagation()}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className={`p-4 border-b ${statusModal.action === 'approve' ? 'bg-green-50 border-green-100' :
+            <div className={`p-4 border-b ${statusModal.action === 'conclude' ? 'bg-green-50 border-green-100' :
               statusModal.action === 'reject' ? 'bg-red-50 border-red-100' :
-                'bg-blue-50 border-blue-100'
+                statusModal.action === 'in_progress' ? 'bg-orange-50 border-orange-100' :
+                  'bg-blue-50 border-blue-100'
               }`}>
-              <h3 className={`font-bold ${statusModal.action === 'approve' ? 'text-green-800' :
+              <h3 className={`font-bold ${statusModal.action === 'conclude' ? 'text-green-800' :
                 statusModal.action === 'reject' ? 'text-red-800' :
-                  'text-blue-800'
+                  statusModal.action === 'in_progress' ? 'text-orange-800' :
+                    'text-blue-800'
                 }`}>
-                {statusModal.action === 'approve' ? 'Aprovar Sugestão' :
+                {statusModal.action === 'conclude' ? 'Concluir Sugestão' :
                   statusModal.action === 'reject' ? 'Recusar Sugestão' :
-                    'Analisar Sugestão'}
+                    statusModal.action === 'in_progress' ? 'Iniciar Atendimento' :
+                      'Analisar Sugestão'}
               </h3>
               <p className="text-xs text-gray-600 mt-1">
                 Insira uma justificativa ou resposta oficial para esta ação.
@@ -333,9 +345,10 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
               <button
                 onClick={confirmStatusUpdate}
                 disabled={!justification.trim()}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${statusModal.action === 'approve' ? 'bg-green-600 hover:bg-green-700' :
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${statusModal.action === 'conclude' ? 'bg-green-600 hover:bg-green-700' :
                   statusModal.action === 'reject' ? 'bg-red-600 hover:bg-red-700' :
-                    'bg-blue-600 hover:bg-blue-700'
+                    statusModal.action === 'in_progress' ? 'bg-orange-600 hover:bg-orange-700' :
+                      'bg-blue-600 hover:bg-blue-700'
                   }`}
               >
                 Confirmar
