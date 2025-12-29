@@ -24,6 +24,7 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     // Admin Modal State
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     const [pendingArea, setPendingArea] = useState<'churrasco1' | 'churrasco2' | 'salao_festas' | null>(null);
+    const [direction, setDirection] = useState<'forward' | 'backward' | null>(null);
 
     React.useEffect(() => {
         if (selectedDate && detailsRef.current) {
@@ -34,10 +35,12 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     }, [selectedDate]);
 
     const handlePrevMonth = () => {
+        setDirection('backward');
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     };
 
     const handleNextMonth = () => {
+        setDirection('forward');
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
 

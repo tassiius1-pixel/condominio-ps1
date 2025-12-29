@@ -11,6 +11,7 @@ interface CalendarGridProps {
     onPrevMonth: () => void;
     onNextMonth: () => void;
     onSelectDate: (date: Date) => void;
+    direction?: 'forward' | 'backward' | null;
 }
 
 const CalendarGrid: React.FC<CalendarGridProps> = ({
@@ -20,7 +21,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
     currentUser,
     onPrevMonth,
     onNextMonth,
-    onSelectDate
+    onSelectDate,
+    direction
 }) => {
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -116,7 +118,10 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
             </div>
 
             {/* Days Grid */}
-            <div className="grid grid-cols-7 bg-gray-100 gap-px border-b border-gray-200">
+            <div
+                key={currentDate.toString()}
+                className={`grid grid-cols-7 bg-gray-100 gap-px border-b border-gray-200 ${direction === 'forward' ? 'animate-slide-right' : direction === 'backward' ? 'animate-slide-left' : ''}`}
+            >
                 {renderCalendarDays()}
             </div>
 
