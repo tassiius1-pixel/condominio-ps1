@@ -8,7 +8,12 @@ import {
     DownloadIcon,
     TrashIcon,
     SearchIcon,
-    XIcon
+    XIcon,
+    ChevronLeftIcon,
+    ShieldCheckIcon,
+    BarChartIcon,
+    InfoIcon,
+    EyeIcon
 } from './Icons';
 import Skeleton from './Skeleton';
 import { uploadFile } from '../services/storage';
@@ -19,8 +24,16 @@ interface DocumentsProps {
 
 const CATEGORIES = ['Todos', 'Regimento', 'Atas', 'Financeiro', 'Outros'];
 
-const Documents: React.FC<DocumentsProps> = () => {
-    const { documents, addDocument, deleteDocument, loading } = useData();
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+    'Regimento': <ShieldCheckIcon className="w-6 h-6" />,
+    'Atas': <FileIcon className="w-6 h-6" />,
+    'Financeiro': <BarChartIcon className="w-6 h-6" />,
+    'Outros': <InfoIcon className="w-6 h-6" />,
+    'default': <FileIcon className="w-6 h-6" />
+};
+
+const Documents: React.FC<DocumentsProps> = ({ setView }) => {
+    const { documents, addDocument, deleteDocument, addToast, loading } = useData();
     const { currentUser } = useAuth();
 
     const [activeCategory, setActiveCategory] = useState('Todos');
@@ -28,6 +41,7 @@ const Documents: React.FC<DocumentsProps> = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewDoc, setPreviewDoc] = useState<DocumentType | null>(null);
 
     // New Document State
     const [newDoc, setNewDoc] = useState({
@@ -117,10 +131,15 @@ const Documents: React.FC<DocumentsProps> = () => {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header & Search */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Central de Documentos</h1>
-                    <p className="text-gray-500 text-sm mt-1 font-medium">Acesse e faça download de documentos importantes do Porto Seguro 1.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <button onClick={() => setView('home')} className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition touch-active">
+                        <ChevronLeftIcon className="w-6 h-6" />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Central de Documentos</h1>
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-0.5 font-medium leading-tight">Documentos oficiais e informativos do condomínio.</p>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -128,11 +147,19 @@ const Documents: React.FC<DocumentsProps> = () => {
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Buscar documentos..."
+                            placeholder="Buscar..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm"
+                            className="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                            >
+                                <XIcon className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     {canManage && (
@@ -154,7 +181,7 @@ const Documents: React.FC<DocumentsProps> = () => {
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
                         className={`
-              px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap
+              px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap touch-active
               ${activeCategory === cat
                                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
                                 : 'bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 border border-gray-100'}
@@ -182,14 +209,21 @@ const Documents: React.FC<DocumentsProps> = () => {
                             className="group bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between"
                         >
                             <div className="flex gap-4">
-                                <div className="shrink-0 w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300">
-                                    <FileIcon className="w-6 h-6" />
+                                <div className="shrink-0 w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 group-active:scale-95 transition-all duration-300">
+                                    {CATEGORY_ICONS[doc.category] || CATEGORY_ICONS['default']}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50/50 px-2 py-0.5 rounded-md mb-2 inline-block">
-                                            {doc.category}
-                                        </span>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50/50 px-2 py-0.5 rounded-md inline-block">
+                                                {doc.category}
+                                            </span>
+                                            {new Date(doc.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-white bg-green-500 px-1.5 py-0.5 rounded-md animate-pulse">
+                                                    Novo
+                                                </span>
+                                            )}
+                                        </div>
                                         {canManage && (
                                             <button
                                                 onClick={() => deleteDocument(doc.id)}
@@ -210,26 +244,97 @@ const Documents: React.FC<DocumentsProps> = () => {
                                 <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
                                     {formatFileSize(doc.fileSize)} • PDF
                                 </div>
-                                <a
-                                    href={doc.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-indigo-600 hover:text-white text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
-                                >
-                                    <DownloadIcon className="w-3.5 h-3.5" />
-                                    Download
-                                </a>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setPreviewDoc(doc)}
+                                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                        title="Visualizar"
+                                    >
+                                        <EyeIcon className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(doc.fileUrl);
+                                            addToast('Link copiado para a área de transferência!', 'success');
+                                        }}
+                                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                        title="Copiar Link"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                    </button>
+                                    <a
+                                        href={doc.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-indigo-600 hover:text-white text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
+                                    >
+                                        <DownloadIcon className="w-3.5 h-3.5" />
+                                        Download
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Add Document Modal */}
+            {/* Preview Modal */}
+            {previewDoc && (
+                <div className="fixed inset-0 z-[110] flex flex-col bg-white animate-in zoom-in-95 duration-300 overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-gray-100 flex-shrink-0 bg-white shadow-sm z-10 pt-[calc(env(safe-area-inset-top,0rem)+1rem)]">
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setPreviewDoc(null)}
+                                className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all active:scale-95 touch-active"
+                            >
+                                <ChevronLeftIcon className="w-6 h-6" />
+                            </button>
+                            <div className="min-w-0">
+                                <h3 className="font-black text-gray-900 truncate pr-4">{previewDoc.title}</h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{previewDoc.category}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <a
+                                href={previewDoc.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
+                            >
+                                <DownloadIcon className="w-4 h-4" />
+                                Download
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* PDF Viewer */}
+                    <div className="flex-1 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <iframe
+                            src={`${previewDoc.fileUrl}#toolbar=0`}
+                            className="w-full h-full border-none bg-white shadow-inner"
+                            title={previewDoc.title}
+                        />
+                    </div>
+
+                    {/* Footer Mobile */}
+                    <div className="sm:hidden p-4 border-t border-gray-100 bg-white pb-[calc(env(safe-area-inset-bottom,0rem)+1rem)]">
+                        <a
+                            href={previewDoc.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-95 touch-active"
+                        >
+                            <DownloadIcon className="w-5 h-5" />
+                            Download PDF
+                        </a>
+                    </div>
+                </div>
+            )}
             {isAddModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-lg sm:rounded-3xl rounded-t-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 duration-500 flex flex-col max-h-[95dvh]">
+                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 pt-[calc(env(safe-area-inset-top,0rem)+1.5rem)] sm:pt-6">
                             <h3 className="text-xl font-black text-gray-900">Novo Documento</h3>
                             <button
                                 onClick={() => setIsAddModalOpen(false)}
@@ -240,7 +345,7 @@ const Documents: React.FC<DocumentsProps> = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleAddDocument} className="p-6 space-y-4">
+                        <form onSubmit={handleAddDocument} className="p-6 space-y-4 overflow-y-auto flex-1 pb-[calc(env(safe-area-inset-bottom,0rem)+2rem)]">
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Título</label>
                                 <input
