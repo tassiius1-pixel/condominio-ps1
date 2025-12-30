@@ -108,7 +108,8 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                 <QuickActions setView={setView} onNewSuggestion={() => setView('dashboard')} />
             </section>
 
-            {isAdminProfile && requests.length > 0 && (
+            {/* Pending Tasks Section - More prominent for Management */}
+            {isAdminProfile && (
                 <section className="space-y-4">
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-2">
@@ -122,110 +123,113 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                             onClick={() => setView('dashboard')}
                             className="text-indigo-600 text-sm font-bold hover:underline"
                         >
-                            Ver todas as sugestões
+                            Ver todas
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {pendingTasks.slice(0, 4).map(task => {
-                            const isSuggestion = (task as any).taskType === 'suggestion';
-                            const isOld = (new Date().getTime() - new Date(task.createdAt).getTime()) > 2 * 24 * 60 * 60 * 1000;
-                            const isResponded = !!(task as any).adminResponse;
-                            const title = isSuggestion ? (task as any).title : (task as any).subject;
+                    {pendingTasks.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                            <CheckCircleIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                            <p className="text-gray-500 font-medium">Você está em dia! Nenhuma tarefa pendente.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {pendingTasks.slice(0, 8).map(task => { // Increased to 8 for management
+                                const isSuggestion = (task as any).taskType === 'suggestion';
+                                const isOld = (new Date().getTime() - new Date(task.createdAt).getTime()) > 2 * 24 * 60 * 60 * 1000;
+                                const isResponded = !!(task as any).adminResponse;
+                                const title = isSuggestion ? (task as any).title : (task as any).subject;
 
-                            return (
-                                <div
-                                    key={task.id}
-                                    className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group flex flex-col h-full"
-                                >
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isSuggestion ? 'bg-indigo-50 text-indigo-400' : 'bg-red-50 text-red-400'}`}>
-                                                {isSuggestion ? <MessageSquareIcon className="h-4 w-4" /> : <AlertTriangleIcon className="h-4 w-4" />}
+                                return (
+                                    <div
+                                        key={task.id}
+                                        className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group flex flex-col h-full active:scale-[0.98] cursor-pointer"
+                                        onClick={() => isSuggestion ? setSelectedRequest(task as any) : setView('occurrences')}
+                                    >
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isSuggestion ? 'bg-indigo-50 text-indigo-400' : 'bg-red-50 text-red-400'}`}>
+                                                    {isSuggestion ? <MessageSquareIcon className="h-4 w-4" /> : <AlertTriangleIcon className="h-4 w-4" />}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                        {task.authorName}
+                                                    </span>
+                                                    <span className={`text-[8px] font-black uppercase tracking-tighter ${isSuggestion ? 'text-indigo-400' : 'text-red-400'}`}>
+                                                        {isSuggestion ? 'Sugestão' : 'Ocorrência'}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                                    {task.authorName}
-                                                </span>
-                                                <span className={`text-[8px] font-black uppercase tracking-tighter ${isSuggestion ? 'text-indigo-400' : 'text-red-400'}`}>
-                                                    {isSuggestion ? 'Sugestão' : 'Ocorrência'}
-                                                </span>
+                                            <div className="flex gap-2">
+                                                {isResponded && (
+                                                    <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border border-blue-100">
+                                                        Respondida
+                                                    </span>
+                                                )}
+                                                {isOld && !isResponded && (
+                                                    <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border border-red-100 animate-pulse">
+                                                        Atrasada
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            {isResponded && (
-                                                <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border border-blue-100">
-                                                    Respondida
-                                                </span>
-                                            )}
-                                            {isOld && !isResponded && (
-                                                <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border border-red-100 animate-pulse">
-                                                    Aguardando +2 dias
-                                                </span>
-                                            )}
+
+                                        <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                                            {title}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-1">
+                                            {task.description}
+                                        </p>
+
+                                        <div className="mt-auto flex items-center gap-2 text-indigo-600 text-sm font-black uppercase tracking-widest">
+                                            {isResponded ? 'Visualizar' : (isSuggestion ? 'Responder Agora' : 'Ver Ocorrência')}
+                                            <span className="group-hover:translate-x-1 transition-transform">→</span>
                                         </div>
                                     </div>
-
-                                    <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                                        {title}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-1">
-                                        {task.description}
-                                    </p>
-
-                                    <button
-                                        onClick={() => isSuggestion ? setSelectedRequest(task as any) : setView('occurrences')}
-                                        className="mt-auto flex items-center gap-2 text-indigo-600 text-sm font-black uppercase tracking-widest group/btn"
-                                    >
-                                        {isResponded ? 'Visualizar' : (isSuggestion ? 'Responder Agora' : 'Ver Ocorrência')}
-                                        <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </section>
             )}
 
-            {/* Summary Section */}
-            <section>
-                <div className="flex items-center gap-2 mb-6 px-2">
-                    <BarChartIcon className="h-6 w-6 text-indigo-600" />
-                    <h2 className="text-xl font-black text-gray-900 tracking-tight">
-                        {isAdminProfile ? "Resumo do Condomínio" : "Resumo da sua Unidade"}
-                    </h2>
-                </div>
+            {/* Support/Summary Section - For Residents or secondary info */}
+            {!isAdminProfile && (
+                <section>
+                    <div className="flex items-center gap-2 mb-6 px-2">
+                        <BarChartIcon className="h-6 w-6 text-indigo-600" />
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                            Resumo da sua Unidade
+                        </h2>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <SummaryCard
-                        title="Votação Ativa"
-                        value={activeVoting ? activeVoting.title : 'Nenhuma no momento'}
-                        icon={activeVoting ? <CheckCircleIcon className="w-6 h-6" /> : <AlertTriangleIcon className="w-6 h-6" />}
-                        color={activeVoting ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400'}
-                        onClick={activeVoting ? () => setView('voting') : undefined}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <SummaryCard
+                            title="Votação Ativa"
+                            value={activeVoting ? activeVoting.title : 'Nenhuma no momento'}
+                            icon={activeVoting ? <CheckCircleIcon className="w-6 h-6" /> : <AlertTriangleIcon className="w-6 h-6" />}
+                            color={activeVoting ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400'}
+                            onClick={activeVoting ? () => setView('voting') : undefined}
+                        />
 
-                    <SummaryCard
-                        title={isAdminProfile ? "Reservas Agendadas" : "Sua Próxima Reserva"}
-                        value={isAdminProfile
-                            ? reservations.filter(r => new Date(r.date + 'T12:00:00') >= new Date()).length
-                            : nextReservation ? new Date(nextReservation.date + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não há reservas'}
-                        icon={<CalendarIcon className="w-6 h-6" />}
-                        color="bg-emerald-50 text-emerald-600"
-                        onClick={() => setView('reservations')}
-                    />
+                        <SummaryCard
+                            title="Sua Próxima Reserva"
+                            value={nextReservation ? new Date(nextReservation.date + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não há reservas'}
+                            icon={<CalendarIcon className="w-6 h-6" />}
+                            color="bg-emerald-50 text-emerald-600"
+                            onClick={() => setView('reservations')}
+                        />
 
-                    <SummaryCard
-                        title={isAdminProfile ? "Ocorrências Abertas" : "Minhas Ocorrências"}
-                        value={isAdminProfile
-                            ? occurrences.filter(o => o.status === 'Aberto').length
-                            : openOccurrences}
-                        icon={<AlertTriangleIcon className="w-6 h-6" />}
-                        color="bg-red-50 text-red-600"
-                        onClick={() => setView('occurrences')}
-                    />
-                </div>
-            </section>
+                        <SummaryCard
+                            title="Minhas Ocorrências"
+                            value={openOccurrences}
+                            icon={<AlertTriangleIcon className="w-6 h-6" />}
+                            color="bg-red-50 text-red-600"
+                            onClick={() => setView('occurrences')}
+                        />
+                    </div>
+                </section>
+            )}
 
             {/* Modal de Detalhes da Sugestão */}
             {selectedRequest && (
