@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, Occurrence } from '../types';
-import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon } from './Icons';
+import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon, BookIcon } from './Icons';
 import { uploadPhoto } from '../services/storage';
 import { compressImage } from '../utils/fileUtils';
 
@@ -343,7 +343,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
             {/* Modal Overlay Form */}
             {isFormOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in text-left">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in text-left">
                     <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 max-h-[90vh] flex flex-col">
                         <div className="px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50/50 to-white/0 flex-shrink-0">
                             <div>
@@ -498,7 +498,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             {/* Image Lightbox */}
             {selectedImage && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black bg-opacity-90 z-[120] flex items-center justify-center p-4"
                     onClick={() => setSelectedImage(null)}
                 >
                     <button

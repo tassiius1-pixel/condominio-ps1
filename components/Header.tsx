@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({
   const managementItems = navItems.filter(i => i.adminOnly);
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 ${visible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${mobileMenuOpen ? 'h-screen' : 'h-auto'}`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 ${visible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${mobileMenuOpen ? 'h-[100dvh]' : 'h-auto'}`}>
       <header className={`bg-white max-w-7xl mx-auto rounded-[2.5rem] transition-all duration-300 shadow-xl shadow-gray-200/50 border border-gray-100 ${scrolled ? 'shadow-2xl shadow-indigo-200/50 border-b border-gray-100 py-1' : ''}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
@@ -313,16 +313,16 @@ const Header: React.FC<HeaderProps> = ({
           fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
           transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
           ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-          flex flex-col
+          flex flex-col pb-[env(safe-area-inset-bottom,2rem)]
         `}>
-          <div className="h-full flex flex-col p-4">
+          <div className="h-full flex flex-col p-4 overflow-hidden">
             {/* Menu Header */}
             <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <img src={logoURL} alt="Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
+                <img src={logoURL} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900 tracking-tight">Menu</h2>
-                  <p className="text-[10px] font-bold text-blue-600 uppercase">Porto Seguro 1</p>
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">Menu</h2>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase">Porto Seguro 1</p>
                 </div>
               </div>
               <button

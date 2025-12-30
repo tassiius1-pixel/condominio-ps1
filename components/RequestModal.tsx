@@ -216,13 +216,14 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   };
 
   const author = users.find(u => u.id === request?.authorId);
-  const formattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+  const formattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
+  const fullFormattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
   const style = getStatusStyle(request?.status || status);
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 animate-fade-in text-gray-900">
-        <div className="bg-slate-50 rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative animate-scale-in border border-white/20">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fade-in text-gray-900">
+        <div className="bg-slate-50 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col relative animate-scale-in border border-white/20">
 
           {/* Header Barra Superior */}
           <div className="flex justify-between items-center p-4 sm:p-6 bg-white border-b border-gray-100 z-10 shrink-0">
@@ -230,16 +231,16 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               <div className={`p-3 rounded-2xl ${request?.type === RequestType.SUGESTOES ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
                 {request ? (request.type === RequestType.SUGESTOES ? '💡' : '🔧') : '🆕'}
               </div>
-              <div>
-                <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none uppercase">
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight leading-none uppercase truncate">
                   {request ? 'Detalhes' : 'Nova Sugestão'}
                 </h2>
                 {request && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border}`}>
+                  <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
+                    <span className={`text-[8px] sm:text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} whitespace-nowrap`}>
                       {request.status}
                     </span>
-                    <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap">
+                    <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
                       • {formattedDate}
                     </span>
                   </div>
@@ -247,19 +248,19 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {request && (isAuthor || canManage) && !isEditing && (
-                <button onClick={() => setIsEditing(true)} className="p-2.5 hover:bg-indigo-50 text-indigo-600 rounded-xl transition-colors" title="Editar">
+                <button onClick={() => setIsEditing(true)} className="p-2 sm:p-2.5 hover:bg-indigo-50 text-indigo-600 rounded-xl transition-colors" title="Editar">
                   <EditIcon className="w-5 h-5" />
                 </button>
               )}
               {request && (isAuthor || canManage) && (
-                <button onClick={handleDelete} className="p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors" title="Excluir">
+                <button onClick={handleDelete} className="p-2 sm:p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors" title="Excluir">
                   <TrashIcon className="w-5 h-5" />
                 </button>
               )}
-              <button onClick={onClose} className="p-2.5 hover:bg-gray-100 text-gray-400 rounded-xl transition-colors">
-                <XIcon className="w-6 h-6" />
+              <button onClick={onClose} className="p-2 sm:p-2.5 hover:bg-gray-100 text-gray-400 rounded-xl transition-colors">
+                <XIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
           </div>

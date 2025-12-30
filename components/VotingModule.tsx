@@ -554,7 +554,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
             {/* Image Lightbox Modal */}
             {selectedImage && (
                 <div
-                    className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+                    className="fixed inset-0 bg-black/95 z-[120] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
                     onClick={() => setSelectedImage(null)}
                 >
                     <button
