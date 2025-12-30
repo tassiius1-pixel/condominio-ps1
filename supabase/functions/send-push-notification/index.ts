@@ -100,23 +100,16 @@ serve(async (req) => {
                 body: JSON.stringify({
                     message: {
                         token: token,
-                        notification: { title, body }, // Título global essencial
-                        data: { title, body, url: "https://condominio-ps1.vercel.app/" },
+                        notification: { title, body },
                         android: {
                             priority: "high",
-                            notification: {
-                                sound: "default",
-                                click_action: "https://condominio-ps1.vercel.app/"
-                            }
+                            notification: { sound: "default" }
                         },
                         apns: {
-                            headers: { "apns-priority": "10" },
                             payload: {
                                 aps: {
-                                    alert: { title, body },
                                     sound: "default",
-                                    badge: 1,
-                                    "content-available": 1
+                                    badge: 1
                                 }
                             }
                         },
