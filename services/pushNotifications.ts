@@ -113,6 +113,23 @@ export const sendPushNotification = async (
 };
 
 /**
+ * Atualiza o badge (bolinha vermelha) no ícone do app no celular
+ */
+export const updateAppBadge = async (count: number) => {
+    if ('setAppBadge' in navigator) {
+        try {
+            if (count > 0) {
+                await (navigator as any).setAppBadge(count);
+            } else {
+                await (navigator as any).clearAppBadge();
+            }
+        } catch (error) {
+            console.error('❌ Erro ao atualizar App Badge:', error);
+        }
+    }
+};
+
+/**
  * Registra o listener para mensagens em foreground (app aberto)
  */
 export const setupForegroundNotifications = async (onMessageReceived: (payload: any) => void) => {
@@ -121,6 +138,10 @@ export const setupForegroundNotifications = async (onMessageReceived: (payload: 
 
     return onMessage(messaging, (payload) => {
         console.log("🔥 [FCM - FOREGROUND] Mensagem recebida:", payload);
+        // Tenta atualizar o badge se houver informação
+        if (payload.notification) {
+            updateAppBadge(1); // Incremento simples para teste
+        }
         onMessageReceived(payload);
     });
 };

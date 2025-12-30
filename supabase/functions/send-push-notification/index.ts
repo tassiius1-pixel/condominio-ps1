@@ -6,14 +6,12 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Helper para converter PEM para ArrayBuffer (DER)
 function pemToBinary(pem: string) {
     const b64 = pem
         .replace(/-----BEGIN PRIVATE KEY-----/, "")
         .replace(/-----END PRIVATE KEY-----/, "")
         .replace(/\s/g, "");
 
-    // No Deno, podemos usar atob para decodificar base64
     const binaryString = atob(b64);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -25,7 +23,6 @@ function pemToBinary(pem: string) {
 async function getAccessToken(serviceAccount: any) {
     try {
         const privateKeyBuffer = pemToBinary(serviceAccount.private_key);
-
         const cryptoKey = await crypto.subtle.importKey(
             "pkcs8",
             privateKeyBuffer,
@@ -72,12 +69,12 @@ serve(async (req) => {
         try {
             bodyData = JSON.parse(textBody);
         } catch (e) {
-            throw new Error(`Corpo inválido: ${e.message}`);
+            throw new Error(`Corpo da requisição inválido: ${e.message}`);
         }
 
         const { userId, title, body } = bodyData;
         const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
-        if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada.");
+        if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada nas Secrets.");
 
         const serviceAccount = JSON.parse(saEnv.trim().replace(/^\uFEFF/, ''));
         const accessToken = await getAccessToken(serviceAccount);
@@ -88,33 +85,39 @@ serve(async (req) => {
         });
 
         const firestoreData = await firestoreRes.json();
-        if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
+        if (firestoreData.error) throw new Error(`Erro Firestore: ${firestoreData.error.message}`);
 
         let tokens: string[] = [];
 
         if (userId === "all") {
-            const rawTokens = firestoreData.documents
-                ?.map((doc: any) => doc.fields?.fcmToken?.stringValue)
-                .filter((t: string | undefined) => !!t) || [];
-            // 🔥 REMOVE DUPLICADOS
-            tokens = [...new Set(rawTokens)];
+            // Busca todos os tokens salvos na tabela de usuários
+            const rawTokens = (firestoreData.documents || [])
+                .map((doc: any) => doc.fields?.fcmToken?.stringValue)
+                .filter((t: any) => typeof t === 'string' && t.length > 0);
+
+            // Remove duplicados de forma garantida
+            tokens = Array.from(new Set(rawTokens)) as string[];
+            console.log(`[FCM] Alvo: todos. Encontrados ${tokens.length} tokens únicos.`);
         } else {
+            // Busca token de um usuário específico
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             const userData = await userDocRes.json();
             const t = userData.fields?.fcmToken?.stringValue;
             if (t) tokens.push(t);
+            console.log(`[FCM] Alvo: ${userId}. Token: ${t ? 'Encontrado' : 'Não encontrado'}`);
         }
 
         if (tokens.length === 0) {
             return new Response(JSON.stringify({
                 success: true,
-                message: "Nenhum celular registrado para receber push."
+                message: "Nenhum dispositivo encontrado para receber a notificação."
             }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
 
-        const results = await Promise.all(tokens.map(async (token) => {
+        // Tenta enviar para cada dispositivo, usando Promise.allSettled para não travar se um falhar
+        const deliveryResults = await Promise.allSettled(tokens.map(async (token) => {
             const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
                 method: "POST",
                 headers: {
@@ -148,14 +151,19 @@ serve(async (req) => {
             return fcmRes.json();
         }));
 
-        return new Response(JSON.stringify({ success: true, count: tokens.length, results }), {
+        return new Response(JSON.stringify({
+            success: true,
+            count: tokens.length,
+            results: deliveryResults
+        }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
     } catch (error) {
+        console.error(`[FCM ERROR] ${error.message}`);
         return new Response(JSON.stringify({
             error: error.message,
-            hint: "Certifique-se que o JSON da Secret no Supabase está IDÊNTICO ao arquivo baixado do Firebase."
+            hint: "Verifique os logs da função no painel do Supabase para mais detalhes."
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
