@@ -40,6 +40,11 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
         const registration = await navigator.serviceWorker.ready;
         console.log("✅ Service Worker pronto:", registration.scope);
 
+        if (!registration.pushManager) {
+            console.error("❌ Erro: pushManager não disponível no Service Worker. Notificações ignoradas.");
+            return { status: 'unsupported' };
+        }
+
         const token = await getToken(messaging, {
             vapidKey,
             serviceWorkerRegistration: registration

@@ -1,6 +1,6 @@
-// Importa Firebase 9 em modo compat (obrigatório para SW)
-importScripts("https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js");
+// Importa Firebase 10 (mais estável e compatível com as versões recentes)
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
 // Config Firebase (MESMO DO FIREBASE.TS)
 firebase.initializeApp({

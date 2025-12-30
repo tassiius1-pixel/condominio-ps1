@@ -27,7 +27,7 @@ export const storage = getStorage(app);
 
 // Sua VAPID PUBLIC KEY para Web Push
 export const vapidKey =
-  "BIkR1esxfOxwt0n3Vv9nolz_KECfU5LcgYiqI2HXGbqPugs8Ydci34XI6HJVEnzkWvA0P974XwyIZ-b0pHglrCQ";
+  "BIxR1esxfOwxt0n3Vv9nolz_KECfU5LcgYiqI2HXGbqPugs8Ydci34XI6HJVEnzkWvA0P974XwyIZ-b0pHglrCQ";
 
 // O messaging só funciona se o navegador suportar push notifications
 export const messagingPromise = isSupported().then((supported) =>
