@@ -254,7 +254,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           onClick={onClose}
         />
         <div
-          className={`bg-white sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl sm:max-h-[90vh] h-[100dvh] sm:h-auto overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'}`}
+          className={`bg-white sm:rounded-[2.5rem] shadow-2xl w-full max-w-6xl sm:h-[85dvh] h-[100dvh] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'}`}
           style={{ transform: `translateY(${translateY}px)` }}
         >
           {/* Visual Drag Handle for Mobile */}
@@ -308,7 +308,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           </div>
 
           {/* Modal Body - Scrollable Area */}
-          <div className="p-6 sm:p-10 flex-1 overflow-y-auto bg-white scrolling-touch pb-[env(safe-area-inset-bottom,2.5rem)]">
+          <div className="p-6 sm:p-12 flex-1 overflow-y-auto bg-white scrolling-touch pb-[env(safe-area-inset-bottom,2.5rem)]">
 
             {/* 1. SEÇÃO DE CONTEÚDO (Título e Descrição) */}
             <section className="space-y-6">
@@ -338,7 +338,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                 </div>
               ) : (
                 <div className="space-y-4 animate-fade-in">
-                  <h1 className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">
                     {request?.title}
                   </h1>
 
