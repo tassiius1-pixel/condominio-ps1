@@ -19,13 +19,18 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log("[FCM - BACKGROUND] Recebido:", payload);
 
-    const notificationTitle = payload.notification?.title || "Nova Notificação";
+    // Prioriza notification, depois data, depois fallback
+    const title = payload.notification?.title || payload.data?.title || "Nova Notificação";
+    const body = payload.notification?.body || payload.data?.body || "";
+
     const notificationOptions = {
-        body: payload.notification?.body || "",
-        icon: "/logo.png"
+        body: body,
+        icon: "/logo.png",
+        badge: "/logo.png",
+        data: payload.data || {} // Passa os dados para o clique
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    return self.registration.showNotification(title, notificationOptions);
 });
 
 // ===============================

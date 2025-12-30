@@ -81,10 +81,32 @@ const App: React.FC = () => {
           await requestPushPermission(currentUser.id);
         }
 
-        const unsub = await setupForegroundNotifications((payload) => {
-          const title = payload.notification?.title || "Nova Notificação";
-          const body = payload.notification?.body || "";
+        const unsub = await setupForegroundNotifications(async (payload) => {
+          console.log("🔔 [App.tsx] Processando mensagem para interface:", payload);
+          const title = payload.notification?.title || payload.data?.title || "Nova Notificação";
+          const body = payload.notification?.body || payload.data?.body || "";
           addToast(`${title}: ${body}`, "info");
+
+          // 🔊 BEEP FORÇADO NO APP ABERTO
+          try {
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Som mais agudo estilo iPhone
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          } catch (e) {
+            console.warn("Navegador bloqueou o bip por falta de interação prévia.");
+          }
         });
 
         return unsub;
