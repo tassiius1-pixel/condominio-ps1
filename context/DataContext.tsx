@@ -386,6 +386,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       requestId: "",
     });
 
+    // 🔥 Envia Push Notification externa para todos
+    sendPushNotification(
+      "all",
+      "Nova Sugestão Criada",
+      `${author.name} sugeriu: ${newRequest.title}`
+    );
+
     addToast("Sugestão registrada.", "success");
   };
 
