@@ -58,13 +58,15 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
 
         console.log("✅ FCM Token gerado:", token);
 
-        // Salva token no documento do usuário para facilitar o envio direcionado
-        await updateDoc(doc(db, "users", userId), {
+        // Salva token no documento do usuário usando merge para garantir que o doc exista
+        const { setDoc } = await import("firebase/firestore");
+        await setDoc(doc(db, "users", userId), {
             fcmToken: token,
             pushEnabled: true,
             lastTokenSync: new Date().toISOString(),
-        });
+        }, { merge: true });
 
+        console.log("✅ FCM Token persistido no Firestore para o usuário:", userId);
         return { status: 'granted', token };
 
     } catch (error) {
