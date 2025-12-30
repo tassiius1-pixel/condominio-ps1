@@ -27,7 +27,13 @@ messaging.onBackgroundMessage((payload) => {
         body: body,
         icon: "/logo.png",
         badge: "/logo.png",
-        data: payload.data || {} // Passa os dados para o clique
+        tag: "gestao-ps1",
+        renotify: true,
+        vibrate: [200, 100, 200, 100, 200],
+        data: {
+            url: payload.data?.url || "https://condominio-ps1.vercel.app/",
+            ...payload.data
+        }
     };
 
     return self.registration.showNotification(title, notificationOptions);

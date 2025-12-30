@@ -125,11 +125,12 @@ serve(async (req) => {
                         notification: { title, body },
                         android: {
                             priority: "high",
-                            ttl: "86400s",
                             notification: {
                                 sound: "default",
-                                channel_id: "default_channel", // Importante para Android 8+
-                                click_action: "https://condominio-ps1.vercel.app/"
+                                channel_id: "high_priority",
+                                click_action: "https://condominio-ps1.vercel.app/",
+                                notification_priority: "PRIORITY_MAX",
+                                visibility: "PUBLIC"
                             }
                         },
                         apns: {
@@ -145,7 +146,8 @@ serve(async (req) => {
                                     },
                                     sound: "default",
                                     badge: 1,
-                                    "mutable-content": 1
+                                    "mutable-content": 1,
+                                    category: "NEW_SUGGESTION"
                                 }
                             }
                         },
@@ -156,7 +158,9 @@ serve(async (req) => {
                                 body: body,
                                 icon: "https://condominio-ps1.vercel.app/logo.png",
                                 badge: "https://condominio-ps1.vercel.app/logo.png",
-                                vibrate: [200, 100, 200]
+                                vibrate: [200, 100, 200],
+                                tag: "new-suggestion-" + Date.now(),
+                                renotify: true
                             },
                             fcm_options: { link: "https://condominio-ps1.vercel.app/" }
                         },
@@ -164,7 +168,7 @@ serve(async (req) => {
                             title: title,
                             body: body,
                             url: "https://condominio-ps1.vercel.app/",
-                            message_id: Date.now().toString()
+                            force_beep: "true"
                         }
                     }
                 })

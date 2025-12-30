@@ -87,36 +87,34 @@ const App: React.FC = () => {
           const body = payload.notification?.body || payload.data?.body || "";
           addToast(`${title}: ${body}`, "info");
 
-          // 🔊 SOM E VIBRAÇÃO NO APP ABERTO (FOREGROUND)
+          // 🔊 SOM E VIBRAÇÃO DE EMERGÊNCIA (FOREGROUND)
           try {
-            // 1. Vibração (se suportado pelo celular)
-            if ("vibrate" in navigator) {
-              navigator.vibrate([200, 100, 200]); // Dois toques curtos
-            }
+            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
 
-            // 2. Beep Robusto
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            const playNote = (freq: number, start: number, duration: number) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
+              gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
+              gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + start + 0.02);
+              gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+              osc.start(audioCtx.currentTime + start);
+              osc.stop(audioCtx.currentTime + start + duration);
+            };
 
-            osc.type = 'sine'; // Som mais limpo
-            osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime); // C6 (Nota aguda)
+            // Sequência "Plim-Plim" (C6 e E6)
+            playNote(1046.50, 0, 0.3); // Do
+            playNote(1318.51, 0.15, 0.3); // Mi
 
-            // Aumentando volume (de 0.1 para 0.5)
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.4);
-
-            console.log("🔊 Som de notificação disparado com sucesso.");
+            console.log("🔊 Emergency Plim disparado.");
           } catch (e) {
-            console.warn("Navegador impediu áudio automático. Clique no site para ativar.");
+            console.warn("Áudio travado pelo browser.");
           }
         });
 
