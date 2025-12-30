@@ -343,7 +343,7 @@ const Header: React.FC<HeaderProps> = ({
           onTouchMove={handleMenuTouchMove}
           onTouchEnd={handleMenuTouchEnd}
         >
-          <div className="flex-1 flex flex-col p-4 overflow-hidden">
+          <div className="flex-1 flex flex-col p-4 h-full">
             {/* Menu Header */}
             <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -391,7 +391,7 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* Menu Footer */}
-            <div className="mt-auto px-4 pt-6 pb-[env(safe-area-inset-bottom,1.5rem)] border-t border-gray-100 flex flex-col items-center flex-shrink-0">
+            <div className="mt-auto px-4 pt-6 pb-[calc(env(safe-area-inset-bottom,0rem)+6rem)] border-t border-gray-100 flex flex-col items-center flex-shrink-0 bg-white">
               <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>
