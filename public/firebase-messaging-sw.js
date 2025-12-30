@@ -1,4 +1,3 @@
-// Importa Firebase 10
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
@@ -13,46 +12,12 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handler de background
 messaging.onBackgroundMessage((payload) => {
-    console.log("[FCM - BACKGROUND] Recebido:", payload);
-
-    const notificationTitle = payload.notification?.title || payload.data?.title || "Nova Notificação";
-    const notificationOptions = {
-        body: payload.notification?.body || payload.data?.body || "",
+    const title = payload.notification?.title || "Notificação";
+    const options = {
+        body: payload.notification?.body || "",
         icon: "/logo.png",
-        badge: "/logo.png",
-        tag: 'porto-seguro-alert',
-        vibrate: [200, 100, 200], // Vibração para Android
-        data: {
-            url: payload.data?.url || "/"
-        }
+        badge: "/logo.png"
     };
-
-    // Tenta atualizar o ícone (bolinha)
-    if ('setAppBadge' in navigator) {
-        (navigator as any).setAppBadge(1).catch(() => { });
-    }
-
-    return self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// Clique na notificação
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    const urlToOpen = event.notification.data?.url || '/';
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            for (let i = 0; i < windowClients.length; i++) {
-                const client = windowClients[i];
-                if (client.url.includes(urlToOpen) && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow(urlToOpen);
-            }
-        })
-    );
+    return self.registration.showNotification(title, options);
 });
