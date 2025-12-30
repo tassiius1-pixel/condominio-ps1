@@ -127,39 +127,44 @@ serve(async (req) => {
                                 title: title,
                                 body: body
                             },
+                            data: {
+                                title: title,
+                                body: body,
+                                tag: "gestao-ps1",
+                                url: "https://condominio-ps1.vercel.app/"
+                            },
                             android: {
                                 priority: "high",
                                 notification: {
                                     sound: "default",
-                                    click_action: "https://condominio-ps1.vercel.app/"
+                                    click_action: "https://condominio-ps1.vercel.app/",
+                                    tag: "gestao-ps1"
                                 }
                             },
                             apns: {
                                 headers: { "apns-priority": "10" },
                                 payload: {
                                     aps: {
-                                        alert: { title: title, body: body },
+                                        alert: { title, body },
                                         sound: "default",
-                                        badge: 1
+                                        badge: 1,
+                                        "mutable-content": 1
                                     }
                                 }
                             },
                             webpush: {
-                                headers: { Urgency: "high" },
+                                headers: { "Urgency": "high" },
                                 notification: {
-                                    title: title,
-                                    body: body,
-                                    icon: "https://condominio-ps1.vercel.app/logo.png",
-                                    badge: "https://condominio-ps1.vercel.app/logo.png",
-                                    vibrate: [200, 100, 200],
-                                    tag: "new-suggestion"
+                                    icon: "/logo.png",
+                                    badge: "/logo.png",
+                                    tag: "gestao-ps1",
+                                    renotify: true,
+                                    requireInteraction: true,
+                                    vibrate: [200, 100, 200]
                                 },
-                                fcm_options: { link: "https://condominio-ps1.vercel.app/" }
-                            },
-                            data: {
-                                title: title,
-                                body: body,
-                                url: "https://condominio-ps1.vercel.app/"
+                                fcm_options: {
+                                    link: "https://condominio-ps1.vercel.app/"
+                                }
                             }
                         }
                     })
