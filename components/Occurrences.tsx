@@ -130,7 +130,8 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         if (!responseText.trim()) return;
         await updateOccurrence(id, {
             adminResponse: responseText,
-            // Don't close automatically, just reply
+            status: 'Resolvido',
+            resolvedAt: new Date().toISOString()
         });
         setRespondingTo(null);
         setResponseText('');
