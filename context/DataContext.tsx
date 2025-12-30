@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useState, useEffect, ReactNode, useCallback } from "react";
 import {
   collection,
   getDocs,
@@ -199,15 +199,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // TOASTS
-  const addToast = (message: string, type: "success" | "error" | "info") => {
+  const addToast = useCallback((message: string, type: "success" | "error" | "info") => {
     setToasts((prev) => [
       ...prev,
       { id: `toast-${Date.now()}`, message, type },
     ]);
-  };
+  }, []);
 
-  const removeToast = (id: string) =>
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+  const removeToast = useCallback((id: string) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id)), []);
 
   // NOTIFICAÇÕES (MODELO CORRETO)
   const addNotification = async (

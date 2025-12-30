@@ -70,32 +70,35 @@ const App: React.FC = () => {
     setCondoLogo(logoBase64);
   };
 
-  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE SE NÃO ESTIVER NEGADO)
+  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE UMA VEZ)
   useEffect(() => {
     if (currentUser) {
       const hasNotificationSupport = 'Notification' in window;
-      if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
-        requestPushPermission(currentUser.id);
-      }
 
-      let unsubscribe: (() => void) | undefined;
+      // Use um mecanismo para garantir que só rode uma vez por login
+      const setupFCM = async () => {
+        if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
+          await requestPushPermission(currentUser.id);
+        }
 
-      const initFCM = async () => {
         const unsub = await setupForegroundNotifications((payload) => {
           const title = payload.notification?.title || "Nova Notificação";
           const body = payload.notification?.body || "";
           addToast(`${title}: ${body}`, "info");
         });
-        if (unsub) unsubscribe = unsub;
+
+        return unsub;
       };
 
-      initFCM();
+      let unsubscribePromise = setupFCM();
 
       return () => {
-        if (unsubscribe) unsubscribe();
+        unsubscribePromise.then(unsub => {
+          if (unsub) unsub();
+        });
       };
     }
-  }, [currentUser, addToast]);
+  }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
 
   const renderContent = () => {
     if (!currentUser) {
