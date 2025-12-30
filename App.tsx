@@ -72,14 +72,18 @@ const App: React.FC = () => {
 
   // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE UMA VEZ)
   useEffect(() => {
-    if (currentUser) {
-      const hasNotificationSupport = 'Notification' in window;
+    let active = true;
+    let unsubFCM: (() => void) | undefined;
 
-      // Use um mecanismo para garantir que só rode uma vez por login
+    if (currentUser) {
       const setupFCM = async () => {
+        const hasNotificationSupport = 'Notification' in window;
+
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           await requestPushPermission(currentUser.id);
         }
+
+        if (!active) return;
 
         const unsub = await setupForegroundNotifications((payload) => {
           const title = payload.notification?.title || "Nova Notificação";
@@ -87,17 +91,16 @@ const App: React.FC = () => {
           addToast(`${title}: ${body}`, "info");
         });
 
-        return unsub;
+        unsubFCM = unsub;
       };
 
-      let unsubscribePromise = setupFCM();
-
-      return () => {
-        unsubscribePromise.then(unsub => {
-          if (unsub) unsub();
-        });
-      };
+      setupFCM();
     }
+
+    return () => {
+      active = false;
+      if (unsubFCM) unsubFCM();
+    };
   }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
 
   const renderContent = () => {

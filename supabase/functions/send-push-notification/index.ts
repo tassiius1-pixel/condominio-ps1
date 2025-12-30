@@ -93,9 +93,11 @@ serve(async (req) => {
         let tokens: string[] = [];
 
         if (userId === "all") {
-            tokens = firestoreData.documents
+            const rawTokens = firestoreData.documents
                 ?.map((doc: any) => doc.fields?.fcmToken?.stringValue)
                 .filter((t: string | undefined) => !!t) || [];
+            // 🔥 REMOVE DUPLICADOS
+            tokens = [...new Set(rawTokens)];
         } else {
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
