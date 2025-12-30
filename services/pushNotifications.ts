@@ -83,8 +83,12 @@ export const sendPushNotification = async (
     data: any = {}
 ) => {
     try {
+        // Forçamos o uso da URL correta se a variável estiver ausente
+        const functionsUrl = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL ||
+            "https://hjrhipbzuzkxrzlffwlb.supabase.co/functions/v1";
+
         const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/send-push-notification`,
+            `${functionsUrl}/send-push-notification`,
             {
                 method: "POST",
                 headers: {
