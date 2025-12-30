@@ -70,50 +70,38 @@ const App: React.FC = () => {
     setCondoLogo(logoBase64);
   };
 
-  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE UMA VEZ)
+  // 🔥 ATIVA O FCM AUTOMATICAMENTE
   useEffect(() => {
-    let active = true;
-    let unsubFCM: (() => void) | undefined;
-
     if (currentUser) {
+      let unsub: (() => void) | undefined;
+
       const setupFCM = async () => {
         const hasNotificationSupport = 'Notification' in window;
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           await requestPushPermission(currentUser.id);
         }
 
-        if (!active) return;
-
-        const unsub = await setupForegroundNotifications((payload) => {
+        unsub = await setupForegroundNotifications((payload) => {
           const title = payload.notification?.title || "Nova Notificação";
           const body = payload.notification?.body || "";
           addToast(`${title}: ${body}`, "info");
 
-          // 🔊 BEEP PARA O APP ABERTO
+          // 🔊 BEEP TESTE
           try {
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            oscillator.connect(audioCtx.destination);
+            oscillator.frequency.value = 800;
             oscillator.start();
             oscillator.stop(audioCtx.currentTime + 0.1);
           } catch (e) { }
         });
-
-        unsubFCM = unsub;
       };
 
       setupFCM();
+      return () => { if (unsub) unsub(); };
     }
-
-    return () => {
-      active = false;
-      if (unsubFCM) unsubFCM();
-    };
-  }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
+  }, [currentUser?.id]);
 
   const renderContent = () => {
     if (!currentUser) {

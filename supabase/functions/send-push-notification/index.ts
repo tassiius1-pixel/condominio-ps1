@@ -58,8 +58,12 @@ serve(async (req) => {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
     try {
-        const { userId, title, body } = await req.json();
+        const payload = await req.json();
+        const { userId, title, body } = payload;
+
         const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
+        if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT missing.");
+
         const serviceAccount = JSON.parse(saEnv!.trim().replace(/^\uFEFF/, ''));
         const accessToken = await getAccessToken(serviceAccount);
 
@@ -74,7 +78,6 @@ serve(async (req) => {
             const rawTokens = (firestoreData.documents || [])
                 .map((doc: any) => doc.fields?.fcmToken?.stringValue)
                 .filter((t: any) => !!t);
-            // 🔥 REMOVE DUPLICADOS (Causa das notificações duplas)
             tokens = Array.from(new Set(rawTokens)) as string[];
         } else {
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
@@ -86,47 +89,61 @@ serve(async (req) => {
         }
 
         if (tokens.length === 0) {
-            return new Response(JSON.stringify({ success: true, message: "Sem tokens." }), { headers: corsHeaders });
+            return new Response(JSON.stringify({
+                success: true,
+                debug: { userId, tokenCount: 0, message: "Nenhum morador com celular cadastrado." }
+            }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
 
-        const results = await Promise.all(tokens.map(async (token) => {
-            return fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: {
-                        token: token,
-                        notification: { title, body },
-                        // 🔥 ESSENCIAL PARA O IPHONE TOCAR (SOUND: DEFAULT)
-                        apns: {
-                            payload: {
-                                aps: {
-                                    sound: "default",
-                                    badge: 1
+        const stats = { sent: 0, failed: 0, responses: [] as any[] };
+
+        for (const token of tokens) {
+            try {
+                const res = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: {
+                            token: token,
+                            notification: { title, body },
+                            apns: {
+                                payload: {
+                                    aps: {
+                                        sound: "default",
+                                        badge: 1
+                                    }
                                 }
                             }
-                        },
-                        webpush: {
-                            notification: {
-                                icon: "https://condominio-ps1.vercel.app/logo.png",
-                                badge: "https://condominio-ps1.vercel.app/logo.png"
-                            },
-                            fcm_options: { link: "https://condominio-ps1.vercel.app/" }
                         }
-                    }
-                })
-            }).then(r => r.json());
-        }));
+                    })
+                });
+                const fcmData = await res.json();
+                stats.responses.push(fcmData);
+                if (fcmData.name) stats.sent++;
+                else stats.failed++;
+            } catch (err) {
+                stats.failed++;
+                stats.responses.push({ error: err.message });
+            }
+        }
 
-        return new Response(JSON.stringify({ success: true, count: tokens.length, results }), {
+        return new Response(JSON.stringify({
+            success: true,
+            debug: {
+                userId,
+                foundTokens: tokens.length,
+                tokens: tokens.map(t => t.substring(0, 10) + "..."),
+                stats
+            }
+        }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
     } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
         })
