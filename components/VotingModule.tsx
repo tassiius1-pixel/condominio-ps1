@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Role, Voting, VotingOption, Status } from '../types';
 import { TrashIcon, PlusIcon, CheckIcon, UploadIcon, XIcon, ChevronLeftIcon, BarChartIcon } from './Icons';
 import { fileToBase64 } from '../utils/fileUtils';
+import ConfirmModal from './ConfirmModal';
 
 interface VotingModuleProps {
     setView?: (view: any) => void;
@@ -26,6 +27,23 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         { text: '' },
         { text: '' }
     ]);
+
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'info' | 'success';
+        alertOnly: boolean;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        alertOnly: false
+    });
+
+    const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
     useEffect(() => {
         const draft = localStorage.getItem('draft_voting');
@@ -118,10 +136,16 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
     };
 
     const handleDeleteVoting = async (id: string) => {
-        if (window.confirm("Tem certeza que deseja excluir esta votação?")) {
-            await deleteVoting(id);
-            // addToast is handled by DataContext
-        }
+        setModalConfig({
+            isOpen: true,
+            title: "Excluir Votação?",
+            message: "Esta ação removerá permanentemente a votação e todos os votos registrados.",
+            type: 'danger',
+            alertOnly: false,
+            onConfirm: () => {
+                deleteVoting(id);
+            }
+        });
     };
 
     // Voting Logic
@@ -594,6 +618,15 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                     />
                 </div>
             )}
+            <ConfirmModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                alertOnly={modalConfig.alertOnly}
+                onConfirm={modalConfig.onConfirm}
+            />
         </div>
     );
 };

@@ -297,7 +297,7 @@ const Header: React.FC<HeaderProps> = ({
                   >
                     <BellIcon className="h-5 w-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 h-4.5 w-4.5 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-black border-2 border-white shadow-sm animate-pulse">
+                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-black border-2 border-white shadow-lg animate-pulse">
                         {unreadCount}
                       </span>
                     )}
@@ -310,60 +310,7 @@ const Header: React.FC<HeaderProps> = ({
                   />
                 </div>
 
-                {/* TEST PUSH AUDIO BUTTON */}
-                <button
-                  onClick={async () => {
-                    // 1. GESTO DO USUÁRIO IMEDIATO
-                    let permission = 'default';
-                    if ("Notification" in window) {
-                      permission = await Notification.requestPermission();
-                    }
 
-                    try {
-                      console.log("🚀 [SOS] Sincronizando Sistema v1.1...");
-
-                      // 2. Desbloqueia Audio
-                      if ((window as any).triggerPushBeep) (window as any).triggerPushBeep();
-
-                      // 3. Sincroniza Service Worker (Limpeza Total)
-                      let registration: ServiceWorkerRegistration | undefined;
-                      if ('serviceWorker' in navigator) {
-                        const regs = await navigator.serviceWorker.getRegistrations();
-                        for (let r of regs) await r.unregister();
-
-                        registration = await navigator.serviceWorker.register('/sw-sos-v1.js', { scope: '/' });
-
-                        // Espera ficar ativo
-                        let waitCount = 0;
-                        while (!registration.active && waitCount < 20) {
-                          await new Promise(r => setTimeout(r, 500));
-                          waitCount++;
-                        }
-                      }
-
-                      // 4. Token Final
-                      if (permission === 'granted') {
-                        const { requestPushPermission } = await import('../services/pushNotifications');
-                        const result = await requestPushPermission(currentUser.id, registration);
-
-                        if (result.status === 'granted') {
-                          alert("✅ TUDO PRONTO!\n\nSeu celular foi sincronizado com sucesso.\n\nTESTE AGORA: Saia do app e mande uma msg pelo PC.");
-                        } else {
-                          alert(`⚠️ Falha no Token: ${result.status}. Tente fechar o app, abrir de novo e clicar no sino.`);
-                        }
-                      } else {
-                        alert("❌ Bloqueado: O celular não permitiu notificações.");
-                      }
-                    } catch (err: any) {
-                      console.error("Erro na Sincronização SOS:", err);
-                      alert("Erro: " + (err.message || "Tente novamente"));
-                    }
-                  }}
-                  className="p-2.5 rounded-xl text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
-                  title="Testar Som da Notificação"
-                >
-                  <BellIcon className="h-5 w-5 animate-pulse" />
-                </button>
 
                 {/* LOGOUT */}
                 <button

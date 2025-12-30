@@ -4,10 +4,27 @@ import { useAuth } from '../hooks/useAuth';
 import { Role, User } from '../types';
 import { TrashIcon } from './Icons';
 import { formatCPF, formatName } from '../utils/formatters';
+import ConfirmModal from './ConfirmModal';
 
 const UserManagement: React.FC = () => {
   const { users, updateUserRole, deleteUser } = useData();
   const { currentUser } = useAuth();
+  const [modalConfig, setModalConfig] = React.useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'info' | 'success';
+    alertOnly: boolean;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+    alertOnly: false
+  });
+
+  const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
   if (currentUser?.role !== Role.ADMIN && currentUser?.role !== Role.SINDICO && currentUser?.role !== Role.SUBSINDICO) {
     // Note: SINDICO/SUBSINDICO shouldn't see this page per requirements, but if they somehow do, we block.
@@ -26,25 +43,31 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDeleteUser = async (user: User) => {
-    try {
-      if (user.role === Role.ADMIN) {
-        alert("Não é possível excluir o usuário administrador.");
-        return;
-      }
-
-      if (!window.confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
-        return;
-      }
-
-      // 🔥 Correção: garantir await + tratamento correto de erro
-      await deleteUser(user.id);
-
-      // Feedback via Toast handled by DataContext
-    } catch (error) {
-      console.error("Erro ao excluir usuário:", error);
-      // Error Toast handled by DataContext (if implemented there or add one here if generic)
-      // DataContext deleteUser has error toast, so we just log.
+    if (user.role === Role.ADMIN) {
+      setModalConfig({
+        isOpen: true,
+        title: "Ação Negada",
+        message: "Não é possível excluir o usuário administrador.",
+        type: 'danger',
+        alertOnly: true
+      });
+      return;
     }
+
+    setModalConfig({
+      isOpen: true,
+      title: "Excluir Usuário?",
+      message: `Tem certeza que deseja excluir o usuário ${user.name}? Esta ação não pode ser desfeita.`,
+      type: 'danger',
+      alertOnly: false,
+      onConfirm: async () => {
+        try {
+          await deleteUser(user.id);
+        } catch (error) {
+          console.error("Erro ao excluir usuário:", error);
+        }
+      }
+    });
   };
 
   const handleExportPDF = () => {
@@ -156,6 +179,16 @@ const UserManagement: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        alertOnly={modalConfig.alertOnly}
+        onConfirm={modalConfig.onConfirm}
+      />
     </div>
   );
 };

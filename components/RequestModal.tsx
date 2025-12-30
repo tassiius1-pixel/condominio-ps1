@@ -15,6 +15,7 @@ import { uploadPhoto } from '../services/storage';
 import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
 import { getStatusStyle } from '../utils/statusUtils';
+import ConfirmModal from './ConfirmModal';
 
 interface RequestModalProps {
   request?: Request;
@@ -50,6 +51,23 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'info' | 'success';
+    alertOnly: boolean;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+    alertOnly: false
+  });
+
+  const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
   if (!currentUser) return null;
 
@@ -164,9 +182,18 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   };
 
   const handleDelete = () => {
-    if (request && confirm('Excluir sugestão?')) {
-      deleteRequest(request.id);
-      onClose();
+    if (request) {
+      setModalConfig({
+        isOpen: true,
+        title: "Excluir Sugestão?",
+        message: "Você tem certeza que deseja excluir esta sugestão? Esta ação não pode ser desfeita.",
+        type: 'danger',
+        alertOnly: false,
+        onConfirm: () => {
+          deleteRequest(request.id);
+          onClose();
+        }
+      });
     }
   };
 
@@ -199,8 +226,17 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   };
 
   const handleDeleteComment = (commentId: string) => {
-    if (!request || !confirm('Excluir comentário?')) return;
-    deleteComment(request.id, commentId);
+    if (!request) return;
+    setModalConfig({
+      isOpen: true,
+      title: "Excluir Comentário?",
+      message: "Deseja realmente remover seu comentário?",
+      type: 'danger',
+      alertOnly: false,
+      onConfirm: () => {
+        deleteComment(request.id, commentId);
+      }
+    });
   };
 
   const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -602,6 +638,16 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           onNext={() => setCurrentImageIndex(prev => prev < photos.length - 1 ? prev + 1 : 0)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        alertOnly={modalConfig.alertOnly}
+        onConfirm={modalConfig.onConfirm}
+      />
     </>
   );
 };

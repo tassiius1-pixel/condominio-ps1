@@ -17,6 +17,7 @@ import {
 } from './Icons';
 import Skeleton from './Skeleton';
 import { uploadFile } from '../services/storage';
+import ConfirmModal from './ConfirmModal';
 
 interface DocumentsProps {
     setView: (view: View) => void;
@@ -42,6 +43,23 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewDoc, setPreviewDoc] = useState<DocumentType | null>(null);
+
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'info' | 'success';
+        alertOnly: boolean;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        alertOnly: false
+    });
+
+    const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
     // New Document State
     const [newDoc, setNewDoc] = useState({
@@ -249,7 +267,16 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={doc.isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10h-8V2l-1 1v7H4v1l1 1h6v10l1 1 1-1V12h8V10z"></path></svg>
                                                 </button>
                                                 <button
-                                                    onClick={() => deleteDocument(doc.id)}
+                                                    onClick={() => {
+                                                        setModalConfig({
+                                                            isOpen: true,
+                                                            title: "Excluir Documento?",
+                                                            message: `Você tem certeza que deseja excluir o documento "${doc.title}"?`,
+                                                            type: 'danger',
+                                                            alertOnly: false,
+                                                            onConfirm: () => deleteDocument(doc.id)
+                                                        });
+                                                    }}
                                                     className="text-gray-300 hover:text-red-500 transition-colors p-1"
                                                 >
                                                     <TrashIcon className="w-4 h-4" />
@@ -476,6 +503,16 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                alertOnly={modalConfig.alertOnly}
+                onConfirm={modalConfig.onConfirm}
+            />
         </div>
     );
 };

@@ -5,6 +5,7 @@ import { Role, Occurrence } from '../types';
 import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon, BookIcon } from './Icons';
 import { uploadPhoto } from '../services/storage';
 import { compressImage } from '../utils/fileUtils';
+import ConfirmModal from './ConfirmModal';
 
 interface OccurrencesProps {
     setView?: (view: any) => void;
@@ -32,6 +33,23 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'info' | 'success';
+        alertOnly: boolean;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        alertOnly: false
+    });
+
+    const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -81,9 +99,16 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm("Tem certeza que deseja excluir esta ocorrência?")) {
-            await deleteOccurrence(id);
-        }
+        setModalConfig({
+            isOpen: true,
+            title: "Excluir Ocorrência?",
+            message: "Esta ação é irreversível e removerá todos os dados desta ocorrência.",
+            type: 'danger',
+            alertOnly: false,
+            onConfirm: () => {
+                deleteOccurrence(id);
+            }
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -512,10 +537,19 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                         src={selectedImage}
                         alt="Ampliação"
                         className="max-w-full max-h-full object-contain"
-                        onClick={(e) => e.stopPropagation()}
                     />
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                alertOnly={modalConfig.alertOnly}
+                onConfirm={modalConfig.onConfirm}
+            />
         </div>
     );
 };

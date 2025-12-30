@@ -16,6 +16,7 @@ import {
     FileIcon,
     TrashIcon
 } from './Icons';
+import ConfirmModal from './ConfirmModal';
 
 // Chart component using a canvas
 const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title: string; palette?: string[] }> = ({ type, data, title, palette }) => {
@@ -102,6 +103,23 @@ const Reports: React.FC = () => {
     const [activeTab, setActiveTab] = useState<ReportTab>('sugestoes');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'info' | 'success';
+        alertOnly: boolean;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        alertOnly: false
+    });
+
+    const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
 
     // --- FILTERS ---
@@ -317,9 +335,16 @@ const Reports: React.FC = () => {
                             {currentUser?.role === Role.ADMIN && (
                                 <button
                                     onClick={() => {
-                                        if (window.confirm('Tem certeza que deseja limpar TODOS os dados de Sugestões e Reservas? Esta ação não pode ser desfeita.')) {
-                                            clearLegacyData();
-                                        }
+                                        setModalConfig({
+                                            isOpen: true,
+                                            title: "Limpar Banco de Dados?",
+                                            message: "Tem certeza que deseja limpar TODOS os dados de Sugestões e Reservas? Esta ação é irreversível.",
+                                            type: 'danger',
+                                            alertOnly: false,
+                                            onConfirm: () => {
+                                                clearLegacyData();
+                                            }
+                                        });
                                     }}
                                     className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-gray-400 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95 flex items-center justify-center"
                                     title="Limpar Dados Legados"
@@ -681,7 +706,16 @@ const Reports: React.FC = () => {
 
 
 
-        </div >
+            <ConfirmModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                alertOnly={modalConfig.alertOnly}
+                onConfirm={modalConfig.onConfirm}
+            />
+        </div>
     );
 };
 

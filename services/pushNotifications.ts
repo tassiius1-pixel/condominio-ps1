@@ -91,7 +91,7 @@ export const requestPushPermission = async (
 
     } catch (error: any) {
         console.error("❌ ERRO FINAL NO TOKEN:", error);
-        alert(`FALHA TÉCNICA: ${error.message || 'Erro Desconhecido'}`);
+        // Error is logged, caller can handle UI if needed
         return { status: 'error' };
     }
 };

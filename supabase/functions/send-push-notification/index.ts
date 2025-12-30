@@ -83,16 +83,15 @@ serve(async (req) => {
         const accessToken = await getAccessToken(serviceAccount);
 
         const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
-        const firestoreRes = await fetch(firestoreUrl, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
-
-        const firestoreData = await firestoreRes.json();
-        if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
-
         let tokens: string[] = [];
 
         if (userId === "all") {
+            const firestoreRes = await fetch(`${firestoreUrl}?pageSize=1000`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const firestoreData = await firestoreRes.json();
+            if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
+
             tokens = firestoreData.documents
                 ?.map((doc: any) => doc.fields?.fcmToken?.stringValue)
                 .filter((t: string | undefined) => !!t) || [];
