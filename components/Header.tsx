@@ -316,32 +316,31 @@ const Header: React.FC<HeaderProps> = ({
                     try {
                       console.log("🚀 [SOS] Iniciando Sincronização Profunda...");
 
-                      // 1. Limpeza de Service Workers antigos
+                      // 1. Limpeza e Registro
+                      let registration: ServiceWorkerRegistration | undefined;
                       if ('serviceWorker' in navigator) {
-                        console.log("🧹 Limpando SWs...");
-                        const registrations = await navigator.serviceWorker.getRegistrations();
-                        for (let reg of registrations) {
-                          await reg.unregister();
+                        console.log("🧹 Resetando SW...");
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (let r of regs) await r.unregister();
+
+                        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+                        console.log("✅ Novo SW registrado. Status:", registration.active ? 'active' : 'pending');
+
+                        // Espera ficar ativo se necessário
+                        if (!registration.active) {
+                          await new Promise(r => setTimeout(r, 1500)); // Pequena pausa para o browser
                         }
-                        // Registra o novo SW e aguarda ele estar "ready"
-                        const newReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-                        console.log("✅ Novo SW Registrado:", newReg.scope);
-
-                        // Aguarda um pouco para estabilidade (Safari/Mobile fix)
-                        await new Promise(r => setTimeout(r, 1000));
                       }
 
-                      // 2. Desbloqueia AudioContext
-                      if ((window as any).triggerPushBeep) {
-                        (window as any).triggerPushBeep();
-                      }
+                      // 2. Desbloqueia Audio
+                      if ((window as any).triggerPushBeep) (window as any).triggerPushBeep();
 
-                      // 3. Re-requisita Permissão e Token
+                      // 3. Permissão e Token
                       if ("Notification" in window) {
                         const permission = await Notification.requestPermission();
                         if (permission === 'granted') {
                           const { requestPushPermission } = await import('../services/pushNotifications');
-                          const result = await requestPushPermission(currentUser.id);
+                          const result = await requestPushPermission(currentUser.id, registration);
 
                           if (result.status === 'granted') {
                             alert("✅ SISTEMA SINCRONIZADO!\n\nAgora seu celular autorizou este app a apitar e mostrar banners.\n\nTESTE AGORA: Saia do app (volte para a tela inicial do celular) e crie uma sugestão pelo PC.");

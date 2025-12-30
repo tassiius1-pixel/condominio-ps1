@@ -10,7 +10,10 @@ export type PushPermissionResult =
     | { status: 'unsupported' }
     | { status: 'error' };
 
-export const requestPushPermission = async (userId: string): Promise<PushPermissionResult> => {
+export const requestPushPermission = async (
+    userId: string,
+    customRegistration?: ServiceWorkerRegistration
+): Promise<PushPermissionResult> => {
     if (!("Notification" in window)) {
         console.warn("❌ Notificações não suportadas neste navegador.");
         return { status: 'unsupported' };
@@ -37,31 +40,30 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
         }
 
         // --- MELHORIA: Aguarda o Service Worker explicitamente ---
-        console.log("⏳ Aguardando Service Worker ready...");
-        let registration;
-        try {
-            registration = await navigator.serviceWorker.ready;
-            console.log("✅ Service Worker pronto:", registration.scope);
+        let registration = customRegistration;
 
-            // Força o SW a estar "ativo" antes de pegar o token
-            if (registration.installing || registration.waiting) {
-                console.log("⏳ SW em instalação/espera, aguardando ativação...");
-                await new Promise((resolve) => {
-                    const worker = registration.installing || registration.waiting;
-                    if (worker) {
-                        worker.addEventListener('statechange', (e: any) => {
-                            if (e.target.state === 'activated') resolve(true);
-                        });
-                    } else resolve(true);
+        if (!registration) {
+            console.log("⏳ Aguardando Service Worker ready (default)...");
+            registration = await navigator.serviceWorker.ready;
+        }
+
+        console.log("✅ Usando Service Worker:", registration.scope);
+
+        // Garante que o worker está 'activated'
+        const worker = registration.active || registration.installing || registration.waiting;
+        if (worker && worker.state !== 'activated') {
+            console.log("⏳ Worker em estado:", worker.state, "- Aguardando ativação...");
+            await new Promise((resolve) => {
+                worker.addEventListener('statechange', (e: any) => {
+                    if (e.target.state === 'activated') resolve(true);
                 });
-            }
-        } catch (swErr) {
-            console.error("❌ Erro ao aguardar Service Worker:", swErr);
-            return { status: 'error' };
+                // Timeout de segurança
+                setTimeout(resolve, 3000);
+            });
         }
 
         if (!registration.pushManager) {
-            console.error("❌ Erro: pushManager não disponível no Service Worker.");
+            console.error("❌ Erro: pushManager não disponível.");
             return { status: 'unsupported' };
         }
 
