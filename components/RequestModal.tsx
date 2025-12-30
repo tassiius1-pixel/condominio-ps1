@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
-import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon } from './Icons';
+import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
 import { getStatusStyle } from '../utils/statusUtils';
 import ConfirmModal from './ConfirmModal';
@@ -304,21 +304,21 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           </div>
 
           {/* Header Barra Superior */}
-          <div className="flex justify-between items-center p-4 sm:p-6 bg-white border-b border-gray-100 z-10 shrink-0 pt-[env(safe-area-inset-top,1.25rem)]">
+          <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 bg-indigo-600 border-b border-indigo-700 z-10 shrink-0 pt-[env(safe-area-inset-top,1.25rem)]">
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-2xl ${request?.type === RequestType.SUGESTOES ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
-                {request ? (request.type === RequestType.SUGESTOES ? '💡' : '🔧') : '🆕'}
+              <div className={`p-3 rounded-2xl bg-white/10 text-white shadow-inner`}>
+                {request ? (request.type === RequestType.SUGESTOES ? <LightbulbIcon className="w-6 h-6" /> : <InfoIcon className="w-6 h-6" />) : <PlusIcon className="w-6 h-6" />}
               </div>
               <div className="min-w-0">
-                <h2 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight leading-none uppercase truncate">
+                <h2 className="text-sm sm:text-base font-black text-white tracking-tight leading-none uppercase truncate">
                   {request ? 'Detalhes' : 'Nova Sugestão'}
                 </h2>
                 {request && (
                   <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
-                    <span className={`text-[8px] sm:text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} whitespace-nowrap`}>
+                    <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 whitespace-nowrap`}>
                       {request.status}
                     </span>
-                    <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
+                    <span className="text-[10px] uppercase font-black text-indigo-200 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
                       • {formattedDate}
                     </span>
                   </div>
@@ -328,16 +328,16 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {request && (isAuthor || canManage) && !isEditing && (
-                <button onClick={() => setIsEditing(true)} className="p-2 sm:p-2.5 hover:bg-indigo-50 text-indigo-600 rounded-xl transition-colors" title="Editar">
+                <button onClick={() => setIsEditing(true)} className="p-2 sm:p-2.5 hover:bg-white/20 text-white rounded-xl transition-colors" title="Editar">
                   <EditIcon className="w-5 h-5" />
                 </button>
               )}
               {request && (isAuthor || canManage) && (
-                <button onClick={handleDelete} className="p-2 sm:p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors" title="Excluir">
+                <button onClick={handleDelete} className="p-2 sm:p-2.5 hover:bg-red-500/80 text-white/90 rounded-xl transition-colors" title="Excluir">
                   <TrashIcon className="w-5 h-5" />
                 </button>
               )}
-              <button onClick={onClose} className="p-2 sm:p-2.5 hover:bg-gray-100 text-gray-400 rounded-xl transition-colors">
+              <button onClick={onClose} className="p-2 sm:p-2.5 hover:bg-white/20 text-white rounded-xl transition-colors">
                 <XIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
@@ -375,7 +375,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                   </div>
                 ) : (
                   <div className="space-y-4 animate-fade-in">
-                    <h1 className="text-xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">
+                    <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight leading-tight break-words">
                       {request?.title}
                     </h1>
 
@@ -390,19 +390,19 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                       </div>
                     </div>
 
-                    <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-normal whitespace-pre-wrap">
+                    <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-normal whitespace-pre-wrap break-words">
                       {request?.description}
                     </p>
 
                     {/* Resposta da Gestão (Box Estilizado) */}
                     {request?.adminResponse && (
-                      <div className={`mt-4 ${style.bg}/50 border ${style.border}/50 rounded-[2rem] p-6 relative transition-colors overflow-hidden animate-slide-fade-in`}>
-                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className={`text-xs font-black ${style.text} uppercase tracking-[0.2em]`}>Resposta da Gestão</span>
-                          <span className="text-xl">{style.icon}</span>
+                      <div className={`mt-3 ${style.bg}/40 border ${style.border}/40 rounded-2xl p-4 relative transition-colors overflow-hidden animate-slide-fade-in`}>
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-[10px] font-black ${style.text} uppercase tracking-wider`}>Resposta da Gestão</span>
+                          <span className="text-lg">{style.icon}</span>
                         </div>
-                        <p className={`text-sm ${style.text} leading-relaxed font-bold pl-1`}>
+                        <p className={`text-xs ${style.text} leading-relaxed font-bold pl-1 break-words`}>
                           {request.adminResponse}
                         </p>
                       </div>
@@ -412,12 +412,12 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                     <div className="flex items-center gap-4 pt-2">
                       <button
                         onClick={handleLike}
-                        className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl transition-all shadow-sm hover:shadow-md
-                        ${isLiked ? 'bg-red-50 text-red-600 ring-2 ring-red-100' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md
+                        ${isLiked ? 'bg-red-50 text-red-600 ring-1 ring-red-100' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'}
                       `}
                       >
-                        <span className={`text-xl ${isLiked ? 'animate-bounce' : ''}`}>❤️</span>
-                        <span className="text-sm font-black uppercase tracking-tight">{likesCount} Apoios</span>
+                        <span className={`text-lg ${isLiked ? 'animate-bounce' : ''}`}>❤️</span>
+                        <span className="text-xs font-black uppercase tracking-tight">{likesCount} Apoios</span>
                       </button>
                     </div>
                   </div>
@@ -548,38 +548,57 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                               );
                             }
 
+                            // Instagram Style Layout
                             return (
-                              <div key={comment.id} className={`flex gap-3 max-w-[85%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'} animate-slide-fade-in`}>
+                              <div key={comment.id} className={`flex gap-3 w-full p-3 rounded-2xl animate-slide-fade-in
+                              ${idx % 2 === 0 ? 'bg-indigo-50/50' : 'bg-white border border-gray-100'}`}>
+
                                 {/* Avatar */}
                                 <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase shadow-sm mt-1
-                                ${isMe ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-100'}`}>
+                                ${isMe ? 'bg-indigo-600 text-white' : idx % 2 === 0 ? 'bg-rose-500 text-white' : 'bg-teal-500 text-white'}`}>
                                   {commAuthor?.name[0] || comment.authorName[0]}
                                 </div>
 
-                                {/* Bubble */}
-                                <div className={`space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
-                                  {!isMe && (
-                                    <p className="px-1 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
-                                      {comment.authorName.split(' ')[0]} • Unidade {comment.houseNumber}
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-col">
+                                    <div className="flex items-baseline gap-2 flex-wrap">
+                                      <span className={`text-xs font-bold ${isMe ? 'text-indigo-900' : 'text-gray-900'}`}>
+                                        {comment.authorName}
+                                        {isMe && <span className="ml-1 text-[9px] text-indigo-500 font-normal">(Você)</span>}
+                                      </span>
+                                      <span className="text-[10px] text-gray-400 font-medium">
+                                        {new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-800 leading-relaxed font-medium mt-0.5 break-words">
+                                      {comment.text}
                                     </p>
-                                  )}
-                                  <div className={`relative px-4 py-3 rounded-2xl shadow-sm group
-                                  ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'}`}>
-                                    <p className="text-sm font-medium leading-relaxed">{comment.text}</p>
 
-                                    {/* Delete Action Overlay */}
-                                    {(isMe || canManage) && (
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-4 mt-2">
                                       <button
-                                        onClick={() => handleDeleteComment(comment.id)}
-                                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                        onClick={() => setNewComment(`@${comment.authorName.split(' ')[0]} `)}
+                                        className="text-[11px] font-bold text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
                                       >
-                                        <XIcon className="w-3 h-3" />
+                                        Responder
                                       </button>
-                                    )}
+
+                                      {(isMe || canManage) && (
+                                        <button
+                                          onClick={() => handleDeleteComment(comment.id)}
+                                          className="text-[11px] font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                                        >
+                                          Excluir
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
-                                  <p className={`px-1 text-[9px] font-bold text-gray-400 tracking-tighter mt-1 ${isMe ? 'text-right' : ''}`}>
-                                    {new Date(comment.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                                  </p>
+                                </div>
+
+                                {/* Like Icon (Visual per user request logic) */}
+                                <div className="shrink-0 pt-2">
+                                  <HeartIcon className="w-4 h-4 text-gray-300 hover:text-red-500 cursor-pointer transition-colors" />
                                 </div>
                               </div>
                             );
