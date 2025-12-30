@@ -625,7 +625,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                                           )}
                                           <button
                                             onClick={() => handleDeleteComment(comment.id)}
-                                            className="text-[11px] font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                                            className="text-[11px] font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer"
                                           >
                                             Excluir
                                           </button>

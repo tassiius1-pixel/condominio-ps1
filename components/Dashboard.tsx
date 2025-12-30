@@ -61,7 +61,6 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
             <CheckSquareIcon className="w-6 h-6 text-indigo-600" />
             Sugestões
           </h2>
-          <p className="text-gray-500 text-sm">Compartilhe suas ideias para melhorar nosso condomínio.</p>
         </div>
 
         <button

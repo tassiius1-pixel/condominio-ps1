@@ -77,24 +77,41 @@ const App: React.FC = () => {
 
       // 🔊 PERSISTENT AUDIO CONTEXT (Safari Fix)
       const setupFCM = async () => {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        let audioCtx: AudioContext | null = null;
+        try {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+          }
+        } catch (e) {
+          console.warn("AudioContext not supported or blocked:", e);
+        }
 
         const triggerBeep = async () => {
-          console.log("🔊 [App] Tentando disparar beep. Estado atual:", audioCtx.state);
-          if (audioCtx.state === 'suspended') await audioCtx.resume();
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0, audioCtx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.3);
-          if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+          if (!audioCtx) return;
+          try {
+            console.log("🔊 [App] Tentando disparar beep. Estado atual:", audioCtx.state);
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          } catch (err) {
+            console.error("Audio beep failed:", err);
+          }
+          if ("vibrate" in navigator) {
+            try { navigator.vibrate([200, 100, 200]); } catch (e) { }
+          }
         };
+
+        // ... (rest of logic)
 
         // Expor para o Header.tsx chamar diretamente (Safari/PWA bypass)
         (window as any).triggerPushBeep = triggerBeep;
@@ -104,7 +121,11 @@ const App: React.FC = () => {
         window.addEventListener('test-push-audio', handleTestAudio);
 
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
-          await requestPushPermission(currentUser.id);
+          try {
+            await requestPushPermission(currentUser.id);
+          } catch (error) {
+            console.error("Push permission request failed:", error);
+          }
         }
 
         const unsub = await setupForegroundNotifications(async (payload) => {
@@ -122,7 +143,7 @@ const App: React.FC = () => {
       };
 
       let cleanup: (() => void) | undefined;
-      setupFCM().then(c => cleanup = c);
+      setupFCM().then(c => cleanup = c).catch(err => console.error("SetupFCM failed:", err));
 
       return () => {
         if (cleanup) cleanup();
@@ -195,8 +216,7 @@ const App: React.FC = () => {
         )}
 
         <main
-          className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8" : ""}`}
-          style={currentUser ? { paddingTop: '120px' } : {}}
+          className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-32 sm:pb-24 lg:pb-8 pt-24 sm:pt-[120px]" : ""}`}
         >
           {renderContent()}
         </main>
