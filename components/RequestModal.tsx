@@ -222,11 +222,15 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fade-in text-gray-900">
-        <div className="bg-slate-50 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col relative animate-scale-in border border-white/20">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"
+          onClick={onClose}
+        />
+        <div className="bg-white sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl sm:max-h-[90vh] h-[100dvh] sm:h-auto overflow-hidden flex flex-col transform transition-all animate-slide-up sm:animate-scale-in relative z-10">
 
           {/* Header Barra Superior */}
-          <div className="flex justify-between items-center p-4 sm:p-6 bg-white border-b border-gray-100 z-10 shrink-0">
+          <div className="flex justify-between items-center p-4 sm:p-6 bg-white border-b border-gray-100 z-10 shrink-0 pt-[env(safe-area-inset-top,1.25rem)]">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-2xl ${request?.type === RequestType.SUGESTOES ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}`}>
                 {request ? (request.type === RequestType.SUGESTOES ? '💡' : '🔧') : '🆕'}
@@ -266,7 +270,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           </div>
 
           {/* Modal Body - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-8 scrollbar-thin">
+          <div className="p-6 sm:p-10 flex-1 overflow-y-auto bg-white scrolling-touch pb-[env(safe-area-inset-bottom,2.5rem)]">
 
             {/* 1. SEÇÃO DE CONTEÚDO (Título e Descrição) */}
             <section className="space-y-6">
