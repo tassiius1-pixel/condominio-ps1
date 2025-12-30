@@ -313,50 +313,50 @@ const Header: React.FC<HeaderProps> = ({
                 {/* TEST PUSH AUDIO BUTTON */}
                 <button
                   onClick={async () => {
+                    // 1. GESTO DO USUÁRIO IMEDIATO
+                    let permission = 'default';
+                    if ("Notification" in window) {
+                      permission = await Notification.requestPermission();
+                    }
+
                     try {
-                      console.log("🚀 [SOS] Iniciando Sincronização Profunda...");
-
-                      // 1. Limpeza e Registro
-                      let registration: ServiceWorkerRegistration | undefined;
-                      if ('serviceWorker' in navigator) {
-                        console.log("🧹 Resetando SW profissionalmente...");
-                        const regs = await navigator.serviceWorker.getRegistrations();
-                        for (let r of regs) await r.unregister();
-
-                        // Registra e aguarda
-                        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
-
-                        // Loop de espera até 5 segundos
-                        let waitCount = 0;
-                        while (!registration.active && waitCount < 10) {
-                          await new Promise(r => setTimeout(r, 500));
-                          waitCount++;
-                        }
-                        console.log("✅ SW Status Final:", registration.active ? 'Ativo' : 'Pendente');
-                      }
+                      console.log("🚀 [SOS] Sincronizando Sistema v1.1...");
 
                       // 2. Desbloqueia Audio
                       if ((window as any).triggerPushBeep) (window as any).triggerPushBeep();
 
-                      // 3. Permissão e Token
-                      if ("Notification" in window) {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                          const { requestPushPermission } = await import('../services/pushNotifications');
-                          const result = await requestPushPermission(currentUser.id, registration);
+                      // 3. Sincroniza Service Worker (Limpeza Total)
+                      let registration: ServiceWorkerRegistration | undefined;
+                      if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (let r of regs) await r.unregister();
 
-                          if (result.status === 'granted') {
-                            alert("✅ SISTEMA SINCRONIZADO!\n\nAgora seu celular autorizou este app a apitar e mostrar banners.\n\nTESTE AGORA: Saia do app (volte para a tela inicial do celular) e crie uma sugestão pelo PC.");
-                          } else {
-                            alert("⚠️ Notificações liberadas, mas o token falhou. Tente clicar de novo.");
-                          }
-                        } else {
-                          alert("❌ Erro: O sistema do celular bloqueou as notificações. Ative manualmente nas configurações do app.");
+                        registration = await navigator.serviceWorker.register('/sw-sos-v1.js', { scope: '/' });
+
+                        // Espera ficar ativo
+                        let waitCount = 0;
+                        while (!registration.active && waitCount < 20) {
+                          await new Promise(r => setTimeout(r, 500));
+                          waitCount++;
                         }
                       }
-                    } catch (err) {
+
+                      // 4. Token Final
+                      if (permission === 'granted') {
+                        const { requestPushPermission } = await import('../services/pushNotifications');
+                        const result = await requestPushPermission(currentUser.id, registration);
+
+                        if (result.status === 'granted') {
+                          alert("✅ TUDO PRONTO!\n\nSeu celular foi sincronizado com sucesso.\n\nTESTE FINAL: Saia do app e mande uma msg pelo PC.");
+                        } else {
+                          alert(`⚠️ Falha no Token: ${result.status}. Tente fechar o app, abrir de novo e clicar no sino.`);
+                        }
+                      } else {
+                        alert("❌ Bloqueado: O celular não permitiu notificações.");
+                      }
+                    } catch (err: any) {
                       console.error("Erro na Sincronização SOS:", err);
-                      alert("Erro ao sincronizar. Tente fechar e abrir o app de novo.");
+                      alert("Erro: " + (err.message || "Tente novamente"));
                     }
                   }}
                   className="p-2.5 rounded-xl text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
