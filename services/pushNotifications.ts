@@ -74,6 +74,39 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
 };
 
 /**
+ * Envia uma notificação push via Supabase Edge Function
+ */
+export const sendPushNotification = async (
+    targetUserId: string | "all",
+    title: string,
+    body: string,
+    data: any = {}
+) => {
+    try {
+        const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/send-push-notification`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY!,
+                },
+                body: JSON.stringify({
+                    userId: targetUserId,
+                    title,
+                    body,
+                    data: { ...data, url: window.location.origin },
+                }),
+            }
+        );
+        return await response.json();
+    } catch (error) {
+        console.error("❌ Erro ao disparar Push Notification:", error);
+        return { error };
+    }
+};
+
+/**
  * Registra o listener para mensagens em foreground (app aberto)
  */
 export const setupForegroundNotifications = async (onMessageReceived: (payload: any) => void) => {

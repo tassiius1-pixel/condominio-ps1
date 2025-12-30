@@ -14,6 +14,7 @@ import {
   writeBatch
 } from "firebase/firestore";
 import { db } from "../services/firebase";
+import { sendPushNotification } from "../services/pushNotifications";
 import {
   User,
   Request,
@@ -438,9 +439,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (request) {
         addNotification({
           message: `Status da sugestão "${request.title}" alterado para ${newStatus}`,
-          userId: "all",
+          userId: request.authorId, // Notificar o autor especificamente
           requestId: request.id,
         });
+
+        // 🔥 Envia Push Notification externa
+        sendPushNotification(
+          request.authorId,
+          "Atualização na sua Sugestão",
+          `O status de "${request.title}" mudou para ${newStatus}.`
+        );
       }
       addToast("Status atualizado.", "info");
     });
@@ -603,6 +611,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     addToast('Votação criada com sucesso!', 'success');
+
+    // 🔥 Notificar todos sobre nova votação
+    sendPushNotification(
+      "all",
+      "Nova Votação Aberta",
+      `Participe: ${voting.title}`
+    );
   };
 
   const deleteVoting = async (id: string) => {
