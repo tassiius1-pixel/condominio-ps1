@@ -65,60 +65,63 @@ serve(async (req) => {
 
     try {
         const textBody = await req.text();
+        console.log(`[LOG] Corpo recebido: ${textBody}`);
+
         let bodyData;
         try {
             bodyData = JSON.parse(textBody);
         } catch (e) {
-            throw new Error(`Corpo da requisição inválido: ${e.message}`);
+            throw new Error(`JSON Inválido no corpo: ${e.message}`);
         }
 
         const { userId, title, body } = bodyData;
         const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
-        if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada nas Secrets.");
+        if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não definida.");
 
         const serviceAccount = JSON.parse(saEnv.trim().replace(/^\uFEFF/, ''));
         const accessToken = await getAccessToken(serviceAccount);
 
         const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
+        console.log(`[LOG] Buscando usuários em: ${firestoreUrl}`);
+
         const firestoreRes = await fetch(firestoreUrl, {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
 
         const firestoreData = await firestoreRes.json();
-        if (firestoreData.error) throw new Error(`Erro Firestore: ${firestoreData.error.message}`);
+        if (firestoreData.error) throw new Error(`Firestore Error: ${firestoreData.error.message}`);
 
         let tokens: string[] = [];
 
         if (userId === "all") {
-            // Busca todos os tokens salvos na tabela de usuários
             const rawTokens = (firestoreData.documents || [])
                 .map((doc: any) => doc.fields?.fcmToken?.stringValue)
-                .filter((t: any) => typeof t === 'string' && t.length > 0);
+                .filter((t: any) => t && typeof t === 'string' && t.length > 5);
 
-            // Remove duplicados de forma garantida
-            tokens = Array.from(new Set(rawTokens)) as string[];
-            console.log(`[FCM] Alvo: todos. Encontrados ${tokens.length} tokens únicos.`);
+            tokens = [...new Set(rawTokens)];
+            console.log(`[LOG] Modo ALL: Encontrados ${tokens.length} tokens únicos.`);
         } else {
-            // Busca token de um usuário específico
+            // Documento individual
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             const userData = await userDocRes.json();
             const t = userData.fields?.fcmToken?.stringValue;
-            if (t) tokens.push(t);
-            console.log(`[FCM] Alvo: ${userId}. Token: ${t ? 'Encontrado' : 'Não encontrado'}`);
+            if (t && t.length > 5) tokens.push(t);
+            console.log(`[LOG] Modo INDIVIDUAL (${userId}): Token ${t ? 'encontrado' : 'não encontrado'}.`);
         }
 
         if (tokens.length === 0) {
             return new Response(JSON.stringify({
                 success: true,
-                message: "Nenhum dispositivo encontrado para receber a notificação."
+                message: "Aviso: Nenhum token de destino encontrado no Firestore."
             }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
 
-        // Tenta enviar para cada dispositivo, usando Promise.allSettled para não travar se um falhar
+        console.log(`[LOG] Iniciando envio para ${tokens.length} dispositivos...`);
+
         const deliveryResults = await Promise.allSettled(tokens.map(async (token) => {
-            const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
+            const res = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${accessToken}`,
@@ -131,8 +134,7 @@ serve(async (req) => {
                         webpush: {
                             fcm_options: { link: "https://condominio-ps1.vercel.app/" },
                             notification: {
-                                icon: "https://condominio-ps1.vercel.app/logo.png",
-                                badge: "https://condominio-ps1.vercel.app/logo.png"
+                                icon: "https://condominio-ps1.vercel.app/logo.png"
                             }
                         },
                         apns: {
@@ -148,8 +150,10 @@ serve(async (req) => {
                     }
                 })
             });
-            return fcmRes.json();
+            return res.json();
         }));
+
+        console.log(`[LOG] Envio concluído. Verifique o campo results para detalhes de cada token.`);
 
         return new Response(JSON.stringify({
             success: true,
@@ -160,10 +164,10 @@ serve(async (req) => {
         })
 
     } catch (error) {
-        console.error(`[FCM ERROR] ${error.message}`);
+        console.error(`[CRITICAL ERROR] ${error.message}`);
         return new Response(JSON.stringify({
             error: error.message,
-            hint: "Verifique os logs da função no painel do Supabase para mais detalhes."
+            hint: "Consulte os logs da Edge Function no Supabase para ver o erro detalhado."
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,

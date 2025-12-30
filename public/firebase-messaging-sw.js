@@ -23,14 +23,9 @@ messaging.onBackgroundMessage((payload) => {
     const notificationOptions = {
         body: payload.notification?.body || "",
         icon: "/logo.png",
-        badge: "/logo.png", // Ícone para a barra de status
-        tag: 'porto-seguro-alert' // Evita duplicados na gaveta
+        badge: "/logo.png",
+        tag: 'porto-seguro-alert'
     };
-
-    // Atualiza o Badge do App (Bolinha vermelha no ícone)
-    if ('setAppBadge' in navigator) {
-        navigator.setAppBadge(1).catch(err => console.error("Badge Error:", err));
-    }
 
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
