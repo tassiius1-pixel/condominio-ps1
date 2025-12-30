@@ -131,35 +131,33 @@ serve(async (req) => {
                             },
                             android: {
                                 priority: "high",
-                                notification: {
-                                    sound: "default",
-                                    click_action: "https://condominio-ps1.vercel.app/",
+                                data: {
+                                    title: title,
+                                    body: body,
                                     tag: "gestao-ps1"
                                 }
                             },
                             apns: {
-                                headers: { "apns-priority": "10" },
+                                headers: {
+                                    "apns-priority": "10",
+                                    "apns-push-type": "alert"
+                                },
                                 payload: {
                                     aps: {
                                         alert: { title, body },
                                         sound: "default",
                                         badge: 1,
-                                        "mutable-content": 1
+                                        "mutable-content": 1,
+                                        category: "gestao-ps1"
                                     }
                                 }
                             },
                             webpush: {
                                 headers: { "Urgency": "high" },
-                                notification: {
-                                    icon: "/logo.png",
-                                    badge: "/logo.png",
-                                    tag: "gestao-ps1",
-                                    renotify: true,
-                                    requireInteraction: true,
-                                    vibrate: [200, 100, 200]
-                                },
-                                fcm_options: {
-                                    link: "https://condominio-ps1.vercel.app/"
+                                data: {
+                                    title: title,
+                                    body: body,
+                                    tag: "gestao-ps1"
                                 }
                             }
                         }

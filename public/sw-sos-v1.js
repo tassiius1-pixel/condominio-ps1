@@ -18,15 +18,16 @@ messaging.onBackgroundMessage((payload) => {
     console.log("[FCM SOS] Background message:", payload);
     const title = payload.data?.title || payload.notification?.title || "Porto Seguro 1";
     const body = payload.data?.body || payload.notification?.body || "";
-    const tag = payload.data?.tag || "porto-seguro-push";
+    const tag = "gestao-ps1"; // Tag unificada para evitar duplicação
 
     return self.registration.showNotification(title, {
         body,
         icon: "/logo.png",
         badge: "/logo.png",
-        tag: "porto-seguro-push",
+        tag: tag,
         renotify: true,
-        vibrate: [200, 100, 200]
+        vibrate: [200, 100, 200],
+        lang: 'pt-BR' // Dica para o OS usar português
     });
 });
 

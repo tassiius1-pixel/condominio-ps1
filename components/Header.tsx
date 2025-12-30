@@ -347,19 +347,7 @@ const Header: React.FC<HeaderProps> = ({
                         const result = await requestPushPermission(currentUser.id, registration);
 
                         if (result.status === 'granted') {
-                          alert("✅ TUDO PRONTO!\n\nSeu celular foi sincronizado no banco de dados.\n\nTESTE AGORA: Vou tentar mandar um aviso de teste em 3 segundos. Feche o app rápido ou saia para a tela inicial!");
-
-                          // Teste Local de Banner (Isola o problema do celular)
-                          setTimeout(() => {
-                            if (registration && registration.showNotification) {
-                              registration.showNotification("Teste de Banner Local", {
-                                body: "Se você está vendo isso, o seu celular ESTÁ FUNCIONANDO. O problema é no envio do servidor.",
-                                icon: "/logo.png",
-                                vibrate: [200, 100, 200],
-                                tag: 'test-local'
-                              } as any);
-                            }
-                          }, 3000);
+                          alert("✅ TUDO PRONTO!\n\nSeu celular foi sincronizado com sucesso.\n\nTESTE AGORA: Saia do app e mande uma msg pelo PC.");
                         } else {
                           alert(`⚠️ Falha no Token: ${result.status}. Tente fechar o app, abrir de novo e clicar no sino.`);
                         }
