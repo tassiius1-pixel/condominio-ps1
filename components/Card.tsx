@@ -133,7 +133,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
           bg-white p-4 rounded-2xl shadow-sm border-l-4 border-y border-r border-gray-100
           ${priorityColors[request.priority] || 'border-gray-500'} 
           ${canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} 
-          hover-lift hover:shadow-xl transition-all duration-300 animate-scale-in
+          hover-lift hover:shadow-xl transition-all duration-300 animate-scale-in touch-active
           ${isSuggestion ? 'bg-indigo-50/10' : ''}
           relative group
         `}

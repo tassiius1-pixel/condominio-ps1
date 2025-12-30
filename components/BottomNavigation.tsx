@@ -47,7 +47,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
                         <button
                             key={item.id}
                             onClick={() => setView(item.id as View)}
-                            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 group ${isActive ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 group touch-active ${isActive ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'
                                 }`}
                         >
                             <div className={`
@@ -66,7 +66,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
                 {/* MENU BUTTON (More) */}
                 <button
                     onClick={onToggleMenu}
-                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 text-gray-400 hover:text-gray-600 relative"
+                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 text-gray-400 hover:text-gray-600 relative touch-active"
                 >
                     <div className="p-1.5 rounded-xl mb-1">
                         <MenuIcon className="w-6 h-6" />

@@ -39,6 +39,29 @@ const Header: React.FC<HeaderProps> = ({
   const bellRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Swipe to close menu logic
+  const touchStartMenu = useRef<number>(0);
+  const [menuTranslateX, setMenuTranslateX] = useState(0);
+
+  const handleMenuTouchStart = (e: React.TouchEvent) => {
+    touchStartMenu.current = e.touches[0].clientX;
+  };
+
+  const handleMenuTouchMove = (e: React.TouchEvent) => {
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartMenu.current;
+    if (diff < 0) {
+      setMenuTranslateX(diff);
+    }
+  };
+
+  const handleMenuTouchEnd = () => {
+    if (menuTranslateX < -100) {
+      setMobileMenuOpen(false);
+    }
+    setMenuTranslateX(0);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -309,12 +332,17 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         {/* Mobile Menu Drawer */}
-        <div className={`
-          fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
-          transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-          flex flex-col pb-[env(safe-area-inset-bottom,2rem)]
-        `}>
+        <div
+          className={`
+            fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
+            transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+            flex flex-col pb-[env(safe-area-inset-bottom,2rem)]
+          `}
+          style={{ transform: mobileMenuOpen ? `translateX(${menuTranslateX}px)` : 'translateX(-100%)' }}
+          onTouchStart={handleMenuTouchStart}
+          onTouchMove={handleMenuTouchMove}
+          onTouchEnd={handleMenuTouchEnd}
+        >
           <div className="h-full flex flex-col p-4 overflow-hidden">
             {/* Menu Header */}
             <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
@@ -349,7 +377,7 @@ const Header: React.FC<HeaderProps> = ({
                       setView(item.id as any);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn ${isActive
+                    className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active ${isActive
                       ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
                       : 'text-gray-600 hover:bg-gray-50'
                       }`}

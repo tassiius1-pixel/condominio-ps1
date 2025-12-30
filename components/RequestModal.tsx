@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Request,
   Role,
@@ -215,6 +215,32 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     setIsLightboxOpen(true);
   };
 
+  const [translateY, setTranslateY] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStart = useRef<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = e.touches[0].clientY;
+    setIsSwiping(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStart.current;
+    if (diff > 0) {
+      setTranslateY(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    if (translateY > 150) {
+      onClose();
+    } else {
+      setTranslateY(0);
+    }
+  };
+
   const author = users.find(u => u.id === request?.authorId);
   const formattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
   const fullFormattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
@@ -227,7 +253,19 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
           className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"
           onClick={onClose}
         />
-        <div className="bg-white sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl sm:max-h-[90vh] h-[100dvh] sm:h-auto overflow-hidden flex flex-col transform transition-all animate-slide-up sm:animate-scale-in relative z-10">
+        <div
+          className={`bg-white sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl sm:max-h-[90vh] h-[100dvh] sm:h-auto overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'}`}
+          style={{ transform: `translateY(${translateY}px)` }}
+        >
+          {/* Visual Drag Handle for Mobile */}
+          <div
+            className="sm:hidden w-full h-8 flex items-center justify-center shrink-0"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full" />
+          </div>
 
           {/* Header Barra Superior */}
           <div className="flex justify-between items-center p-4 sm:p-6 bg-white border-b border-gray-100 z-10 shrink-0 pt-[env(safe-area-inset-top,1.25rem)]">
