@@ -6,8 +6,34 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper para converter PEM para ArrayBuffer (DER)
+function pemToBinary(pem: string) {
+    const b64 = pem
+        .replace(/-----BEGIN PRIVATE KEY-----/, "")
+        .replace(/-----END PRIVATE KEY-----/, "")
+        .replace(/\s/g, "");
+
+    // No Deno, podemos usar atob para decodificar base64
+    const binaryString = atob(b64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
 async function getAccessToken(serviceAccount: any) {
     try {
+        const privateKeyBuffer = pemToBinary(serviceAccount.private_key);
+
+        const cryptoKey = await crypto.subtle.importKey(
+            "pkcs8",
+            privateKeyBuffer,
+            { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+            false,
+            ["sign"]
+        );
+
         const jwt = await create(
             { alg: "RS256", typ: "JWT" },
             {
@@ -17,13 +43,7 @@ async function getAccessToken(serviceAccount: any) {
                 exp: getNumericDate(3600),
                 iat: getNumericDate(0),
             },
-            await crypto.subtle.importKey(
-                "pkcs8",
-                new TextEncoder().encode(serviceAccount.private_key.replace(/\\n/g, '\n')).buffer,
-                { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-                false,
-                ["sign"]
-            )
+            cryptoKey
         );
 
         const res = await fetch("https://oauth2.googleapis.com/token", {
@@ -36,10 +56,10 @@ async function getAccessToken(serviceAccount: any) {
         });
 
         const data = await res.json();
-        if (data.error) throw new Error(`Google Auth Error: ${data.error_description || data.error}`);
+        if (data.error) throw new Error(`Google Auth: ${data.error_description || data.error}`);
         return data.access_token;
     } catch (err) {
-        throw new Error(`Auth Exception: ${err.message}`);
+        throw new Error(`Erro na Chave Privada: ${err.message}`);
     }
 }
 
@@ -47,31 +67,19 @@ serve(async (req) => {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
     try {
-        // 1. Validar corpo da requisição
         const textBody = await req.text();
         let bodyData;
         try {
             bodyData = JSON.parse(textBody);
         } catch (e) {
-            throw new Error(`Corpo da requisição inválido: ${e.message}`);
+            throw new Error(`Corpo inválido: ${e.message}`);
         }
 
         const { userId, title, body } = bodyData;
-
-        // 2. Validar Secret do Firebase
         const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
         if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada.");
 
-        let serviceAccount;
-        try {
-            // Tenta remover caracteres invisíveis que o PowerShell pode ter inserido
-            const cleanSa = saEnv.trim().replace(/^\uFEFF/, '');
-            serviceAccount = JSON.parse(cleanSa);
-        } catch (e) {
-            console.error("DEBUG SECRET:", saEnv.substring(0, 20) + "...");
-            throw new Error(`Erro na Secret FIREBASE_SERVICE_ACCOUNT (JSON inválido): ${e.message}`);
-        }
-
+        const serviceAccount = JSON.parse(saEnv.trim().replace(/^\uFEFF/, ''));
         const accessToken = await getAccessToken(serviceAccount);
 
         const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
@@ -100,7 +108,7 @@ serve(async (req) => {
         if (tokens.length === 0) {
             return new Response(JSON.stringify({
                 success: true,
-                message: "Nenhum dispositivo encontrado."
+                message: "Nenhum celular registrado para receber push."
             }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
 
@@ -129,7 +137,7 @@ serve(async (req) => {
     } catch (error) {
         return new Response(JSON.stringify({
             error: error.message,
-            hint: "Se o erro for 'JSON inválido na Secret', tente reconfigurar a FIREBASE_SERVICE_ACCOUNT no painel do Supabase."
+            hint: "Certifique-se que o JSON da Secret no Supabase está IDÊNTICO ao arquivo baixado do Firebase."
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
