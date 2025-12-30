@@ -9,7 +9,10 @@ import {
     AlertTriangleIcon,
     CheckCircleIcon,
     ClockIcon,
-    MessageSquareIcon
+    MessageSquareIcon,
+    LightbulbIcon,
+    PlusIcon,
+    UsersIcon
 } from './Icons';
 import { Request, Role, View, RequestType, Status } from '../types';
 
@@ -23,11 +26,19 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
 
     const isAdminProfile = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
-    // Filter Pending Tasks for Management (Suggestions that need final status)
-    const pendingTasks = requests.filter(req =>
+    // Filter Pending Tasks for Management (Suggestions and Occurrences that need attention)
+    const pendingRequests = requests.filter(req =>
         req.type === RequestType.SUGESTOES &&
         [Status.PENDENTE, Status.EM_ANALISE].includes(req.status)
-    ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    ).map(r => ({ ...r, taskType: 'suggestion' }));
+
+    const pendingOccurrences = occurrences.filter(occ =>
+        occ.status === 'Aberto'
+    ).map(o => ({ ...o, taskType: 'occurrence' }));
+
+    const pendingTasks = [...pendingRequests, ...pendingOccurrences].sort((a, b) => {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
 
     // Fast Summary Logic
     const activeVoting = votings.find(v => {
@@ -116,23 +127,30 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {pendingTasks.slice(0, 4).map(req => {
-                            const isOld = (new Date().getTime() - new Date(req.createdAt).getTime()) > 2 * 24 * 60 * 60 * 1000;
-                            const isResponded = !!req.adminResponse;
+                        {pendingTasks.slice(0, 4).map(task => {
+                            const isSuggestion = (task as any).taskType === 'suggestion';
+                            const isOld = (new Date().getTime() - new Date(task.createdAt).getTime()) > 2 * 24 * 60 * 60 * 1000;
+                            const isResponded = !!(task as any).adminResponse;
+                            const title = isSuggestion ? (task as any).title : (task as any).subject;
 
                             return (
                                 <div
-                                    key={req.id}
+                                    key={task.id}
                                     className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group flex flex-col h-full"
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
-                                                <MessageSquareIcon className="h-4 w-4" />
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isSuggestion ? 'bg-indigo-50 text-indigo-400' : 'bg-red-50 text-red-400'}`}>
+                                                {isSuggestion ? <MessageSquareIcon className="h-4 w-4" /> : <AlertTriangleIcon className="h-4 w-4" />}
                                             </div>
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                                {req.authorName}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                    {task.authorName}
+                                                </span>
+                                                <span className={`text-[8px] font-black uppercase tracking-tighter ${isSuggestion ? 'text-indigo-400' : 'text-red-400'}`}>
+                                                    {isSuggestion ? 'Sugestão' : 'Ocorrência'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="flex gap-2">
                                             {isResponded && (
@@ -149,17 +167,17 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                     </div>
 
                                     <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                                        {req.title}
+                                        {title}
                                     </h3>
                                     <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-1">
-                                        {req.description}
+                                        {task.description}
                                     </p>
 
                                     <button
-                                        onClick={() => setSelectedRequest(req)}
+                                        onClick={() => isSuggestion ? setSelectedRequest(task as any) : setView('occurrences')}
                                         className="mt-auto flex items-center gap-2 text-indigo-600 text-sm font-black uppercase tracking-widest group/btn"
                                     >
-                                        {isResponded ? 'Atualizar Status' : 'Responder Agora'}
+                                        {isResponded ? 'Visualizar' : (isSuggestion ? 'Responder Agora' : 'Ver Ocorrência')}
                                         <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
                                     </button>
                                 </div>

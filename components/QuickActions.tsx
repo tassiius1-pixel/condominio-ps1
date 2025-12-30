@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Role } from '../types';
-import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, UsersIcon, BarChartIcon } from './Icons';
+import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, UsersIcon, BarChartIcon, CheckCircleIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 
 interface QuickActionsProps {
@@ -55,13 +55,23 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
                 onClick={() => handleNavigation('reservations')}
             />
 
-            <ActionCard
-                title="Ocorrência"
-                subtitle="Algo errado? Avise aqui"
-                icon={<AlertTriangleIcon className="h-6 w-6 text-white" />}
-                gradient="from-amber-500 to-orange-600"
-                onClick={() => handleNavigation('occurrences')}
-            />
+            {isAdminProfile ? (
+                <ActionCard
+                    title="Criar Votação"
+                    subtitle="Abrir nova enquete"
+                    icon={<CheckCircleIcon className="h-6 w-6 text-white" />}
+                    gradient="from-indigo-500 to-purple-600"
+                    onClick={() => handleNavigation('voting')}
+                />
+            ) : (
+                <ActionCard
+                    title="Ocorrência"
+                    subtitle="Algo errado? Avise aqui"
+                    icon={<AlertTriangleIcon className="h-6 w-6 text-white" />}
+                    gradient="from-amber-500 to-orange-600"
+                    onClick={() => handleNavigation('occurrences')}
+                />
+            )}
 
             {isAdminProfile && currentUser?.role === Role.ADMIN && (
                 <ActionCard
