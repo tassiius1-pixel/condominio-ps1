@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Status, Role } from '../types';
 
 import {
-    LoaderCircleIcon,
+    WrenchScrewdriverIcon,
     BarChartIcon,
     CalendarIcon,
     UsersIcon,
@@ -214,7 +214,7 @@ const Reports: React.FC = () => {
             headers = ["ID", "Título", "Descrição", "Autor", "Casa", "Data", "Setor", "Tipo", "Status", "Prioridade"];
             rows = filteredRequests.map(req => {
                 const author = users.find(u => u.id === req.authorId);
-                return [req.id, `"${req.title.replace(/"/g, '""')}"`, `"${req.description.replace(/"/g, '""')}"`, req.authorName, author?.houseNumber || 'N/A', new Date(req.createdAt).toLocaleString('pt-BR'), req.sector, req.type, req.status, req.priority];
+                return [req.id, `"${req.title.replace(/"/g, '""')}"`, `"${req.description.replace(/"/g, '""')}"`, req.authorName, author?.houseNumber || 'N/A', new Date(req.createdAt).toLocaleString('pt-BR'), req.sector, req.type, req.status, req.priority].map(v => String(v));
             });
             filename = 'relatorio_sugestoes.csv';
         } else if (activeTab === 'reservas') {
@@ -225,7 +225,7 @@ const Reports: React.FC = () => {
                 r.area,
                 r.userName,
                 r.houseNumber
-            ]);
+            ].map(v => String(v)));
             filename = 'relatorio_reservas.csv';
         } else {
             headers = ["ID", "Data", "Assunto", "Descrição", "Autor", "Casa", "Status"];
@@ -237,7 +237,7 @@ const Reports: React.FC = () => {
                 o.authorName,
                 o.houseNumber,
                 o.status
-            ]);
+            ].map(v => String(v)));
             filename = 'relatorio_ocorrencias.csv';
         }
 
@@ -252,15 +252,15 @@ const Reports: React.FC = () => {
     };
 
     const StatCard: React.FC<{ title: string; value: string | number, color: string; icon: React.ReactNode }> = ({ title, value, color, icon }) => (
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all">
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-5 transition-transform group-hover:scale-110 ${color.replace('border-', 'bg-')}`}></div>
-            <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl ${color.replace('border-', 'bg-')}/10 ${color.replace('border-', 'text-')}`}>
+        <div className="bg-white p-5 sm:p-6 rounded-[2rem] shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all h-full">
+            <div className={`absolute top-0 right-0 w-20 h-20 -mr-6 -mt-6 rounded-full opacity-[0.03] transition-transform group-hover:scale-110 ${color.replace('border-', 'bg-')}`}></div>
+            <div className="flex items-center gap-4 relative z-10">
+                <div className={`p-3.5 rounded-2xl shrink-0 ${color.replace('border-', 'bg-')}/10 ${color.replace('border-', 'text-')}`}>
                     {icon}
                 </div>
-                <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none mb-1.5">{title}</h3>
-                    <p className="text-2xl font-black text-gray-900 tracking-tight leading-none">{value}</p>
+                <div className="min-w-0">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none mb-2 truncate">{title}</h3>
+                    <p className="text-2xl font-black text-gray-900 tracking-tight leading-none tabular-nums">{value}</p>
                 </div>
             </div>
         </div>
@@ -270,47 +270,48 @@ const Reports: React.FC = () => {
         <div className="space-y-6 animate-fade-in pb-20 sm:pb-8">
             {/* HEADER PRÉMIUM */}
             <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-gray-100">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="p-4 bg-indigo-600 rounded-3xl text-white shadow-lg shadow-indigo-100">
-                            <BarChartIcon className="w-6 h-6" />
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                    <div className="flex items-center gap-5">
+                        <div className="p-4 bg-indigo-600 rounded-[1.5rem] text-white shadow-xl shadow-indigo-100 shrink-0">
+                            <BarChartIcon className="w-7 h-7" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight leading-none font-outfit">Relatórios</h2>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5 leading-none">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 flex items-center gap-2 leading-none">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Dashboard em tempo real
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-                        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-2xl border border-gray-100">
-                            <div className="flex items-center px-3 gap-2">
-                                <CalendarIcon className="w-4 h-4 text-gray-400" />
+                    <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
+                        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 sm:gap-2 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100">
+                            <div className="flex items-center px-4 py-2 gap-3 bg-white sm:bg-transparent rounded-xl sm:rounded-none shadow-sm sm:shadow-none border border-gray-100 sm:border-none">
+                                <CalendarIcon className="w-4 h-4 text-indigo-500 shrink-0" />
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={e => setStartDate(e.target.value)}
-                                    className="bg-transparent border-none text-xs font-bold text-gray-600 p-1 focus:ring-0 cursor-pointer"
+                                    className="bg-transparent border-none text-[11px] font-black text-gray-700 p-0 focus:ring-0 cursor-pointer w-full"
                                 />
                             </div>
-                            <span className="text-gray-300">|</span>
-                            <div className="flex items-center px-3 gap-2">
+                            <div className="hidden sm:block w-px h-4 bg-gray-200 mx-1"></div>
+                            <div className="flex items-center px-4 py-2 gap-3 bg-white sm:bg-transparent rounded-xl sm:rounded-none shadow-sm sm:shadow-none border border-gray-100 sm:border-none">
+                                <CalendarIcon className="w-4 h-4 text-indigo-500 shrink-0 sm:hidden" />
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={e => setEndDate(e.target.value)}
-                                    className="bg-transparent border-none text-xs font-bold text-gray-600 p-1 focus:ring-0 cursor-pointer"
+                                    className="bg-transparent border-none text-[11px] font-black text-gray-700 p-0 focus:ring-0 cursor-pointer w-full"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex gap-2">
-                            <button onClick={handleExportPDF} title="Exportar PDF" className="p-3 bg-white border border-gray-100 text-red-600 rounded-2xl hover:bg-red-50 transition-colors shadow-sm active:scale-95">
+                        <div className="flex gap-3 justify-center sm:justify-end">
+                            <button onClick={handleExportPDF} title="Exportar PDF" className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-red-600 rounded-2xl hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center">
                                 <FileIcon className="w-5 h-5" />
                             </button>
-                            <button onClick={handleExportExcel} title="Exportar Excel" className="p-3 bg-white border border-gray-100 text-emerald-600 rounded-2xl hover:bg-emerald-50 transition-colors shadow-sm active:scale-95">
+                            <button onClick={handleExportExcel} title="Exportar Excel" className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-emerald-600 rounded-2xl hover:bg-emerald-50 transition-all shadow-sm active:scale-95 flex items-center justify-center">
                                 <DownloadIcon className="w-5 h-5" />
                             </button>
                             {currentUser?.role === Role.ADMIN && (
@@ -320,7 +321,7 @@ const Reports: React.FC = () => {
                                             clearLegacyData();
                                         }
                                     }}
-                                    className="p-3 bg-white border border-gray-100 text-gray-400 rounded-2xl hover:bg-gray-50 transition-colors shadow-sm active:scale-95"
+                                    className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-gray-400 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95 flex items-center justify-center"
                                     title="Limpar Dados Legados"
                                 >
                                     <TrashIcon className="w-5 h-5" />
@@ -332,7 +333,7 @@ const Reports: React.FC = () => {
             </div>
 
             {/* TABS (PILL STYLE) */}
-            <div className="flex bg-white/50 backdrop-blur-sm p-1.5 rounded-[2rem] border border-white shadow-sm overflow-x-auto no-scrollbar">
+            <div className="flex p-2 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-white shadow-sm overflow-x-auto no-scrollbar gap-2">
                 {[
                     { id: 'sugestoes', label: 'Sugestões', icon: <LightbulbIcon className="w-4 h-4" /> },
                     { id: 'reservas', label: 'Reservas', icon: <CalendarIcon className="w-4 h-4" /> },
@@ -362,7 +363,7 @@ const Reports: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <StatCard title="Total Sugestões" value={requestStats.total} color="border-gray-500" icon={<BarChartIcon className="w-5 h-5" />} />
                         <StatCard title="Pendentes" value={requestStats.pending} color="border-yellow-500" icon={<ClockIcon className="w-5 h-5" />} />
-                        <StatCard title="Em Andamento" value={requestStats.inProgress} color="border-blue-500" icon={<LoaderCircleIcon className="w-5 h-5 animate-spin-slow" />} />
+                        <StatCard title="Em Andamento" value={requestStats.inProgress} color="border-blue-500" icon={<WrenchScrewdriverIcon className="w-5 h-5" />} />
                         <StatCard title="Concluídas" value={requestStats.completed} color="border-emerald-500" icon={<CheckCircleIcon className="w-5 h-5" />} />
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
