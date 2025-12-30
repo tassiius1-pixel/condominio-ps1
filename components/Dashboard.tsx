@@ -55,7 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <button onClick={() => setView && setView('notices')} className="md:hidden text-gray-500 hover:text-gray-700 mr-2">
+            <button onClick={() => setView && setView('home')} className="md:hidden text-gray-500 hover:text-gray-700 mr-2">
               <ChevronLeftIcon className="w-6 h-6" />
             </button>
             <CheckSquareIcon className="w-6 h-6 text-indigo-600" />

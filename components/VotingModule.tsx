@@ -336,7 +336,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
     return (
         <div className="space-y-8 animate-fade-in">
             <div className="flex items-center gap-3 md:hidden">
-                <button onClick={() => setView && setView('notices')} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
+                <button onClick={() => setView && setView('home')} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
                     <ChevronLeftIcon className="w-6 h-6" />
                 </button>
                 <h2 className="text-2xl font-bold text-gray-900">Votações</h2>

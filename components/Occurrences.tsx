@@ -299,7 +299,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                    <button onClick={() => setView && setView('notices')} className="md:hidden p-1 text-gray-500 hover:text-gray-700">
+                    <button onClick={() => setView && setView('home')} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
                         <ChevronLeftIcon className="w-6 h-6" />
                     </button>
                     <h2 className="text-2xl font-bold text-gray-800">Livro de Ocorrências</h2>
