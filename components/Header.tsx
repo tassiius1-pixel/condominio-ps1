@@ -313,20 +313,45 @@ const Header: React.FC<HeaderProps> = ({
                 {/* TEST PUSH AUDIO BUTTON */}
                 <button
                   onClick={async () => {
-                    // 1. Desbloqueia Áudio
-                    if ((window as any).triggerPushBeep) {
-                      (window as any).triggerPushBeep();
-                    }
+                    try {
+                      console.log("🚀 [SOS] Iniciando Sincronização Profunda...");
 
-                    // 2. Garante Permissão de Notificação (Essencial para PWA/Atalho)
-                    if ("Notification" in window) {
-                      const permission = await Notification.requestPermission();
-                      console.log("📍 [PWA] Status da permissão:", permission);
-                      if (permission === 'granted') {
-                        alert("Notificações liberadas! Agora saia do app e teste o banner.");
-                      } else {
-                        alert("Por favor, libere as notificações nas configurações do seu celular.");
+                      // 1. Limpeza de Service Workers antigos
+                      if ('serviceWorker' in navigator) {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (let reg of registrations) {
+                          await reg.unregister();
+                          console.log("🧹 SW Desregistrado:", reg.scope);
+                        }
+                        // Registra o novo SW forçadamente
+                        await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                        console.log("✅ Novo SW Registrado.");
                       }
+
+                      // 2. Desbloqueia AudioContext
+                      if ((window as any).triggerPushBeep) {
+                        (window as any).triggerPushBeep();
+                      }
+
+                      // 3. Re-requisita Permissão e Token
+                      if ("Notification" in window) {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                          const { requestPushPermission } = await import('../services/pushNotifications');
+                          const result = await requestPushPermission(currentUser.id);
+
+                          if (result.status === 'granted') {
+                            alert("✅ SISTEMA SINCRONIZADO!\n\nAgora seu celular autorizou este app a apitar e mostrar banners.\n\nTESTE AGORA: Saia do app (volte para a tela inicial do celular) e crie uma sugestão pelo PC.");
+                          } else {
+                            alert("⚠️ Notificações liberadas, mas o token falhou. Tente clicar de novo.");
+                          }
+                        } else {
+                          alert("❌ Erro: O sistema do celular bloqueou as notificações. Ative manualmente nas configurações do app.");
+                        }
+                      }
+                    } catch (err) {
+                      console.error("Erro na Sincronização SOS:", err);
+                      alert("Erro ao sincronizar. Tente fechar e abrir o app de novo.");
                     }
                   }}
                   className="p-2.5 rounded-xl text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"

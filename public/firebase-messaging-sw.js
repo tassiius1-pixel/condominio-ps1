@@ -45,7 +45,7 @@ messaging.onBackgroundMessage((payload) => {
 // ===============================
 // CACHE / PWA (Offline Support)
 // ===============================
-const CACHE_NAME = 'porto-seguro-v2'; // Bump version to force cache refresh
+const CACHE_NAME = 'porto-seguro-v3'; // Bump version for SOS Sync
 const urlsToCache = [
     '/',
     '/index.html',
@@ -54,13 +54,36 @@ const urlsToCache = [
 
 // Install SW
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Force activation immediately
+    console.log('[SW] Install: Forçando ativação imediata...');
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Opened cache');
                 return cache.addAll(urlsToCache);
             })
+    );
+});
+
+// Activate the SW
+self.addEventListener('activate', (event) => {
+    console.log('[SW] Activate: Limpando caches antigos e reivindicando clientes...');
+    const cacheWhitelist = [CACHE_NAME];
+    event.waitUntil(
+        Promise.all([
+            // Limpa caches antigos
+            caches.keys().then((cacheNames) => {
+                return Promise.all(
+                    cacheNames.map((cacheName) => {
+                        if (!cacheWhitelist.includes(cacheName)) {
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            }),
+            // Reivindica os clientes imediatamente (necessário para PWA)
+            self.clients.claim()
+        ])
     );
 });
 
