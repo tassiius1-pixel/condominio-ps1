@@ -333,50 +333,73 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
     const activeVotings = votings.filter(v => getVotingStatus(v) === 'active' || getVotingStatus(v) === 'future');
     const pastVotings = votings.filter(v => getVotingStatus(v) === 'closed');
 
+    const canManageVotings = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
+
     return (
-        <div className="space-y-8 animate-fade-in">
-            <div className="flex items-center gap-3 md:hidden">
-                <button onClick={() => setView && setView('home')} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
-                    <ChevronLeftIcon className="w-6 h-6" />
-                </button>
-                <h2 className="text-2xl font-bold text-gray-900">Votações</h2>
-            </div>
-
-            <div className="hidden md:flex justify-between items-end border-b border-gray-200 pb-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Votações e Enquetes</h1>
-                    <p className="text-gray-500 text-sm mt-1">Participe das decisões do condomínio.</p>
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Unified Header & Actions */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            if (activeTab === 'create') {
+                                setActiveTab('active');
+                            } else {
+                                setView && setView('home');
+                            }
+                        }}
+                        className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition touch-active"
+                    >
+                        <ChevronLeftIcon className="w-6 h-6" />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+                            {activeTab === 'create' ? 'Nova Votação' : 'Votações e Enquetes'}
+                        </h1>
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-0.5 font-medium leading-tight">
+                            {activeTab === 'create' ? 'Crie uma nova pauta para os moradores decidirem.' : 'Decisões importantes para o futuro do nosso condomínio.'}
+                        </p>
+                    </div>
                 </div>
+
+                {canManageVotings && activeTab !== 'create' && (
+                    <button
+                        onClick={() => setActiveTab('create')}
+                        className={`flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all active:scale-95 touch-active`}
+                    >
+                        <PlusIcon className="w-5 h-5" />
+                        <span>Nova Votação</span>
+                    </button>
+                )}
             </div>
 
-            {/* Navigation & Actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex bg-gray-100 p-1 rounded-xl w-full sm:w-auto">
+            {/* Premium Tab Selection */}
+            {activeTab !== 'create' && (
+                <div className="flex bg-white p-1.5 rounded-2xl border border-gray-100 w-full sm:w-fit shadow-sm">
                     <button
                         onClick={() => setActiveTab('active')}
-                        className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'active' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                            }`}
+                        className={`
+                            flex-1 sm:flex-none px-8 py-2.5 rounded-[1.25rem] text-xs font-black uppercase tracking-wider transition-all touch-active
+                            ${activeTab === 'active'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
+                                : 'text-gray-500 hover:text-gray-800'}
+                        `}
                     >
                         Em Aberto
                     </button>
                     <button
                         onClick={() => setActiveTab('history')}
-                        className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'history' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                            }`}
+                        className={`
+                            flex-1 sm:flex-none px-8 py-2.5 rounded-[1.25rem] text-xs font-black uppercase tracking-wider transition-all touch-active
+                            ${activeTab === 'history'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
+                                : 'text-gray-500 hover:text-gray-800'}
+                        `}
                     >
                         Histórico
                     </button>
-                    {[Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR) && (
-                        <button
-                            onClick={() => setActiveTab('create')}
-                            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'create' ? 'bg-white shadow text-indigo-600' : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            Nova +
-                        </button>
-                    )}
                 </div>
-            </div>
+            )}
 
             {/* Content Area */}
             {activeTab === 'active' && (
