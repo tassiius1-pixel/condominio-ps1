@@ -23,6 +23,7 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
 
     try {
         const permission = await Notification.requestPermission();
+        console.log("📍 [Push] Status da permissão:", permission);
 
         if (permission !== "granted") {
             console.warn("❌ Permissão negada pelo usuário.");
@@ -36,15 +37,35 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
         }
 
         // --- MELHORIA: Aguarda o Service Worker explicitamente ---
-        console.log("⏳ Aguardando Service Worker...");
-        const registration = await navigator.serviceWorker.ready;
-        console.log("✅ Service Worker pronto:", registration.scope);
+        console.log("⏳ Aguardando Service Worker ready...");
+        let registration;
+        try {
+            registration = await navigator.serviceWorker.ready;
+            console.log("✅ Service Worker pronto:", registration.scope);
+
+            // Força o SW a estar "ativo" antes de pegar o token
+            if (registration.installing || registration.waiting) {
+                console.log("⏳ SW em instalação/espera, aguardando ativação...");
+                await new Promise((resolve) => {
+                    const worker = registration.installing || registration.waiting;
+                    if (worker) {
+                        worker.addEventListener('statechange', (e: any) => {
+                            if (e.target.state === 'activated') resolve(true);
+                        });
+                    } else resolve(true);
+                });
+            }
+        } catch (swErr) {
+            console.error("❌ Erro ao aguardar Service Worker:", swErr);
+            return { status: 'error' };
+        }
 
         if (!registration.pushManager) {
-            console.error("❌ Erro: pushManager não disponível no Service Worker. Notificações ignoradas.");
+            console.error("❌ Erro: pushManager não disponível no Service Worker.");
             return { status: 'unsupported' };
         }
 
+        console.log("⏳ Solicitando FCM Token...");
         const token = await getToken(messaging, {
             vapidKey,
             serviceWorkerRegistration: registration
@@ -52,11 +73,11 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
         // --------------------------------------------------------
 
         if (!token) {
-            console.warn("❌ Não foi possível gerar token.");
+            console.warn("❌ Não foi possível gerar token (vazio).");
             return { status: 'error' };
         }
 
-        console.log("✅ FCM Token gerado:", token);
+        console.log("✅ FCM Token gerado com sucesso!");
 
         // Salva token no documento do usuário para facilitar o envio direcionado
         await updateDoc(doc(db, "users", userId), {
@@ -67,8 +88,9 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
 
         return { status: 'granted', token };
 
-    } catch (error) {
-        console.error("❌ Erro detalhado ao ativar notificações:", error);
+    } catch (error: any) {
+        console.error("❌ Erro CRÍTICO no requestPushPermission:", error);
+        alert("Erro no Token: " + (error.message || "Desconhecido"));
         return { status: 'error' };
     }
 };

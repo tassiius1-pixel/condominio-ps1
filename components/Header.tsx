@@ -318,14 +318,17 @@ const Header: React.FC<HeaderProps> = ({
 
                       // 1. Limpeza de Service Workers antigos
                       if ('serviceWorker' in navigator) {
+                        console.log("🧹 Limpando SWs...");
                         const registrations = await navigator.serviceWorker.getRegistrations();
                         for (let reg of registrations) {
                           await reg.unregister();
-                          console.log("🧹 SW Desregistrado:", reg.scope);
                         }
-                        // Registra o novo SW forçadamente
-                        await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-                        console.log("✅ Novo SW Registrado.");
+                        // Registra o novo SW e aguarda ele estar "ready"
+                        const newReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                        console.log("✅ Novo SW Registrado:", newReg.scope);
+
+                        // Aguarda um pouco para estabilidade (Safari/Mobile fix)
+                        await new Promise(r => setTimeout(r, 1000));
                       }
 
                       // 2. Desbloqueia AudioContext
