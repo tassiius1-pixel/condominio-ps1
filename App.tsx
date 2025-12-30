@@ -72,6 +72,9 @@ const App: React.FC = () => {
 
   // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE UMA VEZ)
   useEffect(() => {
+    let active = true;
+    let unsubFCM: (() => void) | undefined;
+
     if (currentUser) {
       const setupFCM = async () => {
         const hasNotificationSupport = 'Notification' in window;
@@ -79,23 +82,37 @@ const App: React.FC = () => {
           await requestPushPermission(currentUser.id);
         }
 
+        if (!active) return;
+
         const unsub = await setupForegroundNotifications((payload) => {
           const title = payload.notification?.title || "Nova Notificação";
           const body = payload.notification?.body || "";
           addToast(`${title}: ${body}`, "info");
+
+          // 🔊 BEEP PARA O APP ABERTO
+          try {
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+          } catch (e) { }
         });
 
-        return unsub;
+        unsubFCM = unsub;
       };
 
-      let unsubscribePromise = setupFCM();
-
-      return () => {
-        unsubscribePromise.then(unsub => {
-          if (unsub) unsub();
-        });
-      };
+      setupFCM();
     }
+
+    return () => {
+      active = false;
+      if (unsubFCM) unsubFCM();
+    };
   }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
 
   const renderContent = () => {
