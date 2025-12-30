@@ -39,7 +39,7 @@ async function getAccessToken(serviceAccount: any) {
         if (data.error) throw new Error(`Google Auth Error: ${data.error_description || data.error}`);
         return data.access_token;
     } catch (err) {
-        throw new Error(`Failed to get Google Access Token: ${err.message}`);
+        throw new Error(`Auth Exception: ${err.message}`);
     }
 }
 
@@ -47,12 +47,32 @@ serve(async (req) => {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
     try {
-        const { userId, title, body } = await req.json()
-        const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT')
-        if (!saEnv) throw new Error("Chave FIREBASE_SERVICE_ACCOUNT não encontrada no Supabase.")
+        // 1. Validar corpo da requisição
+        const textBody = await req.text();
+        let bodyData;
+        try {
+            bodyData = JSON.parse(textBody);
+        } catch (e) {
+            throw new Error(`Corpo da requisição inválido: ${e.message}`);
+        }
 
-        const serviceAccount = JSON.parse(saEnv)
-        const accessToken = await getAccessToken(serviceAccount)
+        const { userId, title, body } = bodyData;
+
+        // 2. Validar Secret do Firebase
+        const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
+        if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada.");
+
+        let serviceAccount;
+        try {
+            // Tenta remover caracteres invisíveis que o PowerShell pode ter inserido
+            const cleanSa = saEnv.trim().replace(/^\uFEFF/, '');
+            serviceAccount = JSON.parse(cleanSa);
+        } catch (e) {
+            console.error("DEBUG SECRET:", saEnv.substring(0, 20) + "...");
+            throw new Error(`Erro na Secret FIREBASE_SERVICE_ACCOUNT (JSON inválido): ${e.message}`);
+        }
+
+        const accessToken = await getAccessToken(serviceAccount);
 
         const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
         const firestoreRes = await fetch(firestoreUrl, {
@@ -60,10 +80,7 @@ serve(async (req) => {
         });
 
         const firestoreData = await firestoreRes.json();
-
-        if (firestoreData.error) {
-            throw new Error(`Firestore Error: ${firestoreData.error.message}`);
-        }
+        if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
 
         let tokens: string[] = [];
 
@@ -83,13 +100,9 @@ serve(async (req) => {
         if (tokens.length === 0) {
             return new Response(JSON.stringify({
                 success: true,
-                info: "Nenhum dispositivo encontrado com push habilitado (fcmToken ausente no Firestore)."
-            }), {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
+                message: "Nenhum dispositivo encontrado."
+            }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
-
-        console.log(`📡 Enviando para ${tokens.length} aparelhos...`);
 
         const results = await Promise.all(tokens.map(async (token) => {
             const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
@@ -102,9 +115,7 @@ serve(async (req) => {
                     message: {
                         token: token,
                         notification: { title, body },
-                        webpush: {
-                            fcm_options: { link: "https://condominio-ps1.vercel.app/" }
-                        }
+                        webpush: { fcm_options: { link: "https://condominio-ps1.vercel.app/" } }
                     }
                 })
             });
@@ -116,10 +127,9 @@ serve(async (req) => {
         })
 
     } catch (error) {
-        console.error("❌ Erro fatal na Edge Function:", error.message);
         return new Response(JSON.stringify({
             error: error.message,
-            detail: "Verifique os logs do Supabase para mais info."
+            hint: "Se o erro for 'JSON inválido na Secret', tente reconfigurar a FIREBASE_SERVICE_ACCOUNT no painel do Supabase."
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
