@@ -72,49 +72,30 @@ const App: React.FC = () => {
 
   // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE UMA VEZ)
   useEffect(() => {
-    let active = true;
-    let unsubFCM: (() => void) | undefined;
-
     if (currentUser) {
       const setupFCM = async () => {
         const hasNotificationSupport = 'Notification' in window;
-
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           await requestPushPermission(currentUser.id);
         }
-
-        if (!active) return;
 
         const unsub = await setupForegroundNotifications((payload) => {
           const title = payload.notification?.title || "Nova Notificação";
           const body = payload.notification?.body || "";
           addToast(`${title}: ${body}`, "info");
-
-          // 🔥 ADICIONA SOM NO FOREGROUND (OPCIONAL MAS AJUDA)
-          try {
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Mi
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1);
-          } catch (e) { console.warn("Luz/Som não permitida:", e); }
         });
 
-        unsubFCM = unsub;
+        return unsub;
       };
 
-      setupFCM();
-    }
+      let unsubscribePromise = setupFCM();
 
-    return () => {
-      active = false;
-      if (unsubFCM) unsubFCM();
-    };
+      return () => {
+        unsubscribePromise.then(unsub => {
+          if (unsub) unsub();
+        });
+      };
+    }
   }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
 
   const renderContent = () => {
