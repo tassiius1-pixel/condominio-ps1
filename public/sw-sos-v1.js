@@ -16,8 +16,9 @@ const messaging = firebase.messaging();
 // Background Messages
 messaging.onBackgroundMessage((payload) => {
     console.log("[FCM SOS] Background message:", payload);
-    const title = payload.notification?.title || payload.data?.title || "Porto Seguro 1";
-    const body = payload.notification?.body || payload.data?.body || "";
+    const title = payload.data?.title || payload.notification?.title || "Porto Seguro 1";
+    const body = payload.data?.body || payload.notification?.body || "";
+    const tag = payload.data?.tag || "porto-seguro-push";
 
     return self.registration.showNotification(title, {
         body,

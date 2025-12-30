@@ -123,10 +123,6 @@ serve(async (req) => {
                     body: JSON.stringify({
                         message: {
                             token: token,
-                            notification: {
-                                title: title,
-                                body: body
-                            },
                             data: {
                                 title: title,
                                 body: body,
