@@ -70,59 +70,35 @@ const App: React.FC = () => {
     setCondoLogo(logoBase64);
   };
 
-  // 🔥 ATIVA O FCM AUTOMATICAMENTE
+  // 🔥 ATIVA O FCM AUTOMATICAMENTE APÓS LOGIN (SOMENTE UMA VEZ)
   useEffect(() => {
-    let active = true;
-    let unsubFCM: (() => void) | undefined;
-
     if (currentUser) {
+      const hasNotificationSupport = 'Notification' in window;
+
+      // Use um mecanismo para garantir que só rode uma vez por login
       const setupFCM = async () => {
-        const hasNotificationSupport = 'Notification' in window;
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           await requestPushPermission(currentUser.id);
         }
 
-        if (!active) return;
-
-        const unsub = await setupForegroundNotifications(async (payload) => {
-          console.log("🔔 [App.tsx] Processando mensagem para interface:", payload);
-          const title = payload.notification?.title || payload.data?.title || "Nova Notificação";
-          const body = payload.notification?.body || payload.data?.body || "";
+        const unsub = await setupForegroundNotifications((payload) => {
+          const title = payload.notification?.title || "Nova Notificação";
+          const body = payload.notification?.body || "";
           addToast(`${title}: ${body}`, "info");
-
-          // 🔊 BEEP FORÇADO NO APP ABERTO
-          try {
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Som mais agudo estilo iPhone
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
-          } catch (e) {
-            console.warn("Navegador bloqueou o bip por falta de interação prévia.");
-          }
         });
 
-        unsubFCM = unsub;
+        return unsub;
       };
 
-      setupFCM();
-    }
+      let unsubscribePromise = setupFCM();
 
-    return () => {
-      active = false;
-      if (unsubFCM) unsubFCM();
-    };
-  }, [currentUser?.id]);
+      return () => {
+        unsubscribePromise.then(unsub => {
+          if (unsub) unsub();
+        });
+      };
+    }
+  }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
 
   const renderContent = () => {
     if (!currentUser) {

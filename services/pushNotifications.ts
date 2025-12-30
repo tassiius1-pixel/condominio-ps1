@@ -58,15 +58,13 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
 
         console.log("✅ FCM Token gerado:", token);
 
-        // Salva token no documento do usuário usando merge para garantir que o doc exista
-        const { setDoc } = await import("firebase/firestore");
-        await setDoc(doc(db, "users", userId), {
+        // Salva token no documento do usuário para facilitar o envio direcionado
+        await updateDoc(doc(db, "users", userId), {
             fcmToken: token,
             pushEnabled: true,
             lastTokenSync: new Date().toISOString(),
-        }, { merge: true });
+        });
 
-        console.log("✅ FCM Token persistido no Firestore para o usuário:", userId);
         return { status: 'granted', token };
 
     } catch (error) {
@@ -115,23 +113,6 @@ export const sendPushNotification = async (
 };
 
 /**
- * Atualiza o badge (bolinha vermelha) no ícone do app no celular
- */
-export const updateAppBadge = async (count: number) => {
-    if ('setAppBadge' in navigator) {
-        try {
-            if (count > 0) {
-                await (navigator as any).setAppBadge(count);
-            } else {
-                await (navigator as any).clearAppBadge();
-            }
-        } catch (error) {
-            console.error('❌ Erro ao atualizar App Badge:', error);
-        }
-    }
-};
-
-/**
  * Registra o listener para mensagens em foreground (app aberto)
  */
 export const setupForegroundNotifications = async (onMessageReceived: (payload: any) => void) => {
@@ -140,10 +121,6 @@ export const setupForegroundNotifications = async (onMessageReceived: (payload: 
 
     return onMessage(messaging, (payload) => {
         console.log("🔥 [FCM - FOREGROUND] Mensagem recebida:", payload);
-        // Tenta atualizar o badge se houver informação
-        if (payload.notification) {
-            updateAppBadge(1); // Incremento simples para teste
-        }
         onMessageReceived(payload);
     });
 };

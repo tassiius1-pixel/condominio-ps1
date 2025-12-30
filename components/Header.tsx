@@ -297,7 +297,7 @@ const Header: React.FC<HeaderProps> = ({
                   >
                     <BellIcon className="h-5 w-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-0.5 h-5 min-w-[20px] px-1 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-black border-2 border-white shadow-md transform scale-100 hover:scale-110 transition-transform animate-bounce-subtle">
+                      <span className="absolute top-1 right-1 h-4.5 w-4.5 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-black border-2 border-white shadow-sm animate-pulse">
                         {unreadCount}
                       </span>
                     )}

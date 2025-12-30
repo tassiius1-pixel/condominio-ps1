@@ -192,19 +192,3 @@ button:active {
 .scrolling-touch {
   -webkit-overflow-scrolling: touch;
 }
-
-@keyframes bounce-subtle {
-
-  0%,
-  100% {
-    transform: translateY(0) scale(1.0);
-  }
-
-  50% {
-    transform: translateY(-2px) scale(1.05);
-  }
-}
-
-.animate-bounce-subtle {
-  animation: bounce-subtle 2s ease-in-out infinite;
-}

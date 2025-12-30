@@ -392,6 +392,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       "Nova Sugestão Criada",
       `${author.name} sugeriu: ${newRequest.title}`
     );
+
     addToast("Sugestão registrada.", "success");
   };
 
@@ -547,6 +548,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(doc(db, "requests", requestId), {
       comments: updatedComments,
     });
+    addToast("Comentário excluído.", "success");
   };
 
   const updateComment = async (requestId: string, commentId: string, newText: string) => {
@@ -560,6 +562,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(doc(db, "requests", requestId), {
       comments: updatedComments,
     });
+    addToast("Comentário atualizado.", "success");
   };
 
   const toggleRequestLike = async (requestId: string, userId: string) => {

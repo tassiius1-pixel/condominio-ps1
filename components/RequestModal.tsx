@@ -42,8 +42,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
 
-  const [isDeleting, setIsDeleting] = useState(false);
-
   useEffect(() => {
     setComments(request?.comments || []);
   }, [request?.comments]);
@@ -166,14 +164,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   };
 
   const handleDelete = () => {
-    if (!request) return;
-    if (isDeleting) {
+    if (request && confirm('Excluir sugestão?')) {
       deleteRequest(request.id);
       onClose();
-    } else {
-      setIsDeleting(true);
-      // Opcional: Auto-reset após alguns segundos se não confirmar
-      setTimeout(() => setIsDeleting(false), 3000);
     }
   };
 
@@ -304,18 +297,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                 </button>
               )}
               {request && (isAuthor || canManage) && (
-                <button
-                  onClick={handleDelete}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all font-black uppercase text-[10px] sm:text-xs shadow-sm
-                    ${isDeleting
-                      ? 'bg-red-600 text-white animate-pulse scale-105'
-                      : 'bg-red-50 text-red-500 hover:bg-red-100'
-                    }
-                  `}
-                  title={isDeleting ? "Clique novamente para confirmar" : "Excluir"}
-                >
-                  <TrashIcon className="w-4 h-4 sm:w-5 h-5" />
-                  {isDeleting && <span>Confirmar</span>}
+                <button onClick={handleDelete} className="p-2 sm:p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors" title="Excluir">
+                  <TrashIcon className="w-5 h-5" />
                 </button>
               )}
               <button onClick={onClose} className="p-2 sm:p-2.5 hover:bg-gray-100 text-gray-400 rounded-xl transition-colors">
