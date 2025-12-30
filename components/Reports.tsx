@@ -18,7 +18,7 @@ import {
 } from './Icons';
 
 // Chart component using a canvas
-const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title: string }> = ({ type, data, title }) => {
+const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title: string; palette?: string[] }> = ({ type, data, title, palette }) => {
     const chartRef = useRef<HTMLCanvasElement>(null);
     const chartInstance = useRef<any>(null);
 
@@ -29,7 +29,7 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
             }
             const ctx = chartRef.current.getContext('2d');
             if (ctx) {
-                const colors = [
+                const colors = palette || [
                     '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6',
                     '#D946EF', '#EC4899', '#6366F1', '#14B8A6', '#FBBF24', '#F87171'
                 ];
@@ -76,7 +76,7 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
                 chartInstance.current.destroy();
             }
         };
-    }, [data, title, type]);
+    }, [data, title, type, palette]);
 
     if (Object.keys(data).length === 0) {
         return (
@@ -416,33 +416,45 @@ const Reports: React.FC = () => {
                 <div className="space-y-6 animate-fade-in">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <StatCard title="Total Ocorrências" value={filteredOccurrences.length} color="border-rose-500" icon={<AlertTriangleIcon className="w-5 h-5" />} />
-                        <StatCard title="Em Aberto" value={occurrencesByStatus['Aberto'] || 0} color="border-yellow-500" icon={<ClockIcon className="w-5 h-5" />} />
+                        <StatCard title="Em Aberto" value={occurrencesByStatus['Aberto'] || 0} color="border-amber-500" icon={<ClockIcon className="w-5 h-5" />} />
                         <StatCard title="Resolvidas" value={occurrencesByStatus['Resolvido'] || 0} color="border-emerald-500" icon={<CheckCircleIcon className="w-5 h-5" />} />
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <Chart type="pie" data={occurrencesByStatus} title="Status das Ocorrências" />
-                        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 overflow-y-auto h-80 no-scrollbar">
-                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-6 px-1">Últimas Ocorrências</h3>
-                            <ul className="space-y-4">
+                        <Chart
+                            type="pie"
+                            data={occurrencesByStatus}
+                            title="Status das Ocorrências"
+                            palette={['#F59E0B', '#10B981', '#6366F1', '#EC4899']}
+                        />
+                        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 overflow-y-auto h-80 no-scrollbar relative">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/30 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none"></div>
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-6 px-1 relative z-10">Últimas Ocorrências</h3>
+                            <ul className="space-y-4 relative z-10">
                                 {filteredOccurrences.length === 0 ? (
                                     <li className="text-center py-10 text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Nenhuma ocorrência encontrada</li>
                                 ) : (
                                     filteredOccurrences.slice(0, 10).map(o => (
-                                        <li key={o.id} className="flex items-center justify-between p-4 rounded-3xl bg-gray-50/50 border border-gray-100/50 hover:bg-white hover:shadow-sm transition-all border-dashed">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-white rounded-2xl shadow-sm text-rose-500">
-                                                    <AlertTriangleIcon className="w-4 h-4" />
+                                        <li key={o.id} className="group flex items-center justify-between p-4 rounded-3xl bg-gray-50/50 border border-gray-100 hover:bg-white hover:shadow-lg hover:shadow-gray-200/40 transition-all border-dashed">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-3 rounded-2xl shadow-sm transition-colors ${o.status === 'Resolvido' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : 'bg-amber-50 text-amber-600 group-hover:bg-amber-100'}`}>
+                                                    <AlertTriangleIcon className="w-5 h-5" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-black text-gray-900 uppercase truncate max-w-[150px] sm:max-w-xs leading-tight">{o.subject}</p>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mt-1">{new Date(o.createdAt).toLocaleDateString('pt-BR')}</p>
+                                                    <p className="text-xs font-black text-gray-900 uppercase truncate max-w-[150px] sm:max-w-xs leading-tight mb-1">{o.subject}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none">{new Date(o.createdAt).toLocaleDateString('pt-BR')}</p>
+                                                        <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                                        <p className="text-[10px] font-black text-rose-400 uppercase tracking-tighter leading-none">Casa {o.houseNumber}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${o.status === 'Resolvido' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-yellow-50 text-yellow-600 border-yellow-100'}`}>
+                                                <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full border shadow-sm ${o.status === 'Resolvido'
+                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                    : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                    }`}>
                                                     {o.status}
                                                 </span>
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 leading-none">Casa {o.houseNumber}</p>
                                             </div>
                                         </li>
                                     ))
@@ -452,7 +464,7 @@ const Reports: React.FC = () => {
                     </div>
                 </div>
             )}
-
+            营销
             {activeTab === 'votacoes' && (
                 <div className="space-y-6 animate-fade-in w-full overflow-hidden">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
