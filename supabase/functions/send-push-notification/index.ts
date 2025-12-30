@@ -101,22 +101,29 @@ serve(async (req) => {
                     message: {
                         token: token,
                         notification: { title, body }, // Título global essencial
+                        data: { title, body, url: "https://condominio-ps1.vercel.app/" },
                         android: {
                             priority: "high",
-                            notification: { sound: "default" }
+                            notification: {
+                                sound: "default",
+                                click_action: "https://condominio-ps1.vercel.app/"
+                            }
                         },
                         apns: {
+                            headers: { "apns-priority": "10" },
                             payload: {
                                 aps: {
+                                    alert: { title, body },
                                     sound: "default",
-                                    badge: 1
+                                    badge: 1,
+                                    "content-available": 1
                                 }
                             }
                         },
                         webpush: {
                             headers: { Urgency: "high" },
                             notification: {
-                                title: title, // Re-declarando para garantir que o override tenha tudo
+                                title: title,
                                 body: body,
                                 icon: "https://condominio-ps1.vercel.app/logo.png",
                                 badge: "https://condominio-ps1.vercel.app/logo.png"

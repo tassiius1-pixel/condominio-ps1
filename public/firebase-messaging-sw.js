@@ -14,11 +14,13 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log("[SW] Notificação recebida em background:", payload);
-    const title = payload.notification?.title || "Notificação";
+    const title = payload.notification?.title || payload.data?.title || "Notificação";
+    const body = payload.notification?.body || payload.data?.body || "";
     const options = {
-        body: payload.notification?.body || "",
+        body: body,
         icon: "/logo.png",
-        badge: "/logo.png"
+        badge: "/logo.png",
+        data: payload.data || {}
     };
     return self.registration.showNotification(title, options);
 });

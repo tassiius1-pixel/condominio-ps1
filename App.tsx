@@ -85,8 +85,9 @@ const App: React.FC = () => {
         if (!active) return;
 
         const unsub = await setupForegroundNotifications(async (payload) => {
-          const title = payload.notification?.title || "Nova Notificação";
-          const body = payload.notification?.body || "";
+          console.log("🔔 [App.tsx] Processando mensagem para interface:", payload);
+          const title = payload.notification?.title || payload.data?.title || "Nova Notificação";
+          const body = payload.notification?.body || payload.data?.body || "";
           addToast(`${title}: ${body}`, "info");
 
           // 🔊 BEEP FORÇADO NO APP ABERTO
