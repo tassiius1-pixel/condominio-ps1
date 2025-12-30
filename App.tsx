@@ -72,35 +72,55 @@ const App: React.FC = () => {
 
   // 🔥 ATIVA O FCM AUTOMATICAMENTE
   useEffect(() => {
-    if (currentUser) {
-      let unsub: (() => void) | undefined;
+    let active = true;
+    let unsubFCM: (() => void) | undefined;
 
+    if (currentUser) {
       const setupFCM = async () => {
         const hasNotificationSupport = 'Notification' in window;
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           await requestPushPermission(currentUser.id);
         }
 
-        unsub = await setupForegroundNotifications((payload) => {
+        if (!active) return;
+
+        const unsub = await setupForegroundNotifications(async (payload) => {
           const title = payload.notification?.title || "Nova Notificação";
           const body = payload.notification?.body || "";
           addToast(`${title}: ${body}`, "info");
 
-          // 🔊 BEEP TESTE
+          // 🔊 BEEP FORÇADO NO APP ABERTO
           try {
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            oscillator.connect(audioCtx.destination);
-            oscillator.frequency.value = 800;
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1);
-          } catch (e) { }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Som mais agudo estilo iPhone
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          } catch (e) {
+            console.warn("Navegador bloqueou o bip por falta de interação prévia.");
+          }
         });
+
+        unsubFCM = unsub;
       };
 
       setupFCM();
-      return () => { if (unsub) unsub(); };
     }
+
+    return () => {
+      active = false;
+      if (unsubFCM) unsubFCM();
+    };
   }, [currentUser?.id]);
 
   const renderContent = () => {
