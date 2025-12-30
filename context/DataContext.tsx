@@ -81,6 +81,7 @@ interface DataContextType {
   documents: DocumentType[];
   addDocument: (docData: Omit<DocumentType, 'id' | 'createdAt'>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
+  toggleDocumentPin: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -734,6 +735,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast('Documento removido.', 'info');
   };
 
+  const toggleDocumentPin = async (id: string) => {
+    const document = documents.find(d => d.id === id);
+    if (!document) return;
+
+    await updateDoc(doc(db, 'documents', id), {
+      isPinned: !document.isPinned
+    });
+
+    addToast(document.isPinned ? 'Documento desfixado.' : 'Documento fixado no topo!', 'success');
+  };
+
   // PROVIDER
   const value = React.useMemo(() => ({
     users,
@@ -776,6 +788,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     documents,
     addDocument,
     deleteDocument,
+    toggleDocumentPin,
   }), [
     users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices, documents
   ]);

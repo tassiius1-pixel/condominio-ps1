@@ -188,6 +188,7 @@ export interface Document {
   fileSize: number;
   uploadedBy: string;
   createdAt: string;
+  isPinned?: boolean;
 }
 
 export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents";

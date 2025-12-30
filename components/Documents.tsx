@@ -33,7 +33,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 };
 
 const Documents: React.FC<DocumentsProps> = ({ setView }) => {
-    const { documents, addDocument, deleteDocument, addToast, loading } = useData();
+    const { documents, addDocument, deleteDocument, toggleDocumentPin, addToast, loading } = useData();
     const { currentUser } = useAuth();
 
     const [activeCategory, setActiveCategory] = useState('Todos');
@@ -50,18 +50,27 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
         category: 'Regimento',
         fileUrl: '',
         fileName: '',
+        isPinned: false
     });
 
     const canManage = currentUser?.role === Role.ADMIN ||
         currentUser?.role === Role.GESTAO ||
         currentUser?.role === Role.SINDICO;
 
-    const filteredDocuments = documents.filter(doc => {
-        const matchesCategory = activeCategory === 'Todos' || doc.category === activeCategory;
-        const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            doc.description.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+    const filteredDocuments = documents
+        .sort((a, b) => {
+            // Pinned documents first
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            // Then by date
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        })
+        .filter(doc => {
+            const matchesCategory = activeCategory === 'Todos' || doc.category === activeCategory;
+            const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                doc.description.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
 
     const handleAddDocument = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -93,7 +102,7 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                 uploadedBy: currentUser?.name || 'Admin',
             });
 
-            setNewDoc({ title: '', description: '', category: 'Regimento', fileUrl: '', fileName: '' });
+            setNewDoc({ title: '', description: '', category: 'Regimento', fileUrl: '', fileName: '', isPinned: false });
             setSelectedFile(null);
             setIsAddModalOpen(false);
         } catch (error) {
@@ -206,7 +215,7 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                     {filteredDocuments.map((doc) => (
                         <div
                             key={doc.id}
-                            className="group bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between"
+                            className={`group bg-white p-5 rounded-3xl border shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between ${doc.isPinned ? 'ring-2 ring-amber-400 border-amber-200' : 'border-gray-100'}`}
                         >
                             <div className="flex gap-4">
                                 <div className="shrink-0 w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 group-active:scale-95 transition-all duration-300">
@@ -215,6 +224,12 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-2 mb-2">
+                                            {doc.isPinned && (
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white bg-amber-500 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M21 10h-8V2l-1 1v7H4v1l1 1h6v10l1 1 1-1V12h8V10z"></path></svg>
+                                                    Fixado
+                                                </span>
+                                            )}
                                             <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50/50 px-2 py-0.5 rounded-md inline-block">
                                                 {doc.category}
                                             </span>
@@ -225,12 +240,21 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                             )}
                                         </div>
                                         {canManage && (
-                                            <button
-                                                onClick={() => deleteDocument(doc.id)}
-                                                className="text-gray-300 hover:text-red-500 transition-colors p-1"
-                                            >
-                                                <TrashIcon className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => toggleDocumentPin(doc.id)}
+                                                    className={`p-1 transition-colors ${doc.isPinned ? 'text-amber-500' : 'text-gray-300 hover:text-amber-500'}`}
+                                                    title={doc.isPinned ? "Desafixar" : "Fixar no topo"}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={doc.isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10h-8V2l-1 1v7H4v1l1 1h6v10l1 1 1-1V12h8V10z"></path></svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteDocument(doc.id)}
+                                                    className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                     <h3 className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{doc.title}</h3>
@@ -413,14 +437,15 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Ou use um link externo (PDF)</label>
-                                <input
-                                    type="url"
-                                    value={newDoc.fileUrl}
-                                    onChange={e => setNewDoc({ ...newDoc, fileUrl: e.target.value })}
-                                    className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all font-mono"
-                                    placeholder="https://..."
-                                />
+                                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={newDoc.isPinned}
+                                        onChange={e => setNewDoc({ ...newDoc, isPinned: e.target.checked })}
+                                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                    />
+                                    Fixar este documento no topo
+                                </label>
                             </div>
 
                             <div className="flex gap-3 pt-4">
