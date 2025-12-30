@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon, SearchIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon } from './Icons';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 
@@ -309,6 +309,21 @@ const Header: React.FC<HeaderProps> = ({
                     triggerRef={bellRef}
                   />
                 </div>
+
+                {/* TEST PUSH AUDIO BUTTON */}
+                <button
+                  onClick={() => {
+                    if ((window as any).triggerPushBeep) {
+                      (window as any).triggerPushBeep();
+                    } else {
+                      console.warn("Audio trigger não inicializado ainda.");
+                    }
+                  }}
+                  className="p-2.5 rounded-xl text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
+                  title="Testar Som da Notificação"
+                >
+                  <BellIcon className="h-5 w-5 animate-pulse" />
+                </button>
 
                 {/* LOGOUT */}
                 <button

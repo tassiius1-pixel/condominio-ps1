@@ -113,68 +113,71 @@ serve(async (req) => {
         }
 
         const results = await Promise.all(tokens.map(async (token) => {
-            const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: {
-                        token: token,
-                        notification: { title, body },
-                        android: {
-                            priority: "high",
-                            notification: {
-                                sound: "default",
-                                channel_id: "high_priority",
-                                click_action: "https://condominio-ps1.vercel.app/",
-                                notification_priority: "PRIORITY_MAX",
-                                visibility: "PUBLIC"
-                            }
-                        },
-                        apns: {
-                            headers: {
-                                "apns-priority": "10",
-                                "apns-push-type": "alert"
-                            },
-                            payload: {
-                                aps: {
-                                    alert: {
-                                        title: title,
-                                        body: body
-                                    },
+            try {
+                const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: {
+                            token: token,
+                            notification: { title, body },
+                            android: {
+                                priority: "high",
+                                notification: {
                                     sound: "default",
-                                    badge: 1,
-                                    "mutable-content": 1,
-                                    category: "NEW_SUGGESTION"
+                                    channel_id: "high_priority",
+                                    click_action: "https://condominio-ps1.vercel.app/",
+                                    notification_priority: "PRIORITY_MAX",
+                                    visibility: "PUBLIC"
                                 }
-                            }
-                        },
-                        webpush: {
-                            headers: { Urgency: "high" },
-                            notification: {
+                            },
+                            apns: {
+                                headers: {
+                                    "apns-priority": "10",
+                                    "apns-push-type": "alert"
+                                },
+                                payload: {
+                                    aps: {
+                                        alert: { title, body },
+                                        sound: "default",
+                                        badge: 1,
+                                        "mutable-content": 1,
+                                        category: "NEW_SUGGESTION"
+                                    }
+                                }
+                            },
+                            webpush: {
+                                headers: { Urgency: "high" },
+                                notification: {
+                                    title: title,
+                                    body: body,
+                                    icon: "https://condominio-ps1.vercel.app/logo.png",
+                                    vibrate: [200, 100, 200],
+                                    tag: "sos-" + Date.now(),
+                                    renotify: true
+                                },
+                                fcm_options: { link: "https://condominio-ps1.vercel.app/" }
+                            },
+                            data: {
                                 title: title,
                                 body: body,
-                                icon: "https://condominio-ps1.vercel.app/logo.png",
-                                badge: "https://condominio-ps1.vercel.app/logo.png",
-                                vibrate: [200, 100, 200],
-                                tag: "new-suggestion-" + Date.now(),
-                                renotify: true
-                            },
-                            fcm_options: { link: "https://condominio-ps1.vercel.app/" }
-                        },
-                        data: {
-                            title: title,
-                            body: body,
-                            url: "https://condominio-ps1.vercel.app/",
-                            force_beep: "true"
+                                url: "https://condominio-ps1.vercel.app/",
+                                sos_flag: "true"
+                            }
                         }
-                    }
-                })
-            });
-            return fcmRes.json();
+                    })
+                });
+                const responseData = await fcmRes.json();
+                return { token: token.substring(0, 10) + "...", status: fcmRes.status, response: responseData };
+            } catch (err) {
+                return { token: token.substring(0, 10) + "...", error: err.message };
+            }
         }));
+
+        console.log("✅ [Push] Resultados do envio:", JSON.stringify(results));
 
         return new Response(JSON.stringify({ success: true, count: tokens.length, results }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },

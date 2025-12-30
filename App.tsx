@@ -75,58 +75,57 @@ const App: React.FC = () => {
     if (currentUser) {
       const hasNotificationSupport = 'Notification' in window;
 
-      // Use um mecanismo para garantir que só rode uma vez por login
+      // 🔊 PERSISTENT AUDIO CONTEXT (Safari Fix)
       const setupFCM = async () => {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+        const triggerBeep = async () => {
+          console.log("🔊 [App] Tentando disparar beep. Estado atual:", audioCtx.state);
+          if (audioCtx.state === 'suspended') await audioCtx.resume();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.3);
+          if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+        };
+
+        // Expor para o Header.tsx chamar diretamente (Safari/PWA bypass)
+        (window as any).triggerPushBeep = triggerBeep;
+
+        // Listen for manual test
+        const handleTestAudio = () => triggerBeep();
+        window.addEventListener('test-push-audio', handleTestAudio);
+
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           await requestPushPermission(currentUser.id);
         }
 
         const unsub = await setupForegroundNotifications(async (payload) => {
-          console.log("🔔 [App.tsx] Processando mensagem para interface:", payload);
+          console.log("🔔 [App.tsx] SOS Mensagem:", payload);
           const title = payload.notification?.title || payload.data?.title || "Nova Notificação";
           const body = payload.notification?.body || payload.data?.body || "";
           addToast(`${title}: ${body}`, "info");
-
-          // 🔊 SOM E VIBRAÇÃO DE EMERGÊNCIA (FOREGROUND)
-          try {
-            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
-
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-            const playNote = (freq: number, start: number, duration: number) => {
-              const osc = audioCtx.createOscillator();
-              const gain = audioCtx.createGain();
-              osc.connect(gain);
-              gain.connect(audioCtx.destination);
-              osc.type = 'sine';
-              osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
-              gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
-              gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + start + 0.02);
-              gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
-              osc.start(audioCtx.currentTime + start);
-              osc.stop(audioCtx.currentTime + start + duration);
-            };
-
-            // Sequência "Plim-Plim" (C6 e E6)
-            playNote(1046.50, 0, 0.3); // Do
-            playNote(1318.51, 0.15, 0.3); // Mi
-
-            console.log("🔊 Emergency Plim disparado.");
-          } catch (e) {
-            console.warn("Áudio travado pelo browser.");
-          }
+          await triggerBeep();
         });
 
-        return unsub;
+        return () => {
+          if (unsub) unsub();
+          window.removeEventListener('test-push-audio', handleTestAudio);
+        };
       };
 
-      let unsubscribePromise = setupFCM();
+      let cleanup: (() => void) | undefined;
+      setupFCM().then(c => cleanup = c);
 
       return () => {
-        unsubscribePromise.then(unsub => {
-          if (unsub) unsub();
-        });
+        if (cleanup) cleanup();
       };
     }
   }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
