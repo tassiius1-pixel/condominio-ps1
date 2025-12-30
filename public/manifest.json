@@ -1,6 +1,7 @@
 {
     "name": "Condomínio Porto Seguro 1",
     "short_name": "Porto Seguro 1",
+    "lang": "pt-BR",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

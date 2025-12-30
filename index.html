@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8" />
@@ -61,9 +61,9 @@
       } else if (typeof Notification !== "undefined") {
         // Registra se for Android, Desktop OU iOS Instalado (Standalone)
         navigator.serviceWorker
-          .register("/firebase-messaging-sw.js")
-          .then((reg) => console.log("FCM SW registrado (PWA/Android/Desktop):", reg))
-          .catch((err) => console.error("Erro ao registrar FCM SW:", err));
+          .register("/sw-sos-v1.js")
+          .then((reg) => console.log("SW SOS registrado (PWA):", reg))
+          .catch((err) => console.error("Erro ao registrar SW SOS:", err));
       }
     }
   </script>
