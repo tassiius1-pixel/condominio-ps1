@@ -87,8 +87,14 @@ const App: React.FC = () => {
           const body = payload.notification?.body || payload.data?.body || "";
           addToast(`${title}: ${body}`, "info");
 
-          // 🔊 BEEP FORÇADO NO APP ABERTO
+          // 🔊 SOM E VIBRAÇÃO NO APP ABERTO (FOREGROUND)
           try {
+            // 1. Vibração (se suportado pelo celular)
+            if ("vibrate" in navigator) {
+              navigator.vibrate([200, 100, 200]); // Dois toques curtos
+            }
+
+            // 2. Beep Robusto
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
 
@@ -97,15 +103,20 @@ const App: React.FC = () => {
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Som mais agudo estilo iPhone
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.type = 'sine'; // Som mais limpo
+            osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime); // C6 (Nota aguda)
+
+            // Aumentando volume (de 0.1 para 0.5)
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
 
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            osc.stop(audioCtx.currentTime + 0.4);
+
+            console.log("🔊 Som de notificação disparado com sucesso.");
           } catch (e) {
-            console.warn("Navegador bloqueou o bip por falta de interação prévia.");
+            console.warn("Navegador impediu áudio automático. Clique no site para ativar.");
           }
         });
 
