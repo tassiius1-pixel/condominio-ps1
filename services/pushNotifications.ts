@@ -35,12 +35,23 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
             return { status: 'unsupported' };
         }
 
-        const token = await getToken(messaging, { vapidKey });
+        // --- MELHORIA: Aguarda o Service Worker explicitamente ---
+        console.log("⏳ Aguardando Service Worker...");
+        const registration = await navigator.serviceWorker.ready;
+        console.log("✅ Service Worker pronto:", registration.scope);
+
+        const token = await getToken(messaging, {
+            vapidKey,
+            serviceWorkerRegistration: registration
+        });
+        // --------------------------------------------------------
 
         if (!token) {
             console.warn("❌ Não foi possível gerar token.");
             return { status: 'error' };
         }
+
+        console.log("✅ FCM Token gerado:", token);
 
         // Salva token no documento do usuário para facilitar o envio direcionado
         await updateDoc(doc(db, "users", userId), {
@@ -52,7 +63,7 @@ export const requestPushPermission = async (userId: string): Promise<PushPermiss
         return { status: 'granted', token };
 
     } catch (error) {
-        console.error("Erro ao ativar notificações:", error);
+        console.error("❌ Erro detalhado ao ativar notificações:", error);
         return { status: 'error' };
     }
 };
