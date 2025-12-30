@@ -63,7 +63,9 @@ serve(async (req) => {
         const serviceAccount = JSON.parse(saEnv!.trim().replace(/^\uFEFF/, ''));
         const accessToken = await getAccessToken(serviceAccount);
 
-        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
+        const projectPath = `projects/${serviceAccount.project_id}/databases/(default)/documents`;
+        const firestoreUrl = `https://firestore.googleapis.com/v1/${projectPath}/users`;
+
         const firestoreRes = await fetch(firestoreUrl, {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
@@ -74,7 +76,6 @@ serve(async (req) => {
             const rawTokens = (firestoreData.documents || [])
                 .map((doc: any) => doc.fields?.fcmToken?.stringValue)
                 .filter((t: any) => !!t && t.length > 10);
-            // 🔥 REMOVE DUPLICADOS (Causa das notificações duplas)
             tokens = Array.from(new Set(rawTokens)) as string[];
         } else {
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
@@ -86,15 +87,11 @@ serve(async (req) => {
         }
 
         if (tokens.length === 0) {
-            return new Response(JSON.stringify({
-                success: true,
-                message: "Nenhum token válido encontrado."
-            }), { headers: corsHeaders });
+            return new Response(JSON.stringify({ success: true, count: 0 }), { headers: corsHeaders });
         }
 
-        const stats = { sent: 0, failed: 0 };
         const results = await Promise.allSettled(tokens.map(async (token) => {
-            const res = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
+            return fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${accessToken}`,
@@ -103,7 +100,7 @@ serve(async (req) => {
                 body: JSON.stringify({
                     message: {
                         token: token,
-                        notification: { title, body },
+                        notification: { title, body }, // Título global essencial
                         android: {
                             priority: "high",
                             notification: { sound: "default" }
@@ -111,16 +108,15 @@ serve(async (req) => {
                         apns: {
                             payload: {
                                 aps: {
-                                    alert: { title, body },
                                     sound: "default",
-                                    badge: 1,
-                                    "content-available": 1
+                                    badge: 1
                                 }
                             }
                         },
                         webpush: {
                             headers: { Urgency: "high" },
                             notification: {
+                                title: title, // Re-declarando para garantir que o override tenha tudo
                                 body: body,
                                 icon: "https://condominio-ps1.vercel.app/logo.png",
                                 badge: "https://condominio-ps1.vercel.app/logo.png"
@@ -129,13 +125,10 @@ serve(async (req) => {
                         }
                     }
                 })
-            });
-            const data = await res.json();
-            if (data.name) stats.sent++; else stats.failed++;
-            return data;
+            }).then(r => r.json());
         }));
 
-        return new Response(JSON.stringify({ success: true, count: tokens.length, stats, results }), {
+        return new Response(JSON.stringify({ success: true, count: tokens.length, results }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
