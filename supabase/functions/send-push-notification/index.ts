@@ -75,7 +75,7 @@ serve(async (req) => {
             throw new Error(`Corpo inválido: ${e.message}`);
         }
 
-        const { userId, title, body } = bodyData;
+        const { userId, title, body, data: extraData } = bodyData;
         const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
         if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada.");
 
@@ -126,14 +126,15 @@ serve(async (req) => {
                                 title: title,
                                 body: body,
                                 tag: "gestao-ps1",
-                                url: "https://condominio-ps1.vercel.app/"
+                                ...extraData
                             },
                             android: {
                                 priority: "high",
                                 data: {
                                     title: title,
                                     body: body,
-                                    tag: "gestao-ps1"
+                                    tag: "gestao-ps1",
+                                    ...extraData
                                 }
                             },
                             apns: {
@@ -156,7 +157,8 @@ serve(async (req) => {
                                 data: {
                                     title: title,
                                     body: body,
-                                    tag: "gestao-ps1"
+                                    tag: "gestao-ps1",
+                                    ...extraData
                                 }
                             }
                         }

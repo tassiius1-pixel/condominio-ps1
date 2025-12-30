@@ -485,6 +485,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     addToast("Ocorrência registrada.", "success");
+
+    // Notificar administradores
+    const admins = users.filter(u => [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(u.role));
+    admins.forEach(admin => {
+      addNotification({
+        message: `Nova ocorrência: ${data.subject} (Unidade ${data.houseNumber})`,
+        userId: admin.id,
+        requestId: "",
+      });
+      sendPushNotification(admin.id, "Nova Ocorrência", `${data.authorName} (Casa ${data.houseNumber}): ${data.subject}`);
+    });
   };
 
   const updateOccurrence = async (id: string, data: Partial<Occurrence>) => {
@@ -499,6 +510,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           userId: occurrence.authorId,
           requestId: "",
         });
+
+        // 🔥 Push Notification para o autor
+        sendPushNotification(
+          occurrence.authorId,
+          "Ocorrência Respondida",
+          `A gestão respondeu à sua ocorrência: ${occurrence.subject}`
+        );
       }
     }
 
@@ -687,6 +705,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     addToast('Aviso publicado com sucesso!', 'success');
+
+    // 🔥 Push Notification para todos
+    sendPushNotification(
+      "all",
+      "Novo Aviso Publicado",
+      notice.title
+    );
   };
 
   const deleteNotice = async (noticeId: string) => {
@@ -750,6 +775,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     addToast('Documento adicionado com sucesso!', 'success');
+
+    // Notificar todos
+    await addNotification({
+      message: `Novo documento disponível: ${docData.title}`,
+      userId: "all",
+      requestId: "",
+    });
+
+    sendPushNotification(
+      "all",
+      "Novo Documento Adicionado",
+      docData.title
+    );
   };
 
   const deleteDocument = async (id: string) => {
