@@ -103,7 +103,9 @@ export const sendPushNotification = async (
                 }),
             }
         );
-        return await response.json();
+        const result = await response.json();
+        console.log("✅ Servidor respondeu:", result);
+        return result;
     } catch (error) {
         console.error("❌ Erro ao disparar Push Notification:", error);
         return { error };
