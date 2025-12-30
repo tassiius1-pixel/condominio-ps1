@@ -65,13 +65,11 @@ serve(async (req) => {
 
     try {
         const textBody = await req.text();
-        console.log(`[LOG] Corpo recebido: ${textBody}`);
-
         let bodyData;
         try {
             bodyData = JSON.parse(textBody);
         } catch (e) {
-            throw new Error(`JSON Inválido no corpo: ${e.message}`);
+            throw new Error(`JSON Inválido: ${e.message}`);
         }
 
         const { userId, title, body } = bodyData;
@@ -82,43 +80,32 @@ serve(async (req) => {
         const accessToken = await getAccessToken(serviceAccount);
 
         const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
-        console.log(`[LOG] Buscando usuários em: ${firestoreUrl}`);
-
         const firestoreRes = await fetch(firestoreUrl, {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
 
         const firestoreData = await firestoreRes.json();
-        if (firestoreData.error) throw new Error(`Firestore Error: ${firestoreData.error.message}`);
+        if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
 
         let tokens: string[] = [];
 
         if (userId === "all") {
             const rawTokens = (firestoreData.documents || [])
                 .map((doc: any) => doc.fields?.fcmToken?.stringValue)
-                .filter((t: any) => t && typeof t === 'string' && t.length > 5);
-
+                .filter((t: any) => t && t.length > 5);
             tokens = [...new Set(rawTokens)];
-            console.log(`[LOG] Modo ALL: Encontrados ${tokens.length} tokens únicos.`);
         } else {
-            // Documento individual
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             const userData = await userDocRes.json();
             const t = userData.fields?.fcmToken?.stringValue;
             if (t && t.length > 5) tokens.push(t);
-            console.log(`[LOG] Modo INDIVIDUAL (${userId}): Token ${t ? 'encontrado' : 'não encontrado'}.`);
         }
 
         if (tokens.length === 0) {
-            return new Response(JSON.stringify({
-                success: true,
-                message: "Aviso: Nenhum token de destino encontrado no Firestore."
-            }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+            return new Response(JSON.stringify({ success: true, message: "Sem alvos." }), { headers: corsHeaders });
         }
-
-        console.log(`[LOG] Iniciando envio para ${tokens.length} dispositivos...`);
 
         const deliveryResults = await Promise.allSettled(tokens.map(async (token) => {
             const res = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
@@ -131,11 +118,25 @@ serve(async (req) => {
                     message: {
                         token: token,
                         notification: { title, body },
+                        // DATA para garantir que o onBackgroundMessage seja chamado no Android/Web
+                        data: {
+                            title,
+                            body,
+                            url: "https://condominio-ps1.vercel.app/"
+                        },
                         webpush: {
-                            fcm_options: { link: "https://condominio-ps1.vercel.app/" },
+                            headers: {
+                                "Urgency": "high"
+                            },
                             notification: {
-                                icon: "https://condominio-ps1.vercel.app/logo.png"
-                            }
+                                title,
+                                body,
+                                icon: "https://condominio-ps1.vercel.app/logo.png",
+                                badge: "https://condominio-ps1.vercel.app/logo.png",
+                                requireInteraction: true,
+                                silent: false // Garante que não é silenciosa
+                            },
+                            fcm_options: { link: "https://condominio-ps1.vercel.app/" }
                         },
                         apns: {
                             payload: {
@@ -143,7 +144,8 @@ serve(async (req) => {
                                     alert: { title, body },
                                     sound: "default",
                                     badge: 1,
-                                    "content-available": 1
+                                    "content-available": 1,
+                                    priority: 10 // Alta prioridade para acordar o iPhone
                                 }
                             }
                         }
@@ -153,22 +155,12 @@ serve(async (req) => {
             return res.json();
         }));
 
-        console.log(`[LOG] Envio concluído. Verifique o campo results para detalhes de cada token.`);
-
-        return new Response(JSON.stringify({
-            success: true,
-            count: tokens.length,
-            results: deliveryResults
-        }), {
+        return new Response(JSON.stringify({ success: true, results: deliveryResults }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
     } catch (error) {
-        console.error(`[CRITICAL ERROR] ${error.message}`);
-        return new Response(JSON.stringify({
-            error: error.message,
-            hint: "Consulte os logs da Edge Function no Supabase para ver o erro detalhado."
-        }), {
+        return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
         })
