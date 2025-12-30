@@ -123,7 +123,23 @@ serve(async (req) => {
                     message: {
                         token: token,
                         notification: { title, body },
-                        webpush: { fcm_options: { link: "https://condominio-ps1.vercel.app/" } }
+                        webpush: {
+                            fcm_options: { link: "https://condominio-ps1.vercel.app/" },
+                            notification: {
+                                icon: "https://condominio-ps1.vercel.app/logo.png",
+                                badge: "https://condominio-ps1.vercel.app/logo.png"
+                            }
+                        },
+                        apns: {
+                            payload: {
+                                aps: {
+                                    alert: { title, body },
+                                    sound: "default",
+                                    badge: 1,
+                                    "content-available": 1
+                                }
+                            }
+                        }
                     }
                 })
             });
