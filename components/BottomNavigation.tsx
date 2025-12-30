@@ -7,7 +7,8 @@ import {
     BookIcon,
     MenuIcon,
     CheckSquareIcon,
-    FileIcon
+    FileIcon,
+    LightbulbIcon
 } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 
@@ -29,8 +30,8 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
 
     const navItems = [
         { id: 'home', label: 'Início', icon: LayoutDashboardIcon },
-        { id: 'voting', label: 'Votação', icon: CheckSquareIcon },
         { id: 'reservations', label: 'Reservas', icon: CalendarIcon },
+        { id: 'dashboard', label: 'Sugestões', icon: LightbulbIcon },
     ];
 
     // Filter items based on role if needed, though these are basic resident features

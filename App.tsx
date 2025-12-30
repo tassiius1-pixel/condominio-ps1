@@ -173,7 +173,7 @@ const App: React.FC = () => {
         <BottomNavigation
           currentView={mainView}
           setView={handleViewChange}
-          onToggleMenu={() => setMobileMenuOpen(true)}
+          onToggleMenu={() => setMobileMenuOpen(prev => !prev)}
           hasUnreadNotifications={toasts.length > 0} // Using toasts as proxy or pass notifications logic later
         />
       )}

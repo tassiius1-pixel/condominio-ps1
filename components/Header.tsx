@@ -336,14 +336,14 @@ const Header: React.FC<HeaderProps> = ({
           className={`
             fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
             transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-            flex flex-col pb-[env(safe-area-inset-bottom,2rem)]
+            flex flex-col
           `}
           style={{ transform: mobileMenuOpen ? `translateX(${menuTranslateX}px)` : 'translateX(-100%)' }}
           onTouchStart={handleMenuTouchStart}
           onTouchMove={handleMenuTouchMove}
           onTouchEnd={handleMenuTouchEnd}
         >
-          <div className="h-full flex flex-col p-4 overflow-hidden">
+          <div className="flex-1 flex flex-col p-4 overflow-hidden">
             {/* Menu Header */}
             <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -391,7 +391,7 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* Menu Footer */}
-            <div className="mt-auto px-4 pt-6 border-t border-gray-100 flex flex-col items-center flex-shrink-0">
+            <div className="mt-auto px-4 pt-6 pb-[env(safe-area-inset-bottom,1.5rem)] border-t border-gray-100 flex flex-col items-center flex-shrink-0">
               <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>
