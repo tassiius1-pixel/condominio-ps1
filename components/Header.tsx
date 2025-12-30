@@ -319,17 +319,20 @@ const Header: React.FC<HeaderProps> = ({
                       // 1. Limpeza e Registro
                       let registration: ServiceWorkerRegistration | undefined;
                       if ('serviceWorker' in navigator) {
-                        console.log("🧹 Resetando SW...");
+                        console.log("🧹 Resetando SW profissionalmente...");
                         const regs = await navigator.serviceWorker.getRegistrations();
                         for (let r of regs) await r.unregister();
 
+                        // Registra e aguarda
                         registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
-                        console.log("✅ Novo SW registrado. Status:", registration.active ? 'active' : 'pending');
 
-                        // Espera ficar ativo se necessário
-                        if (!registration.active) {
-                          await new Promise(r => setTimeout(r, 1500)); // Pequena pausa para o browser
+                        // Loop de espera até 5 segundos
+                        let waitCount = 0;
+                        while (!registration.active && waitCount < 10) {
+                          await new Promise(r => setTimeout(r, 500));
+                          waitCount++;
                         }
+                        console.log("✅ SW Status Final:", registration.active ? 'Ativo' : 'Pendente');
                       }
 
                       // 2. Desbloqueia Audio
