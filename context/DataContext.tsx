@@ -392,8 +392,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       "Nova Sugestão Criada",
       `${author.name} sugeriu: ${newRequest.title}`
     );
-
-    addToast("Sugestão registrada.", "success");
   };
 
   const updateRequest = (updatedRequest: Request) => {
@@ -405,9 +403,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteRequest = (requestId: string) => {
-    deleteDoc(doc(db, "requests", requestId)).then(() =>
-      addToast("Sugestão excluída.", "success")
-    );
+    deleteDoc(doc(db, "requests", requestId));
   };
 
   const updateRequestStatus = (requestId: string, newStatus: Status, adminResponse?: string, userId?: string) => {
@@ -457,7 +453,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           `O status de "${request.title}" mudou para ${newStatus}.`
         );
       }
-      addToast("Status atualizado.", "info");
     });
   };
 
@@ -535,7 +530,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         userId: "all",
         requestId: request.id,
       });
-      addToast("Comentário adicionado.", "success");
     });
   };
 
@@ -548,7 +542,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(doc(db, "requests", requestId), {
       comments: updatedComments,
     });
-    addToast("Comentário excluído.", "success");
   };
 
   const updateComment = async (requestId: string, commentId: string, newText: string) => {
@@ -562,7 +555,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(doc(db, "requests", requestId), {
       comments: updatedComments,
     });
-    addToast("Comentário atualizado.", "success");
   };
 
   const toggleRequestLike = async (requestId: string, userId: string) => {
@@ -665,8 +657,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     // Removido notificação global para cada voto para evitar spam
-
-    addToast('Voto registrado com sucesso!', 'success');
   };
 
   // --- NOTICES ---
