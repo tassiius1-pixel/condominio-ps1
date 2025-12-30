@@ -123,29 +123,24 @@ serve(async (req) => {
                     body: JSON.stringify({
                         message: {
                             token: token,
-                            notification: { title, body },
+                            notification: {
+                                title: title,
+                                body: body
+                            },
                             android: {
                                 priority: "high",
                                 notification: {
                                     sound: "default",
-                                    channel_id: "high_priority",
-                                    click_action: "https://condominio-ps1.vercel.app/",
-                                    notification_priority: "PRIORITY_MAX",
-                                    visibility: "PUBLIC"
+                                    click_action: "https://condominio-ps1.vercel.app/"
                                 }
                             },
                             apns: {
-                                headers: {
-                                    "apns-priority": "10",
-                                    "apns-push-type": "alert"
-                                },
+                                headers: { "apns-priority": "10" },
                                 payload: {
                                     aps: {
-                                        alert: { title, body },
+                                        alert: { title: title, body: body },
                                         sound: "default",
-                                        badge: 1,
-                                        "mutable-content": 1,
-                                        category: "NEW_SUGGESTION"
+                                        badge: 1
                                     }
                                 }
                             },
@@ -155,17 +150,16 @@ serve(async (req) => {
                                     title: title,
                                     body: body,
                                     icon: "https://condominio-ps1.vercel.app/logo.png",
+                                    badge: "https://condominio-ps1.vercel.app/logo.png",
                                     vibrate: [200, 100, 200],
-                                    tag: "sos-" + Date.now(),
-                                    renotify: true
+                                    tag: "new-suggestion"
                                 },
                                 fcm_options: { link: "https://condominio-ps1.vercel.app/" }
                             },
                             data: {
                                 title: title,
                                 body: body,
-                                url: "https://condominio-ps1.vercel.app/",
-                                sos_flag: "true"
+                                url: "https://condominio-ps1.vercel.app/"
                             }
                         }
                     })

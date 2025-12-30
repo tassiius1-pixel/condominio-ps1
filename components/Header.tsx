@@ -312,11 +312,21 @@ const Header: React.FC<HeaderProps> = ({
 
                 {/* TEST PUSH AUDIO BUTTON */}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    // 1. Desbloqueia Áudio
                     if ((window as any).triggerPushBeep) {
                       (window as any).triggerPushBeep();
-                    } else {
-                      console.warn("Audio trigger não inicializado ainda.");
+                    }
+
+                    // 2. Garante Permissão de Notificação (Essencial para PWA/Atalho)
+                    if ("Notification" in window) {
+                      const permission = await Notification.requestPermission();
+                      console.log("📍 [PWA] Status da permissão:", permission);
+                      if (permission === 'granted') {
+                        alert("Notificações liberadas! Agora saia do app e teste o banner.");
+                      } else {
+                        alert("Por favor, libere as notificações nas configurações do seu celular.");
+                      }
                     }
                   }}
                   className="p-2.5 rounded-xl text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
