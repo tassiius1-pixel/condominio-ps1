@@ -392,6 +392,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       "Nova Sugestão Criada",
       `${author.name} sugeriu: ${newRequest.title}`
     );
+    addToast("Sugestão registrada.", "success");
   };
 
   const updateRequest = (updatedRequest: Request) => {
@@ -403,7 +404,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteRequest = (requestId: string) => {
-    deleteDoc(doc(db, "requests", requestId));
+    deleteDoc(doc(db, "requests", requestId)).then(() =>
+      addToast("Sugestão excluída.", "success")
+    );
   };
 
   const updateRequestStatus = (requestId: string, newStatus: Status, adminResponse?: string, userId?: string) => {
@@ -453,6 +456,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           `O status de "${request.title}" mudou para ${newStatus}.`
         );
       }
+      addToast("Status atualizado.", "info");
     });
   };
 
@@ -530,6 +534,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         userId: "all",
         requestId: request.id,
       });
+      addToast("Comentário adicionado.", "success");
     });
   };
 
@@ -657,6 +662,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     // Removido notificação global para cada voto para evitar spam
+
+    addToast('Voto registrado com sucesso!', 'success');
   };
 
   // --- NOTICES ---
