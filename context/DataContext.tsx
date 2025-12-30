@@ -76,6 +76,7 @@ interface DataContextType {
   updateOccurrence: (id: string, data: Partial<Occurrence>) => Promise<void>;
   deleteOccurrence: (id: string) => Promise<void>;
   toggleRequestLike: (requestId: string, userId: string) => Promise<void>;
+  toggleCommentLike: (requestId: string, commentId: string, userId: string) => Promise<void>;
   deleteVoting: (id: string) => Promise<void>;
   clearLegacyData: () => Promise<void>;
 
@@ -601,6 +602,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(requestRef, { likes: newLikes });
   };
 
+  const toggleCommentLike = async (requestId: string, commentId: string, userId: string) => {
+    const request = requests.find((r) => r.id === requestId);
+    if (!request) return;
+
+    // Local update first for responsiveness
+    // In a real app we might wait for DB but here we want speed
+    const updatedComments = request.comments.map(comment => {
+      if (comment.id === commentId) {
+        const likes = comment.likes || [];
+        const isLiked = likes.includes(userId);
+        let newLikes;
+        if (isLiked) {
+          newLikes = likes.filter(id => id !== userId);
+        } else {
+          newLikes = [...likes, userId];
+        }
+        return { ...comment, likes: newLikes };
+      }
+      return comment;
+    });
+
+    await updateDoc(doc(db, "requests", requestId), {
+      comments: updatedComments
+    });
+  };
+
   // MARCAR COMO LIDAS
   const markAllNotificationsAsRead = async (userId: string) => {
     const unread = notifications.filter((n) => !n.readBy?.includes(userId));
@@ -844,6 +871,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateOccurrence,
     deleteOccurrence,
     toggleRequestLike,
+    toggleCommentLike,
     clearLegacyData,
     documents,
     addDocument,

@@ -73,6 +73,7 @@ export interface Comment {
   createdAt: string;
   type?: 'regular' | 'status_change';
   newStatus?: Status;
+  likes?: string[];
 }
 
 export interface Request {

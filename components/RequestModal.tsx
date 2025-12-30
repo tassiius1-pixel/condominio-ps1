@@ -24,7 +24,7 @@ interface RequestModalProps {
 
 const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const { currentUser } = useAuth();
-  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, toggleRequestLike, addToast, users } = useData();
+  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, toggleRequestLike, toggleCommentLike, addToast, users } = useData();
 
   const MAX_PHOTOS = 3;
 
@@ -571,9 +571,38 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                                         {new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                                       </span>
                                     </div>
-                                    <p className="text-sm text-gray-800 leading-relaxed font-medium mt-0.5 break-words">
-                                      {comment.text}
-                                    </p>
+                                    {editingCommentId === comment.id ? (
+                                      <div className="flex flex-col gap-2 mt-1">
+                                        <input
+                                          value={editingCommentText}
+                                          onChange={e => setEditingCommentText(e.target.value)}
+                                          className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition-all shadow-sm"
+                                          autoFocus
+                                          onKeyDown={e => {
+                                            if (e.key === 'Enter') handleSaveEditedComment(comment.id);
+                                            if (e.key === 'Escape') setEditingCommentId(null);
+                                          }}
+                                        />
+                                        <div className="flex justify-end gap-2">
+                                          <button
+                                            onClick={() => setEditingCommentId(null)}
+                                            className="text-[10px] uppercase font-black text-gray-400 hover:text-gray-600 px-2 py-1"
+                                          >
+                                            Cancelar
+                                          </button>
+                                          <button
+                                            onClick={() => handleSaveEditedComment(comment.id)}
+                                            className="text-[10px] uppercase font-black bg-indigo-600 text-white px-3 py-1 rounded-lg shadow-indigo-200 hover:scale-105 transition-transform"
+                                          >
+                                            Salvar
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-gray-800 leading-relaxed font-medium mt-0.5 break-words">
+                                        {comment.text}
+                                      </p>
+                                    )}
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-4 mt-2">
@@ -585,20 +614,42 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                                       </button>
 
                                       {(isMe || canManage) && (
-                                        <button
-                                          onClick={() => handleDeleteComment(comment.id)}
-                                          className="text-[11px] font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                                        >
-                                          Excluir
-                                        </button>
+                                        <>
+                                          {isMe && (
+                                            <button
+                                              onClick={() => handleEditComment(comment)}
+                                              className="text-[11px] font-bold text-gray-400 hover:text-indigo-600 transition-colors cursor-pointer"
+                                            >
+                                              Editar
+                                            </button>
+                                          )}
+                                          <button
+                                            onClick={() => handleDeleteComment(comment.id)}
+                                            className="text-[11px] font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                                          >
+                                            Excluir
+                                          </button>
+                                        </>
                                       )}
                                     </div>
                                   </div>
                                 </div>
 
                                 {/* Like Icon (Visual per user request logic) */}
-                                <div className="shrink-0 pt-2">
-                                  <HeartIcon className="w-4 h-4 text-gray-300 hover:text-red-500 cursor-pointer transition-colors" />
+                                <div className="shrink-0 pt-2 flex flex-col items-center gap-0.5">
+                                  <button
+                                    onClick={() => toggleCommentLike(request.id, comment.id, currentUser.id)}
+                                    className="group p-1 -m-1"
+                                  >
+                                    <HeartIcon
+                                      className={`w-4 h-4 transition-colors ${comment.likes?.includes(currentUser.id) ? 'fill-red-500 text-red-500' : 'text-gray-300 group-hover:text-red-400'}`}
+                                    />
+                                  </button>
+                                  {(comment.likes?.length || 0) > 0 && (
+                                    <span className="text-[9px] font-bold text-gray-400">
+                                      {comment.likes?.length}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             );
