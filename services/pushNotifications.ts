@@ -39,40 +39,48 @@ export const requestPushPermission = async (
             return { status: 'unsupported' };
         }
 
-        // --- MELHORIA: Aguarda o Service Worker explicitamente ---
+        // --- MELHORIA SOS: Aguarda o Service Worker de forma agressiva ---
         let registration = customRegistration;
-
         if (!registration) {
-            console.log("⏳ Aguardando Service Worker ready (default)...");
+            console.log("⏳ Buscando Service Worker pronto...");
             registration = await navigator.serviceWorker.ready;
         }
 
-        console.log("✅ Usando Service Worker:", registration.scope);
-
-        // Garante que o worker está 'activated'
-        const worker = registration.active || registration.installing || registration.waiting;
-        if (worker && worker.state !== 'activated') {
-            console.log("⏳ Worker em estado:", worker.state, "- Aguardando ativação...");
-            await new Promise((resolve) => {
-                worker.addEventListener('statechange', (e: any) => {
-                    if (e.target.state === 'activated') resolve(true);
-                });
-                // Timeout de segurança
-                setTimeout(resolve, 3000);
-            });
+        // Aguarda até o worker estar 'active' (Essencial para PWA/Mobile)
+        let attempts = 0;
+        while (!registration.active && attempts < 10) {
+            console.log(`⏳ Aguardando registro ativo (Tentativa ${attempts + 1})...`);
+            await new Promise(r => setTimeout(r, 800));
+            attempts++;
         }
+
+        if (!registration.active) {
+            console.error("❌ Erro: Service Worker não ativou a tempo.");
+            alert("Erro: O motor do app (Service Worker) demorou para iniciar. Tente clicar no sino novamente.");
+            return { status: 'error' };
+        }
+
+        console.log("✅ Usando Service Worker Ativo:", registration.scope);
 
         if (!registration.pushManager) {
             console.error("❌ Erro: pushManager não disponível.");
             return { status: 'unsupported' };
         }
 
+        // --- TENTATIVA DE TOKEN COM RETRY ---
         console.log("⏳ Solicitando FCM Token...");
-        const token = await getToken(messaging, {
-            vapidKey,
-            serviceWorkerRegistration: registration
-        });
-        // --------------------------------------------------------
+        let token = "";
+        try {
+            token = await getToken(messaging, {
+                vapidKey,
+                serviceWorkerRegistration: registration
+            });
+        } catch (tokenErr: any) {
+            console.warn("⚠️ Falha na primeira tentativa de token:", tokenErr.message);
+            // Fallback: Tenta sem a registration explícita (às vezes o Firebase prefere o autodetect)
+            await new Promise(r => setTimeout(r, 1000));
+            token = await getToken(messaging, { vapidKey });
+        }
 
         if (!token) {
             console.warn("❌ Não foi possível gerar token (vazio).");
@@ -81,7 +89,6 @@ export const requestPushPermission = async (
 
         console.log("✅ FCM Token gerado com sucesso!");
 
-        // Salva token no documento do usuário para facilitar o envio direcionado
         await updateDoc(doc(db, "users", userId), {
             fcmToken: token,
             pushEnabled: true,
@@ -92,7 +99,12 @@ export const requestPushPermission = async (
 
     } catch (error: any) {
         console.error("❌ Erro CRÍTICO no requestPushPermission:", error);
-        alert("Erro no Token: " + (error.message || "Desconhecido"));
+        // Se o erro for "requires a service worker", damos uma dica pro usuário
+        if (error.message?.includes("service worker")) {
+            alert("O celular ainda está configurando o app. Por favor, feche o app, abra de novo e clique no sino.");
+        } else {
+            alert("Erro no Token: " + (error.message || "Desconhecido"));
+        }
         return { status: 'error' };
     }
 };
