@@ -734,11 +734,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast('Aviso publicado com sucesso!', 'success');
 
     // 🔥 Push Notification para todos
-    sendPushNotification(
-      "all",
-      "Novo Aviso Publicado",
-      notice.title
-    );
+    try {
+      await sendPushNotification(
+        "all",
+        "Novo Aviso Publicado",
+        notice.title
+      );
+    } catch (err) {
+      console.error("Erro ao disparar broadcast de avisos:", err);
+    }
   };
 
   const deleteNotice = async (noticeId: string) => {
@@ -803,18 +807,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     addToast('Documento adicionado com sucesso!', 'success');
 
-    // Notificar todos
+    // Notificar todos (In-App)
     await addNotification({
       message: `Novo documento disponível: ${docData.title}`,
       userId: "all",
       requestId: "",
     });
 
-    sendPushNotification(
-      "all",
-      "Novo Documento Adicionado",
-      docData.title
-    );
+    // 🔥 Push Notification para todos (Mobile/Desktop)
+    try {
+      await sendPushNotification(
+        "all",
+        "Novo Documento Adicionado",
+        `${docData.title} (${docData.category})`
+      );
+    } catch (err) {
+      console.error("Erro ao disparar broadcast de documentos:", err);
+    }
   };
 
   const deleteDocument = async (id: string) => {

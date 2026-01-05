@@ -46,6 +46,12 @@ const App: React.FC = () => {
     const handlePopState = (event: PopStateEvent) => {
       if (event.state && event.state.view) {
         setMainView(event.state.view);
+      } else {
+        // Se o estado do histórico for null (ex: voltou para o início), 
+        // tenta pegar pela URL ou volta para home.
+        const params = new URLSearchParams(window.location.search);
+        const viewFromUrl = params.get("view") as View;
+        setMainView(viewFromUrl || "home");
       }
     };
 

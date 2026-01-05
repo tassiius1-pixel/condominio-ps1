@@ -44,6 +44,40 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewDoc, setPreviewDoc] = useState<DocumentType | null>(null);
 
+    // Sync preview with browser history
+    React.useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            // Se o estado não contém 'preview', fecha o modal se estiver aberto
+            if (!event.state?.previewModal) {
+                setPreviewDoc(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    const openPreview = (doc: DocumentType) => {
+        setPreviewDoc(doc);
+        // Adiciona um estado no histórico para o modal
+        const currentParams = new URLSearchParams(window.location.search);
+        window.history.pushState(
+            { ...window.history.state, previewModal: true },
+            "",
+            `?view=documents&preview=${doc.id}`
+        );
+    };
+
+    const closePreview = () => {
+        setPreviewDoc(null);
+        // Se estivermos fechando manualmente, remove o estado do histórico 
+        // apenas se o estado atual for o do modal (para não voltar demais no histórico)
+        if (window.history.state?.previewModal) {
+            window.history.back();
+        }
+    };
+
+
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -297,7 +331,7 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => setPreviewDoc(doc)}
+                                        onClick={() => openPreview(doc)}
                                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
                                         title="Visualizar"
                                     >
@@ -336,7 +370,7 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                     <div className="flex items-center justify-between p-4 border-b border-gray-100 flex-shrink-0 bg-white shadow-sm z-10 pt-[calc(env(safe-area-inset-top,0rem)+1rem)]">
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => setPreviewDoc(null)}
+                                onClick={closePreview}
                                 className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all active:scale-95 touch-active"
                             >
                                 <ChevronLeftIcon className="w-6 h-6" />
