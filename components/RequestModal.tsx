@@ -24,7 +24,7 @@ interface RequestModalProps {
 
 const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const { currentUser } = useAuth();
-  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, toggleRequestLike, toggleCommentLike, addToast, users } = useData();
+  const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, toggleRequestLike, toggleCommentLike, updateRequestStatus, addToast, users } = useData();
 
   const MAX_PHOTOS = 3;
 
@@ -42,6 +42,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
+  const [targetStatus, setTargetStatus] = useState<Status | null>(null);
+  const [actionJustification, setActionJustification] = useState('');
+  const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
   useEffect(() => {
     setComments(request?.comments || []);
@@ -179,6 +182,25 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
     }
 
     onClose();
+  };
+
+  const handleConfirmAction = async () => {
+    if (!request || !targetStatus || !actionJustification.trim()) {
+      addToast("Justificativa é obrigatória.", "error");
+      return;
+    }
+
+    setIsSubmittingAction(true);
+    try {
+      await updateRequestStatus(request.id, targetStatus, actionJustification, currentUser.id);
+      addToast(`Status atualizado para ${targetStatus}`, "success");
+      onClose();
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
+      addToast("Erro ao atualizar status.", "error");
+    } finally {
+      setIsSubmittingAction(false);
+    }
   };
 
   const handleDelete = () => {
@@ -424,57 +446,89 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                 )}
               </section>
 
-              {/* 2. STATUS MANAGEMENT (Admin Only) */}
-              {canManage && isEditing && request && (
-                <section className="bg-indigo-50/30 p-6 rounded-[2rem] border border-indigo-100/50 space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">Gestão do Status</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {STATUSES.map(s => {
-                      const btnStyle = getStatusStyle(s);
-                      const isSelected = status === s;
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setStatus(s as Status)}
-                          className={`px-4 py-3 rounded-xl text-xs font-black transition-all border flex items-center gap-2
-                          ${isSelected
-                              ? `${btnStyle.bg} ${btnStyle.text} ${btnStyle.border} shadow-lg shadow-indigo-100 scale-[1.02]`
-                              : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
-                            }
-                        `}
-                        >
-                          <span className="text-base">{btnStyle.icon}</span>
-                          {s}
-                        </button>
-                      );
-                    })}
+              {/* 2. AÇÕES DA GESTÃO (Admin Only) */}
+              {canManage && !isEditing && request && (
+                <section className="bg-indigo-50/40 p-6 rounded-[2.5rem] border border-indigo-100/50 space-y-5 animate-slide-fade-in shadow-sm">
+                  <div className="flex items-center gap-2 px-2">
+                    <span className="text-xl">⚙️</span>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-900/60">Controle da Gestão</h3>
                   </div>
-                  {status !== request.status && (
-                    <div className="space-y-2 mt-4">
-                      <label className="text-[11px] font-black uppercase text-indigo-900 opacity-60">Justificativa da Mudança</label>
+
+                  {!targetStatus ? (
+                    <div className="flex flex-wrap gap-3">
+                      {/* PENDENTE -> ANALISE */}
+                      {request.status === Status.PENDENTE && (
+                        <button
+                          onClick={() => setTargetStatus(Status.EM_ANALISE)}
+                          className="flex-1 min-w-[140px] px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                          <InfoIcon className="w-4 h-4" />
+                          Iniciar Análise
+                        </button>
+                      )}
+
+                      {/* ANALISE/ANDAMENTO -> CONCLUÍDO / RECUSADA */}
+                      {(request.status === Status.EM_ANALISE || request.status === Status.EM_ANDAMENTO) && (
+                        <>
+                          <button
+                            onClick={() => setTargetStatus(Status.CONCLUIDO)}
+                            className="flex-1 min-w-[140px] px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
+                          >
+                            <CheckCircleIcon className="w-4 h-4" />
+                            Concluir
+                          </button>
+                          <button
+                            onClick={() => setTargetStatus(Status.RECUSADA)}
+                            className="flex-1 min-w-[140px] px-6 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-rose-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                            Recusar
+                          </button>
+                        </>
+                      )}
+
+                      {/* RESOLVIDA/RECUSADA -> REABRIR (VOLTAR ANALISE) */}
+                      {(request.status === Status.CONCLUIDO || request.status === Status.RECUSADA) && (
+                        <button
+                          onClick={() => setTargetStatus(Status.EM_ANALISE)}
+                          className="flex-1 min-w-[140px] px-6 py-4 bg-slate-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                          <EditIcon className="w-4 h-4" />
+                          Reabrir para Análise
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-white p-5 rounded-3xl border-2 border-indigo-200 space-y-4 animate-scale-in">
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs font-black uppercase text-indigo-900 tracking-wider">
+                          Alterando para: <span className={getStatusStyle(targetStatus).text}>{targetStatus}</span>
+                        </p>
+                        <button onClick={() => setTargetStatus(null)} className="text-[10px] font-black uppercase text-gray-400 hover:text-gray-600">Cancelar</button>
+                      </div>
+
                       <textarea
-                        value={justification}
-                        onChange={e => setJustification(e.target.value)}
-                        rows={2}
-                        className="w-full bg-white border-2 border-indigo-100 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-0 text-sm"
-                        placeholder="Explique o motivo para os moradores..."
+                        value={actionJustification}
+                        onChange={e => setActionJustification(e.target.value)}
+                        rows={3}
+                        placeholder="Justifique esta mudança para o morador..."
+                        className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                        autoFocus
                       />
-                      {errors.justification && <p className="text-xs font-bold text-red-500">{errors.justification}</p>}
+
+                      <button
+                        onClick={handleConfirmAction}
+                        disabled={!actionJustification.trim() || isSubmittingAction}
+                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        {isSubmittingAction ? (
+                          <LoaderCircleIcon className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>Confirmar Transição</>
+                        )}
+                      </button>
                     </div>
                   )}
-
-                  {/* Official Response Field (Always visible for editing) */}
-                  <div className="space-y-2 mt-4 pt-4 border-t border-indigo-100/30">
-                    <label className="text-[11px] font-black uppercase text-indigo-900 opacity-60">Resposta Oficial da Gestão</label>
-                    <textarea
-                      value={adminResponse}
-                      onChange={e => setAdminResponse(e.target.value)}
-                      rows={4}
-                      className="w-full bg-white border-2 border-indigo-100 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-0 text-sm font-medium"
-                      placeholder="Escreva aqui o posicionamento oficial do condomínio..."
-                    />
-                  </div>
                 </section>
               )}
 
