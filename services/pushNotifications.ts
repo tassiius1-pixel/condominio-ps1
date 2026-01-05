@@ -26,7 +26,12 @@ export const requestPushPermission = async (
 
     try {
         // ... já verificado no Header, mas garantimos aqui
-        const permission = Notification.permission;
+        let permission: NotificationPermission = Notification.permission;
+
+        if (permission === "default") {
+            permission = await Notification.requestPermission();
+        }
+
         if (permission !== "granted") {
             return { status: 'denied' };
         }

@@ -18,6 +18,7 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
     useData();
   const { currentUser } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isPushLoading, setIsPushLoading] = React.useState(false);
 
   // Fechar ao clicar fora
   useEffect(() => {
@@ -145,21 +146,31 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
         Notification.permission !== 'granted' && currentUser && (
           <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
             <button
+              disabled={isPushLoading}
               onClick={async () => {
-                const result = await requestPushPermission(currentUser.id);
-                if (result.status === 'granted') {
-                  addToast("Notificações ativadas com sucesso!", "success");
-                } else if (result.status === 'blocked') {
-                  addToast("Notificações bloqueadas no navegador. Redefina as permissões no cadeado da barra de endereços.", "error");
-                } else if (result.status === 'denied') {
-                  addToast("Permissão negada. Clique novamente para permitir no navegador.", "info");
-                } else {
-                  addToast("Não foi possível ativar as notificações.", "error");
+                if (isPushLoading) return;
+                setIsPushLoading(true);
+                try {
+                  const result = await requestPushPermission(currentUser.id);
+                  if (result.status === 'granted') {
+                    addToast("Notificações ativadas com sucesso!", "success");
+                  } else if (result.status === 'blocked') {
+                    addToast("Notificações bloqueadas no navegador. Redefina as permissões no cadeado da barra de endereços.", "error");
+                  } else if (result.status === 'denied') {
+                    addToast("Permissão negada. Clique novamente para permitir no navegador.", "info");
+                  } else {
+                    addToast("Não foi possível ativar as notificações.", "error");
+                  }
+                } catch (err) {
+                  console.error("Erro ao ativar push:", err);
+                  addToast("Erro inesperado ao ativar notificações.", "error");
+                } finally {
+                  setIsPushLoading(false);
                 }
               }}
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors w-full py-1 rounded-lg hover:bg-blue-50"
+              className={`text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors w-full py-1 rounded-lg hover:bg-blue-50 ${isPushLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Ativar Notificações Push
+              {isPushLoading ? "Ativando..." : "Ativar Notificações Push"}
             </button>
           </div>
         )
