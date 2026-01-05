@@ -171,12 +171,12 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
     // Filter Logic
     const filteredOccurrences = occurrences.filter(occ => {
-        if (canManageOccurrences) {
-            return activeTab === 'open' ? occ.status === 'Aberto' : occ.status === 'Resolvido';
-        } else {
-            // Residents see only their own
-            return occ.authorId === currentUser?.id;
-        }
+        // First filter by visibility/ownership
+        const canSee = canManageOccurrences || occ.authorId === currentUser?.id;
+        if (!canSee) return false;
+
+        // Then filter by status (tab)
+        return activeTab === 'open' ? occ.status === 'Aberto' : occ.status === 'Resolvido';
     });
 
     const renderOccurrenceCard = (occ: Occurrence) => {
@@ -349,8 +349,8 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                 )}
             </div>
 
-            {/* Tabs for Admin */}
-            {canManageOccurrences && !isFormOpen && (
+            {/* Tabs for all Users */}
+            {!isFormOpen && (
                 <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
                     <button
                         onClick={() => setActiveTab('open')}
@@ -362,7 +362,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                         onClick={() => setActiveTab('resolved')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'resolved' ? 'bg-white shadow text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
                     >
-                        Resolvidas
+                        Arquivadas
                     </button>
                 </div>
             )}
