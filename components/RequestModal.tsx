@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
-import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon } from './Icons';
+import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon, WrenchScrewdriverIcon, BarChartIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
 import { getStatusStyle } from '../utils/statusUtils';
 import ConfirmModal from './ConfirmModal';
@@ -20,9 +20,11 @@ import ConfirmModal from './ConfirmModal';
 interface RequestModalProps {
   request?: Request;
   onClose: () => void;
+  initialStatus?: Status;
+  onCreateVoting?: (title: string, description: string) => void;
 }
 
-const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
+const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialStatus, onCreateVoting }) => {
   const { currentUser } = useAuth();
   const { addRequest, updateRequest, deleteRequest, addComment, deleteComment, updateComment, toggleRequestLike, toggleCommentLike, updateRequestStatus, addToast, users } = useData();
 
@@ -42,7 +44,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
-  const [targetStatus, setTargetStatus] = useState<Status | null>(null);
+  const [targetStatus, setTargetStatus] = useState<Status | null>(initialStatus || null);
   const [actionJustification, setActionJustification] = useState('');
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
@@ -455,48 +457,59 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                   </div>
 
                   {!targetStatus ? (
-                    <div className="flex flex-wrap gap-3">
-                      {/* PENDENTE -> ANALISE */}
-                      {request.status === Status.PENDENTE && (
+                    <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-2xl p-2 gap-3 shadow-inner border border-white">
+                      <div className="flex items-center gap-2 flex-1">
                         <button
-                          onClick={() => setTargetStatus(Status.EM_ANALISE)}
-                          className="flex-1 min-w-[140px] px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
+                          type="button"
+                          onClick={() => setTargetStatus(Status.RECUSADA)}
+                          className="flex-1 p-3 rounded-xl text-red-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-red-100"
+                          title="Recusar"
                         >
-                          <InfoIcon className="w-4 h-4" />
-                          Iniciar Análise
+                          <XIcon className="w-6 h-6" />
                         </button>
-                      )}
-
-                      {/* ANALISE/ANDAMENTO -> CONCLUÍDO / RECUSADA */}
-                      {(request.status === Status.EM_ANALISE || request.status === Status.EM_ANDAMENTO) && (
-                        <>
-                          <button
-                            onClick={() => setTargetStatus(Status.CONCLUIDO)}
-                            className="flex-1 min-w-[140px] px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
-                          >
-                            <CheckCircleIcon className="w-4 h-4" />
-                            Concluir
-                          </button>
-                          <button
-                            onClick={() => setTargetStatus(Status.RECUSADA)}
-                            className="flex-1 min-w-[140px] px-6 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-rose-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                            Recusar
-                          </button>
-                        </>
-                      )}
-
-                      {/* RESOLVIDA/RECUSADA -> REABRIR (VOLTAR ANALISE) */}
-                      {(request.status === Status.CONCLUIDO || request.status === Status.RECUSADA) && (
                         <button
+                          type="button"
                           onClick={() => setTargetStatus(Status.EM_ANALISE)}
-                          className="flex-1 min-w-[140px] px-6 py-4 bg-slate-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-slate-100 hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-2"
+                          className="flex-1 p-3 rounded-xl text-blue-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
+                          title="Em Análise"
                         >
-                          <EditIcon className="w-4 h-4" />
-                          Reabrir para Análise
+                          <InfoIcon className="w-6 h-6" />
                         </button>
-                      )}
+                        <button
+                          type="button"
+                          onClick={() => setTargetStatus(Status.EM_ANDAMENTO)}
+                          className="flex-1 p-3 rounded-xl text-orange-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-orange-100"
+                          title="Em Andamento"
+                        >
+                          <WrenchScrewdriverIcon className="w-6 h-6" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTargetStatus(Status.CONCLUIDO)}
+                          className="flex-1 p-3 rounded-xl text-green-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-green-100"
+                          title="Concluir"
+                        >
+                          <CheckCircleIcon className="w-6 h-6" />
+                        </button>
+                      </div>
+
+                      <div className="w-px h-8 bg-gray-200 mx-1"></div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onCreateVoting && request) {
+                            onCreateVoting(request.title, request.description);
+                          } else {
+                            addToast("Redirecionando para criação de enquete...", "info");
+                          }
+                        }}
+                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95"
+                      >
+                        <BarChartIcon className="w-4 h-4" />
+                        Votar
+                      </button>
                     </div>
                   ) : (
                     <div className="bg-white p-5 rounded-3xl border-2 border-indigo-200 space-y-4 animate-scale-in">
@@ -504,14 +517,14 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose }) => {
                         <p className="text-xs font-black uppercase text-indigo-900 tracking-wider">
                           Alterando para: <span className={getStatusStyle(targetStatus).text}>{targetStatus}</span>
                         </p>
-                        <button onClick={() => setTargetStatus(null)} className="text-[10px] font-black uppercase text-gray-400 hover:text-gray-600">Cancelar</button>
+                        <button onClick={() => { setTargetStatus(null); setActionJustification(''); }} className="text-[10px] font-black uppercase text-gray-400 hover:text-gray-600">Cancelar</button>
                       </div>
 
                       <textarea
                         value={actionJustification}
                         onChange={e => setActionJustification(e.target.value)}
                         rows={3}
-                        placeholder="Justifique esta mudança para o morador..."
+                        placeholder="Escreva a resposta oficial da gestão para o morador aqui..."
                         className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
                         autoFocus
                       />

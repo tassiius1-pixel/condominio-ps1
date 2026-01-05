@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Request, Role, Priority, RequestType } from '../types';
+import { Request, Role, Priority, RequestType, Status } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import RequestModal from './RequestModal';
 import { useData } from '../hooks/useData';
@@ -51,12 +51,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Status Update State
-  const [statusModal, setStatusModal] = useState<{ isOpen: boolean; action: StatusAction | null }>({
-    isOpen: false,
-    action: null,
-  });
-  const [justification, setJustification] = useState('');
+  const [preSelectedStatus, setPreSelectedStatus] = useState<Status | null>(null);
 
   const canManage = currentUser?.role === Role.ADMIN ||
     currentUser?.role === Role.GESTAO ||
@@ -93,25 +88,12 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
     setIsLightboxOpen(true);
   };
 
-  const handleStatusClick = (e: React.MouseEvent, action: StatusAction) => {
+  const handleStatusClick = (e: React.MouseEvent, target: Status) => {
     e.stopPropagation();
-    setStatusModal({ isOpen: true, action });
-    setJustification(''); // Reset justification
+    setPreSelectedStatus(target);
+    setIsModalOpen(true);
   };
 
-  const confirmStatusUpdate = async () => {
-    if (!statusModal.action) return;
-
-    let newStatus = '';
-    if (statusModal.action === 'conclude') newStatus = 'Concluído';
-    if (statusModal.action === 'reject') newStatus = 'Recusada';
-    if (statusModal.action === 'analyze') newStatus = 'Em Análise';
-    if (statusModal.action === 'in_progress') newStatus = 'Em Andamento';
-
-    await updateRequestStatus(request.id, newStatus as any, justification, currentUser?.id);
-    setStatusModal({ isOpen: false, action: null });
-    setJustification('');
-  };
 
   const author = users.find(u => u.id === request.authorId);
   const authorFirstName = author ? author.name.split(' ')[0] : 'Desconhecido';
@@ -232,32 +214,32 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                 <div className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-2xl p-1.5 gap-2 shadow-inner">
                   <button
                     type="button"
-                    onClick={(e) => handleStatusClick(e, 'reject')}
-                    className="p-3 rounded-xl text-red-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
+                    onClick={(e) => handleStatusClick(e, Status.RECUSADA)}
+                    className="p-3 rounded-xl text-red-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-red-100"
                     title="Recusar"
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
                   <button
                     type="button"
-                    onClick={(e) => handleStatusClick(e, 'analyze')}
-                    className="p-3 rounded-xl text-blue-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
+                    onClick={(e) => handleStatusClick(e, Status.EM_ANALISE)}
+                    className="p-3 rounded-xl text-blue-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
                     title="Analisar"
                   >
                     <InfoIcon className="w-5 h-5" />
                   </button>
                   <button
                     type="button"
-                    onClick={(e) => handleStatusClick(e, 'in_progress')}
-                    className="p-3 rounded-xl text-orange-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
+                    onClick={(e) => handleStatusClick(e, Status.EM_ANDAMENTO)}
+                    className="p-3 rounded-xl text-orange-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-orange-100"
                     title="Em Andamento"
                   >
                     <WrenchScrewdriverIcon className="w-5 h-5" />
                   </button>
                   <button
                     type="button"
-                    onClick={(e) => handleStatusClick(e, 'conclude')}
-                    className="p-3 rounded-xl text-green-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
+                    onClick={(e) => handleStatusClick(e, Status.CONCLUIDO)}
+                    className="p-3 rounded-xl text-green-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-green-100"
                     title="Concluir"
                   >
                     <CheckCircleIcon className="w-5 h-5" />
@@ -285,7 +267,17 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
         </div>
       </div>
 
-      {isModalOpen && <RequestModal request={request} onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <RequestModal
+          request={request}
+          onClose={() => {
+            setIsModalOpen(false);
+            setPreSelectedStatus(null);
+          }}
+          initialStatus={preSelectedStatus || undefined}
+          onCreateVoting={onCreateVoting}
+        />
+      )}
 
       {isLightboxOpen && (
         <ImageLightbox
@@ -305,62 +297,6 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
         />
       )}
 
-      {/* Justification Modal */}
-      {statusModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className={`p-4 border-b ${statusModal.action === 'conclude' ? 'bg-green-50 border-green-100' :
-              statusModal.action === 'reject' ? 'bg-red-50 border-red-100' :
-                statusModal.action === 'in_progress' ? 'bg-orange-50 border-orange-100' :
-                  'bg-blue-50 border-blue-100'
-              }`}>
-              <h3 className={`font-bold ${statusModal.action === 'conclude' ? 'text-green-800' :
-                statusModal.action === 'reject' ? 'text-red-800' :
-                  statusModal.action === 'in_progress' ? 'text-orange-800' :
-                    'text-blue-800'
-                }`}>
-                {statusModal.action === 'conclude' ? 'Concluir Sugestão' :
-                  statusModal.action === 'reject' ? 'Recusar Sugestão' :
-                    statusModal.action === 'in_progress' ? 'Em Andamento' :
-                      'Analisar Sugestão'}
-              </h3>
-              <p className="text-xs text-gray-600 mt-1">
-                Insira uma justificativa ou resposta oficial para esta ação.
-              </p>
-            </div>
-
-            <div className="p-4">
-              <textarea
-                value={justification}
-                onChange={(e) => setJustification(e.target.value)}
-                placeholder="Escreva a resposta da gestão aqui..."
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none text-sm"
-                autoFocus
-              />
-            </div>
-
-            <div className="p-4 bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={() => setStatusModal({ isOpen: false, action: null })}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmStatusUpdate}
-                disabled={!justification.trim()}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${statusModal.action === 'conclude' ? 'bg-green-600 hover:bg-green-700' :
-                  statusModal.action === 'reject' ? 'bg-red-600 hover:bg-red-700' :
-                    statusModal.action === 'in_progress' ? 'bg-orange-600 hover:bg-orange-700' :
-                      'bg-blue-600 hover:bg-blue-700'
-                  }`}
-              >
-                Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
