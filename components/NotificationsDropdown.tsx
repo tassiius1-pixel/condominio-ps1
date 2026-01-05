@@ -143,7 +143,7 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
 
       {/* Footer para ativar notificações */}
       {
-        Notification.permission !== 'granted' && currentUser && (
+        typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission !== 'granted' && currentUser && (
           <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
             <button
               disabled={isPushLoading}
