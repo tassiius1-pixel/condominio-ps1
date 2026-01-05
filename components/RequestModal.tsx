@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
-import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon, WrenchScrewdriverIcon, BarChartIcon } from './Icons';
+import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon, WrenchScrewdriverIcon, BarChartIcon, SendIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
 import { getStatusStyle } from '../utils/statusUtils';
 import ConfirmModal from './ConfirmModal';
@@ -279,6 +279,14 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
   const [isSwiping, setIsSwiping] = useState(false);
   const touchStart = useRef<number>(0);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStart.current = e.touches[0].clientY;
     setIsSwiping(true);
@@ -368,8 +376,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
           </div>
 
           {/* Modal Body - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto bg-white scrolling-touch pb-[env(safe-area-inset-bottom,2.5rem)]">
-            <div className="max-w-5xl mx-auto w-full p-6 sm:p-12">
+          <div className="flex-1 overflow-y-auto bg-white scrolling-touch pb-10 sm:pb-20">
+            <div className="max-w-4xl mx-auto w-full p-6 sm:p-10">
 
               {/* 1. SEÇÃO DE CONTEÚDO (Título e Descrição) */}
               <section className="space-y-6">
@@ -404,17 +412,17 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                     </h1>
 
                     {/* Autor Meta info */}
-                    <div className="flex items-center gap-3 py-2 border-y border-gray-100/50">
-                      <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs uppercase shadow-sm">
-                        {author?.name.split(' ')[0][0]}{author?.name.split(' ').slice(-1)[0][0]}
+                    <div className="flex items-center gap-3 py-1.5 border-y border-gray-100/50">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-[10px] uppercase shadow-sm">
+                        {author?.name.split(' ')[0][0]}
                       </div>
                       <div>
-                        <p className="text-xs font-black text-gray-900">{author?.name} • Unidade {author?.houseNumber}</p>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Autor da Sugestão</p>
+                        <p className="text-xs font-black text-gray-900">{author?.name.split(' ')[0]} • Unidade {author?.houseNumber}</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Autor da Sugestão</p>
                       </div>
                     </div>
 
-                    <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-normal whitespace-pre-wrap break-words">
+                    <p className="text-base text-gray-600 leading-relaxed font-normal whitespace-pre-wrap break-words">
                       {request?.description}
                     </p>
 
@@ -762,7 +770,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                     disabled={!newComment.trim()}
                     className="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-90"
                   >
-                    <PlusIcon className="w-5 h-5 rotate-45" />
+                    <SendIcon className="w-5 h-5 ml-0.5" />
                   </button>
                 </div>
               )}
