@@ -420,13 +420,13 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
                     {/* Resposta da Gestão (Box Estilizado) */}
                     {request?.adminResponse && (
-                      <div className={`mt-3 ${style.bg}/40 border ${style.border}/40 rounded-2xl p-4 relative transition-colors overflow-hidden animate-slide-fade-in`}>
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-[10px] font-black ${style.text} uppercase tracking-wider`}>Resposta da Gestão</span>
-                          <span className="text-lg">{style.icon}</span>
+                      <div className={`mt-4 ${style.bg}/40 border ${style.border}/40 rounded-[2rem] p-5 relative transition-colors overflow-hidden animate-slide-fade-in shadow-sm`}>
+                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className={`text-[10px] font-black ${style.text} uppercase tracking-[0.2em]`}>Resposta da Gestão</span>
+                          <span className="text-xl">{style.icon}</span>
                         </div>
-                        <p className={`text-xs ${style.text} leading-relaxed font-bold pl-1 break-words`}>
+                        <p className={`text-[13px] ${style.text} leading-relaxed font-bold pl-1 break-words`}>
                           {request.adminResponse}
                         </p>
                       </div>
@@ -609,9 +609,12 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
                             if (isSys) {
                               return (
-                                <div key={comment.id} className="flex justify-center py-2 animate-fade-in">
-                                  <div className="bg-indigo-50/80 backdrop-blur-sm border border-indigo-100 rounded-full px-5 py-1.5 flex items-center gap-2">
-                                    <span className="text-[10px] font-black text-indigo-600 tracking-widest text-center lowercase first-letter:uppercase">{comment.text}</span>
+                                <div key={comment.id} className="flex justify-center py-4 animate-fade-in w-full">
+                                  <div className="bg-indigo-50 border border-indigo-100/60 rounded-[1.5rem] px-8 py-4 flex items-center shadow-sm max-w-[90%]">
+                                    <span className="text-[11px] font-bold text-indigo-700/80 tracking-wide text-center leading-relaxed">
+                                      <span className="text-indigo-400 mr-2 text-sm">📢</span>
+                                      {comment.text}
+                                    </span>
                                   </div>
                                 </div>
                               );
@@ -625,15 +628,15 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                                 {/* Avatar */}
                                 <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase shadow-sm mt-1
                                 ${isMe ? 'bg-indigo-600 text-white' : idx % 2 === 0 ? 'bg-rose-500 text-white' : 'bg-teal-500 text-white'}`}>
-                                  {commAuthor?.name[0] || comment.authorName[0]}
+                                  {(commAuthor?.name || comment.authorName).split(' ')[0][0]}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                   <div className="flex flex-col">
                                     <div className="flex items-baseline gap-2 flex-wrap">
-                                      <span className={`text-xs font-bold ${isMe ? 'text-indigo-900' : 'text-gray-900'}`}>
-                                        {comment.authorName}
+                                      <span className={`text-xs font-black ${isMe ? 'text-indigo-900' : 'text-gray-900'}`}>
+                                        {(commAuthor?.name || comment.authorName).split(' ')[0]} • Unidade {commAuthor?.houseNumber || comment.houseNumber}
                                         {isMe && <span className="ml-1 text-[9px] text-indigo-500 font-normal">(Você)</span>}
                                       </span>
                                       <span className="text-[10px] text-gray-400 font-medium">
@@ -676,8 +679,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                                     {/* Actions */}
                                     <div className="flex items-center gap-4 mt-2">
                                       <button
-                                        onClick={() => setNewComment(`@${comment.authorName.split(' ')[0]} `)}
-                                        className="text-[11px] font-bold text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
+                                        onClick={() => setNewComment(`@${(commAuthor?.name || comment.authorName).split(' ')[0]} `)}
+                                        className="text-[11px] font-bold text-gray-400 hover:text-indigo-600 transition-colors cursor-pointer"
                                       >
                                         Responder
                                       </button>
