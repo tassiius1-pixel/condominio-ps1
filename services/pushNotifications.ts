@@ -86,8 +86,10 @@ export const requestPushPermission = async (
         if (!token) return { status: 'error' };
 
         console.log("✅ Token obtido!");
+        const { arrayUnion } = await import("firebase/firestore");
         await updateDoc(doc(db, "users", userId), {
-            fcmToken: token,
+            fcmToken: token, // mantemos para retrocompatibilidade
+            fcmTokens: arrayUnion(token), // nova lista para múltiplos dispositivos
             pushEnabled: true,
             lastTokenSync: new Date().toISOString(),
         });

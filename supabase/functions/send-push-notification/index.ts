@@ -93,8 +93,16 @@ serve(async (req) => {
             if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
 
             tokens = firestoreData.documents
-                ?.map((doc: any) => doc.fields?.fcmToken?.stringValue)
+                ?.flatMap((doc: any) => {
+                    const single = doc.fields?.fcmToken?.stringValue;
+                    const array = doc.fields?.fcmTokens?.arrayValue?.values?.map((v: any) => v.stringValue);
+                    const all = [];
+                    if (single) all.push(single);
+                    if (array) all.push(...array);
+                    return all;
+                })
                 .filter((t: string | undefined) => !!t) || [];
+            tokens = [...new Set(tokens)]; // unique tokens
         } else {
             const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
@@ -102,6 +110,14 @@ serve(async (req) => {
             const userData = await userDocRes.json();
             const t = userData.fields?.fcmToken?.stringValue;
             if (t) tokens.push(t);
+            // Coleta tokens da lista fcmTokens (array)
+            const list = userData.fields?.fcmTokens?.arrayValue?.values;
+            if (list) {
+                list.forEach((v: any) => {
+                    const val = v.stringValue;
+                    if (val && !tokens.includes(val)) tokens.push(val);
+                });
+            }
         }
 
         if (tokens.length === 0) {
@@ -122,6 +138,11 @@ serve(async (req) => {
                     body: JSON.stringify({
                         message: {
                             token: token,
+                            // 🔥 O campo 'notification' no topo garante o pop-up nativo no Android/iOS em Background
+                            notification: {
+                                title: title,
+                                body: body
+                            },
                             data: {
                                 title: title,
                                 body: body,
@@ -130,11 +151,10 @@ serve(async (req) => {
                             },
                             android: {
                                 priority: "high",
-                                data: {
-                                    title: title,
-                                    body: body,
-                                    tag: "gestao-ps1",
-                                    ...extraData
+                                notification: {
+                                    sound: "default",
+                                    icon: "stock_ticker_update",
+                                    color: "#4f46e5"
                                 }
                             },
                             apns: {
@@ -154,11 +174,16 @@ serve(async (req) => {
                             },
                             webpush: {
                                 headers: { "Urgency": "high" },
-                                data: {
-                                    title: title,
-                                    body: body,
+                                notification: {
+                                    title,
+                                    body,
+                                    icon: "/favicon.png",
+                                    badge: "/favicon.png",
                                     tag: "gestao-ps1",
-                                    ...extraData
+                                    renotify: true
+                                },
+                                fcm_options: {
+                                    link: extraData?.url || "https://condominio-ps1.vercel.app/"
                                 }
                             }
                         }

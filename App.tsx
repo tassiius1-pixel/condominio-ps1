@@ -102,22 +102,27 @@ const App: React.FC = () => {
             }
 
             if (audioCtx.state === 'running') {
-              const osc = audioCtx.createOscillator();
-              const gain = audioCtx.createGain();
-              osc.connect(gain);
-              gain.connect(audioCtx.destination);
-              osc.type = 'sine';
-              osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
-              gain.gain.setValueAtTime(0, audioCtx.currentTime);
-              gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
-              gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-              osc.start();
-              osc.stop(audioCtx.currentTime + 0.3);
+              // Somente toca no celular (pelo menos evita PC se detectado)
+              const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+              if (isMobile) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+              }
             }
           } catch (err) {
             console.error("Audio beep failed:", err);
           }
-          if ("vibrate" in navigator) {
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          if (isMobile && "vibrate" in navigator) {
             try { navigator.vibrate([200, 100, 200]); } catch (e) { }
           }
         };
