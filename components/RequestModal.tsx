@@ -450,50 +450,52 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
               {/* 2. AÇÕES DA GESTÃO (Admin Only) */}
               {canManage && !isEditing && request && (
-                <section className="bg-indigo-50/40 p-6 rounded-[2.5rem] border border-indigo-100/50 space-y-5 animate-slide-fade-in shadow-sm">
-                  <div className="flex items-center gap-2 px-2">
-                    <span className="text-xl">⚙️</span>
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-900/60">Controle da Gestão</h3>
+                <section className="bg-indigo-50/40 p-4 mt-6 rounded-[2rem] border border-indigo-100/50 space-y-3 animate-slide-fade-in shadow-sm">
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⚙️</span>
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-900/60">Controle da Gestão</h3>
+                    </div>
                   </div>
 
                   {!targetStatus ? (
-                    <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-2xl p-2 gap-3 shadow-inner border border-white">
-                      <div className="flex items-center gap-2 flex-1">
+                    <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-xl p-1.5 gap-2 shadow-inner border border-white">
+                      <div className="flex items-center gap-1.5 flex-1">
                         <button
                           type="button"
                           onClick={() => setTargetStatus(Status.RECUSADA)}
-                          className="flex-1 p-3 rounded-xl text-red-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-red-100"
+                          className="flex-1 p-2.5 rounded-lg text-red-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-red-100"
                           title="Recusar"
                         >
-                          <XIcon className="w-6 h-6" />
+                          <XIcon className="w-5 h-5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setTargetStatus(Status.EM_ANALISE)}
-                          className="flex-1 p-3 rounded-xl text-blue-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
+                          className="flex-1 p-2.5 rounded-lg text-blue-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
                           title="Em Análise"
                         >
-                          <InfoIcon className="w-6 h-6" />
+                          <InfoIcon className="w-5 h-5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setTargetStatus(Status.EM_ANDAMENTO)}
-                          className="flex-1 p-3 rounded-xl text-orange-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-orange-100"
+                          className="flex-1 p-2.5 rounded-lg text-orange-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-orange-100"
                           title="Em Andamento"
                         >
-                          <WrenchScrewdriverIcon className="w-6 h-6" />
+                          <WrenchScrewdriverIcon className="w-5 h-5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setTargetStatus(Status.CONCLUIDO)}
-                          className="flex-1 p-3 rounded-xl text-green-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-green-100"
+                          className="flex-1 p-2.5 rounded-lg text-green-600 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center border border-transparent hover:border-green-100"
                           title="Concluir"
                         >
-                          <CheckCircleIcon className="w-6 h-6" />
+                          <CheckCircleIcon className="w-5 h-5" />
                         </button>
                       </div>
 
-                      <div className="w-px h-8 bg-gray-200 mx-1"></div>
+                      <div className="w-px h-6 bg-gray-200 mx-0.5"></div>
 
                       <button
                         type="button"
@@ -505,9 +507,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                             addToast("Redirecionando para criação de enquete...", "info");
                           }
                         }}
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95"
+                        className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95"
                       >
-                        <BarChartIcon className="w-4 h-4" />
+                        <BarChartIcon className="w-3.5 h-3.5" />
                         Votar
                       </button>
                     </div>
