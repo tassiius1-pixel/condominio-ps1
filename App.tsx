@@ -97,18 +97,23 @@ const App: React.FC = () => {
           if (!audioCtx) return;
           try {
             console.log("🔊 [App] Tentando disparar beep. Estado atual:", audioCtx.state);
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            if (audioCtx.state === 'suspended') {
+              await audioCtx.resume().catch(e => console.warn("Falha ao resumir AudioContext:", e));
+            }
+
+            if (audioCtx.state === 'running') {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
+              gain.gain.setValueAtTime(0, audioCtx.currentTime);
+              gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.02);
+              gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+              osc.start();
+              osc.stop(audioCtx.currentTime + 0.3);
+            }
           } catch (err) {
             console.error("Audio beep failed:", err);
           }
@@ -117,14 +122,28 @@ const App: React.FC = () => {
           }
         };
 
-        // ... (rest of logic)
-
         // Expor para o Header.tsx chamar diretamente (Safari/PWA bypass)
         (window as any).triggerPushBeep = triggerBeep;
 
         // Listen for manual test
         const handleTestAudio = () => triggerBeep();
         window.addEventListener('test-push-audio', handleTestAudio);
+
+        // 🔥 GESTO DO USUÁRIO PARA LIBERAR ÁUDIO (Chrome/Safari requirement)
+        const unlockAudio = () => {
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => {
+              console.log("🔊 [App] AudioContext desbloqueado pelo clique.");
+            });
+          }
+          // Removemos após o primeiro sucesso para não pesar
+          if (audioCtx?.state === 'running') {
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+          }
+        };
+        window.addEventListener('click', unlockAudio);
+        window.addEventListener('touchstart', unlockAudio);
 
         if (hasNotificationSupport && (Notification.permission === 'granted' || Notification.permission === 'default')) {
           try {
@@ -140,11 +159,32 @@ const App: React.FC = () => {
           const body = payload.notification?.body || payload.data?.body || "";
           addToast(`${title}: ${body}`, "info");
           await triggerBeep();
+
+          // 🔥 FORÇA O POPUP DO SISTEMA NO CELULAR (MESMO COM APP ABERTO)
+          if ("serviceWorker" in navigator && Notification.permission === 'granted') {
+            try {
+              const registration = await navigator.serviceWorker.getRegistration();
+              if (registration) {
+                registration.showNotification(title, {
+                  body: body,
+                  icon: "/favicon.png",
+                  badge: "/favicon.png",
+                  tag: "gestao-ps1",
+                  renotify: true,
+                  vibrate: [200, 100, 200]
+                } as any);
+              }
+            } catch (e) {
+              console.error("Erro ao mostrar popup forçado:", e);
+            }
+          }
         });
 
         return () => {
           if (unsub) unsub();
           window.removeEventListener('test-push-audio', handleTestAudio);
+          window.removeEventListener('click', unlockAudio);
+          window.removeEventListener('touchstart', unlockAudio);
         };
       };
 
