@@ -168,19 +168,23 @@ const App: React.FC = () => {
           // 🔥 FORÇA O POPUP DO SISTEMA NO CELULAR (MESMO COM APP ABERTO)
           if ("serviceWorker" in navigator && Notification.permission === 'granted') {
             try {
-              const registration = await navigator.serviceWorker.getRegistration();
-              if (registration) {
-                registration.showNotification(title, {
-                  body: body,
-                  icon: "/favicon.png",
-                  badge: "/favicon.png",
-                  tag: "gestao-ps1",
-                  renotify: true,
-                  vibrate: [200, 100, 200]
-                } as any);
-              }
+              const registration = await navigator.serviceWorker.ready;
+              console.log("🔔 [App.tsx] ServiceWorker pronto para mostrar notificação.");
+              registration.showNotification(title, {
+                body: body,
+                icon: "/favicon.png",
+                badge: "/favicon.png",
+                tag: "gestao-ps1",
+                renotify: true,
+                vibrate: [200, 100, 200],
+                data: { url: window.location.href }
+              } as any).then(() => {
+                console.log("✅ [App.tsx] showNotification chamado com sucesso.");
+              }).catch(e => {
+                console.error("❌ [App.tsx] Falha ao chamar showNotification:", e);
+              });
             } catch (e) {
-              console.error("Erro ao mostrar popup forçado:", e);
+              console.error("Erro ao acessar registration.ready:", e);
             }
           }
         });

@@ -15,25 +15,57 @@ const messaging = firebase.messaging();
 
 // Background Messages
 messaging.onBackgroundMessage((payload) => {
-    console.log("[FCM SOS] Background message:", payload);
+    console.log("[FCM SOS] Background message received:", payload);
     const title = payload.data?.title || payload.notification?.title || "Porto Seguro 1";
-    const body = payload.data?.body || payload.notification?.body || "";
-    const tag = "gestao-ps1"; // Tag unificada para evitar duplicação
+    const body = payload.data?.body || payload.notification?.body || "Nova mensagem recebida";
+    const tag = "gestao-ps1";
 
-    return self.registration.showNotification(title, {
+    const options = {
         body,
         icon: "/logo.png",
         badge: "/logo.png",
         tag: tag,
         renotify: true,
         vibrate: [200, 100, 200],
-        lang: 'pt-BR' // Dica para o OS usar português
-    });
+        data: {
+            url: payload.data?.url || '/'
+        }
+    };
+
+    return self.registration.showNotification(title, options);
+});
+
+// Click notification handler
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const urlToOpen = event.notification.data?.url || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then((windowClients) => {
+                // Se já tiver uma aba aberta, foca nela
+                for (let i = 0; i < windowClients.length; i++) {
+                    const client = windowClients[i];
+                    if (client.url === urlToOpen && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+                // Se não tiver, abre uma nova
+                if (clients.openWindow) {
+                    return clients.openWindow(urlToOpen);
+                }
+            })
+    );
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v1.2';
-const assetsToCache = ['/logo.png', '/favicon.png'];
+const CACHE_NAME = 'porto-seguro-sos-v1.3'; // Bumped version
+const assetsToCache = [
+    '/',
+    '/index.html',
+    '/logo.png',
+    '/favicon.png'
+];
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -62,9 +94,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Estratégia Network First para o index.html e navegação
-    // Isso garante que se houver internet, ele pegue a versão mais nova.
-    // Se estiver offline ou a rede falhar, ele busca no cache.
     if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
         event.respondWith(
             fetch(event.request)
@@ -73,7 +102,6 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Estratégia Cache First para assets estáticos
     event.respondWith(
         caches.match(event.request).then((response) => {
             return response || fetch(event.request);
