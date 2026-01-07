@@ -14,25 +14,34 @@ const PWAInstallOverlay: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
     useEffect(() => {
+        // Check for debug flag in URL
+        const params = new URLSearchParams(window.location.search);
+        const forceShow = params.get('debug_install') === 'true';
+
         // 1. Detect if already installed (standalone mode)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
             || (window.navigator as any).standalone
             || document.referrer.includes('android-app://');
 
-        if (isStandalone) return;
+        if (isStandalone && !forceShow) return;
 
         // 2. Detect Platform
         const userAgent = window.navigator.userAgent.toLowerCase();
-        const isIos = /iphone|ipad|ipod/.test(userAgent);
+        const isIos = /iphone|ipad|ipod/.test(userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS detection
         const isAndroid = /android/.test(userAgent);
 
         if (isIos) setPlatform('ios');
         else if (isAndroid) setPlatform('android');
 
-        // 3. Show only on mobile
-        if (isIos || isAndroid) {
-            // Small delay for better UX
-            const timer = setTimeout(() => setShow(true), 1500);
+        // 3. Show on mobile or if forced
+        if (isIos || isAndroid || forceShow) {
+            if (forceShow && !isIos && !isAndroid) setPlatform('ios'); // Default to iOS visual for desktop debug
+
+            const timer = setTimeout(() => {
+                setShow(true);
+                console.log("PWA Overlay: Active on platform", isIos ? 'ios' : (isAndroid ? 'android' : 'forced'));
+            }, forceShow ? 100 : 1500);
             return () => clearTimeout(timer);
         }
 
