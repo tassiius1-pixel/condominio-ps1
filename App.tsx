@@ -25,6 +25,7 @@ const Documents = React.lazy(() => import("./components/Documents"));
 const Home = React.lazy(() => import("./components/Home"));
 
 import Toast from "./components/Toast";
+import NotificationPrompt from "./components/NotificationPrompt";
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
@@ -273,6 +274,7 @@ const App: React.FC = () => {
         <main
           className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-32 sm:pb-24 lg:pb-8 pt-24 sm:pt-[120px]" : ""}`}
         >
+          {currentUser && <NotificationPrompt />}
           {renderContent()}
         </main>
       </div>
