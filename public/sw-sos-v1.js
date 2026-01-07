@@ -1,4 +1,4 @@
-// SOS UNIFIED SERVICE WORKER - VERSION 1.1
+// SOS UNIFIED SERVICE WORKER - VERSION 1.2
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
@@ -32,23 +32,51 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v1';
-const urlsToCache = ['/', '/index.html', '/logo.png'];
+const CACHE_NAME = 'porto-seguro-sos-v1.2';
+const assetsToCache = ['/logo.png', '/favicon.png'];
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
-    event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache)));
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(assetsToCache))
+    );
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         Promise.all([
-            caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))),
+            caches.keys().then((keys) => {
+                return Promise.all(
+                    keys.map((k) => {
+                        if (k !== CACHE_NAME) {
+                            return caches.delete(k);
+                        }
+                    })
+                );
+            }),
             self.clients.claim()
         ])
     );
 });
 
 self.addEventListener('fetch', (event) => {
-    event.respondWith(caches.match(event.request).then(r => r || fetch(event.request)));
+    const url = new URL(event.request.url);
+
+    // Estratégia Network First para o index.html e navegação
+    // Isso garante que se houver internet, ele pegue a versão mais nova.
+    // Se estiver offline ou a rede falhar, ele busca no cache.
+    if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => caches.match('/index.html') || caches.match('/'))
+        );
+        return;
+    }
+
+    // Estratégia Cache First para assets estáticos
+    event.respondWith(
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
+        })
+    );
 });

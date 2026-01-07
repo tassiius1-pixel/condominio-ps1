@@ -62,8 +62,34 @@
         // Registra se for Android, Desktop OU iOS Instalado (Standalone)
         navigator.serviceWorker
           .register("/sw-sos-v1.js")
-          .then((reg) => console.log("SW SOS registrado (PWA):", reg))
+          .then((reg) => {
+            console.log("SW SOS registrado (PWA):", reg);
+
+            // Verifica atualizações
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log("Nova versão detectada. Atualizando...");
+                    // No sw-sos-v1.js o skipWaiting() já é chamado, 
+                    // então o controllerchange vai disparar abaixo.
+                  }
+                };
+              }
+            };
+          })
           .catch((err) => console.error("Erro ao registrar SW SOS:", err));
+
+        // Recarrega a página automaticamente quando o novo SW assume o controle
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            console.log("Service Worker atualizado. Recarregando página...");
+            window.location.reload();
+          }
+        });
       }
     }
   </script>
