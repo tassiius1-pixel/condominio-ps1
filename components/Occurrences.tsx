@@ -442,7 +442,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                                         required
                                         value={subject}
                                         onChange={(e) => setSubject(e.target.value)}
-                                        placeholder="Ex: Barulho excessivo, Lâmpada queimada..."
+                                        placeholder="Ex: Barulho excessivo, desrespeito às normas..."
                                         className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 rounded-xl outline-none transition-all font-medium text-gray-900 placeholder-gray-400"
                                     />
                                 </div>
