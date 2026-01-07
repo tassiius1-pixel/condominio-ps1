@@ -355,7 +355,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                 </div>
                 <div className="flex-1">
                     <h4 className="text-sm font-black text-indigo-900 flex items-center gap-2 uppercase tracking-tight">
-                        🔒 Demanda Confidencial
+                        Demanda Confidencial 🔒
                     </h4>
                     <p className="text-xs font-semibold text-indigo-700/80 mt-0.5">
                         Apenas o síndico terá acesso ao que você escrever aqui. Fique tranquilo para relatar problemas confidenciais.
