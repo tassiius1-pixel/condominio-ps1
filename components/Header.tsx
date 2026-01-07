@@ -105,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const navItems = [
     { id: "home", label: "Início", icon: LayoutDashboardIcon },
-    { id: "dashboard", label: "Sugestões", icon: LightbulbIcon },
+    { id: "dashboard", label: "Sugestões/Manutenções", icon: LightbulbIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
@@ -169,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* NAVIGATION & PROFILE */}
-            <div className="flex items-center space-x-1 sm:space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Desktop Nav Group */}
               <nav className="hidden lg:flex items-center space-x-1">
                 {topLevelItems.map(item => {
@@ -181,12 +181,13 @@ const Header: React.FC<HeaderProps> = ({
                       key={item.id}
                       onClick={() => setView(item.id as any)}
                       className={`
-                        flex items-center px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer transition-all
+                        flex items-center px-2 xl:px-3 py-2 text-sm font-semibold rounded-xl cursor-pointer transition-all
                         ${isActive ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
                       `}
                     >
-                      <Icon className={`h-4.5 w-4.5 mr-2 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                      {item.label}
+                      <Icon className={`h-4.5 w-4.5 mr-1 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      <span className="hidden 2xl:inline whitespace-nowrap">{item.label}</span>
+                      <span className="inline 2xl:hidden whitespace-nowrap">{item.id === 'dashboard' ? 'Sugestões/Mant.' : item.label}</span>
                     </button>
                   );
                 })}

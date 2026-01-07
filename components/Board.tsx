@@ -103,10 +103,10 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
             <span className="text-4xl">✨</span>
           </div>
           <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">
-            {activeTab === 'active' ? 'Nenhuma sugestão ativa' : 'Nenhuma sugestão arquivada'}
+            {activeTab === 'active' ? 'Nenhuma demanda ativa' : 'Nenhuma demanda arquivada'}
           </h3>
           <p className="text-sm text-gray-500 font-medium max-w-xs mx-auto">
-            {activeTab === 'active' ? 'Seja o primeiro a compartilhar uma ideia para melhorar nosso condomínio!' : 'Ainda não há itens no histórico.'}
+            {activeTab === 'active' ? 'Seja o primeiro a compartilhar uma ideia ou manutenção para melhorar nosso condomínio!' : 'Ainda não há itens no histórico.'}
           </p>
         </div>
       ) : (

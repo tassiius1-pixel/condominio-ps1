@@ -54,12 +54,15 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
       {/* Header Section */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <button onClick={() => setView && setView('home')} className="md:hidden text-gray-500 hover:text-gray-700 mr-2">
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-3 leading-tight flex-wrap">
+            <button
+              onClick={() => setView('home')}
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors -ml-2"
+            >
               <ChevronLeftIcon className="w-6 h-6" />
             </button>
-            <CheckSquareIcon className="w-6 h-6 text-indigo-600" />
-            Sugestões
+            <CheckSquareIcon className="w-6 h-6 text-indigo-600 flex-shrink-0" />
+            <span className="truncate sm:whitespace-normal">Sugestões/Manutenções</span>
           </h2>
         </div>
 
@@ -69,7 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-105"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
-          Nova Sugestão
+          Nova Demanda
         </button>
       </div>
 

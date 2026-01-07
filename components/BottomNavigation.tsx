@@ -31,7 +31,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
     const navItems = [
         { id: 'home', label: 'Início', icon: LayoutDashboardIcon },
         { id: 'reservations', label: 'Reservas', icon: CalendarIcon },
-        { id: 'dashboard', label: 'Sugestões', icon: LightbulbIcon },
+        { id: 'dashboard', label: 'Sugestões/Mant.', icon: LightbulbIcon },
     ];
 
     // Filter items based on role if needed, though these are basic resident features

@@ -343,12 +343,15 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
               </div>
               <div className="min-w-0">
                 <h2 className="text-sm sm:text-base font-black text-white tracking-tight leading-none uppercase truncate">
-                  {request ? 'Detalhes' : 'Nova Sugestão'}
+                  {request ? 'Detalhes' : 'Nova Demanda'}
                 </h2>
                 {request && (
                   <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
                     <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 whitespace-nowrap`}>
                       {request.status}
+                    </span>
+                    <span className="text-[10px] uppercase font-black text-indigo-50 border border-white/20 px-2 py-0.5 rounded-full bg-white/10 whitespace-nowrap">
+                      Público
                     </span>
                     <span className="text-[10px] uppercase font-black text-indigo-200 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
                       • {formattedDate}
@@ -383,6 +386,11 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
               <section className="space-y-6">
                 {isEditing ? (
                   <div className="space-y-4 animate-fade-in">
+                    <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl mb-4">
+                      <p className="text-[11px] font-bold text-amber-800 leading-tight">
+                        📢 Esta seção é pública. Todos os moradores poderão ver sua sugestão ou pedido de manutenção para acompanhar o progresso.
+                      </p>
+                    </div>
                     <div>
                       <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block px-1">Título</label>
                       <input
@@ -751,7 +759,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                     Cancelar
                   </button>
                   <button onClick={handleSubmit} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95 transition-all">
-                    Publicar Sugestão
+                    Publicar Demanda
                   </button>
                 </div>
               ) : (

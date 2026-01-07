@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, Occurrence } from '../types';
-import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon, BookIcon } from './Icons';
+import { PlusIcon, UploadIcon, XIcon, CheckCircleIcon, ChevronLeftIcon, EditIcon, TrashIcon, BookIcon, InfoIcon } from './Icons';
 import { uploadPhoto } from '../services/storage';
 import { compressImage } from '../utils/fileUtils';
 import ConfirmModal from './ConfirmModal';
@@ -258,7 +258,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     <div className="mt-6 border-t pt-4">
                         <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
                             <CheckCircleIcon className="w-4 h-4 text-indigo-600" />
-                            Retorno da Gestão
+                            Retorno do Síndico
                         </h4>
 
                         {occ.adminResponse ? (
@@ -347,6 +347,20 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                         <span>Nova Ocorrência</span>
                     </button>
                 )}
+            </div>
+
+            <div className="bg-white/50 border border-indigo-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm animate-fade-in">
+                <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+                    <InfoIcon className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                    <h4 className="text-sm font-black text-indigo-900 flex items-center gap-2 uppercase tracking-tight">
+                        🔒 Demanda Confidencial
+                    </h4>
+                    <p className="text-xs font-semibold text-indigo-700/80 mt-0.5">
+                        Apenas o síndico terá acesso ao que você escrever aqui. Fique tranquilo para relatar problemas confidenciais.
+                    </p>
+                </div>
             </div>
 
             {/* Tabs for all Users */}
