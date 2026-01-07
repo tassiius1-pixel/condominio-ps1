@@ -96,28 +96,37 @@ const PWAInstallOverlay: React.FC = () => {
                             Instale o App do Condomínio
                         </h2>
                         <p className="text-gray-500 font-medium leading-relaxed">
-                            Tenha acesso rápido, receba notificações de encomendas e participe de votações direto da sua tela inicial.
+                            Tenha acesso mais rápido, receba avisos importantes e participe de votações direto da sua tela inicial.
                         </p>
                     </div>
 
                     <div className="mt-8 space-y-4">
                         {platform === 'ios' ? (
                             <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
-                                <p className="text-sm font-bold text-gray-700 mb-4 text-center">
-                                    Siga estes 2 passos no Safari:
+                                <p className="text-sm font-bold text-gray-700 mb-6 text-center bg-indigo-50 py-2 rounded-xl">
+                                    Siga o passo a passo no seu celular 🧭
                                 </p>
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">1</div>
-                                        <p className="text-sm text-gray-600 font-medium flex items-center gap-2">
-                                            Toque no botão de <strong>Compartilhar</strong> <ShareIcon className="w-4 h-4 text-blue-500" />
-                                        </p>
+                                <div className="space-y-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm mt-0.5 shadow-md">1</div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-gray-900 font-bold">Abrir o Menu</p>
+                                            <p className="text-xs text-gray-500 leading-tight">No <strong>Chrome</strong>, toque nos 3 pontinhos na barra inferior. No <strong>Safari</strong>, toque no ícone de seta <ShareIcon className="w-3.5 h-3.5 inline text-blue-500" />.</p>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">2</div>
-                                        <p className="text-sm text-gray-600 font-medium flex items-center gap-2">
-                                            Role e toque em <strong>Tela de Início</strong> <PlusSquareIcon className="w-4 h-4 text-gray-700" />
-                                        </p>
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm mt-0.5 shadow-md">2</div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-gray-900 font-bold">Compartilhar e Mais</p>
+                                            <p className="text-xs text-gray-500 leading-tight">Clique em <strong>Compartilhar</strong>, role até o fim e se necessário clique em <strong>'Mais...'</strong>.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm mt-0.5 shadow-md">3</div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-gray-900 font-bold">Adicionar à Tela de Início</p>
+                                            <p className="text-xs text-gray-500 leading-tight">Toque em <strong>Adicionar à Tela de Início</strong> <PlusSquareIcon className="w-3.5 h-3.5 inline text-gray-700" /> e confirme clicando em 'Adicionar'.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
