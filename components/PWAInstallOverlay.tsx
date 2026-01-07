@@ -78,54 +78,54 @@ const PWAInstallOverlay: React.FC = () => {
                     <XIcon className="w-5 h-5" />
                 </button>
 
-                <div className="p-8 pt-10">
-                    <div className="flex justify-center mb-6">
+                <div className="p-6 pt-8">
+                    <div className="flex justify-center mb-4">
                         <div className="relative">
                             <div className="absolute -inset-4 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
-                            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-3xl shadow-xl relative">
-                                <SmartphoneIcon className="w-10 h-10 text-white" />
-                                <div className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-xl shadow-lg">
-                                    <DownloadIcon className="w-4 h-4 text-indigo-600" />
+                            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-3xl shadow-xl relative">
+                                <SmartphoneIcon className="w-8 h-8 text-white" />
+                                <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-xl shadow-lg">
+                                    <DownloadIcon className="w-3.5 h-3.5 text-indigo-600" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="text-center space-y-3">
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight">
+                    <div className="text-center space-y-2">
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight leading-tight">
                             Instale o App do Condomínio
                         </h2>
-                        <p className="text-gray-500 font-medium leading-relaxed">
+                        <p className="text-sm text-gray-500 font-medium leading-tight px-2">
                             Tenha acesso mais rápido, receba avisos importantes e participe de votações direto da sua tela inicial.
                         </p>
                     </div>
 
-                    <div className="mt-8 space-y-4">
+                    <div className="mt-6 space-y-3">
                         {platform === 'ios' ? (
-                            <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
-                                <p className="text-sm font-bold text-gray-700 mb-6 text-center bg-indigo-50 py-2 rounded-xl">
-                                    Siga o passo a passo no seu celular 🧭
+                            <div className="bg-gray-50 rounded-[2rem] p-5 border border-gray-100 shadow-inner">
+                                <p className="text-[11px] font-black text-indigo-500 mb-4 text-center uppercase tracking-widest bg-white/50 py-1.5 rounded-full border border-indigo-100/50">
+                                    Passo a passo no seu celular 🧭
                                 </p>
-                                <div className="space-y-6">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm mt-0.5 shadow-md">1</div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm text-gray-900 font-bold">Abrir o Menu</p>
-                                            <p className="text-xs text-gray-500 leading-tight">No <strong>Chrome</strong>, toque nos 3 pontinhos na barra inferior. No <strong>Safari</strong>, toque no ícone de seta <ShareIcon className="w-3.5 h-3.5 inline text-blue-500" />.</p>
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs mt-0.5 shadow-md">1</div>
+                                        <div className="space-y-0.5">
+                                            <p className="text-xs text-gray-900 font-extrabold">Abrir o Menu</p>
+                                            <p className="text-[10px] text-gray-500 leading-tight">No <strong>Chrome</strong>, toque nos <strong>3 pontinhos</strong>. No <strong>Safari</strong>, toque na <strong>setinha</strong> <ShareIcon className="w-3 h-3 inline text-blue-500" />.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm mt-0.5 shadow-md">2</div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm text-gray-900 font-bold">Compartilhar e Mais</p>
-                                            <p className="text-xs text-gray-500 leading-tight">Clique em <strong>Compartilhar</strong>, role até o fim e se necessário clique em <strong>'Mais...'</strong>.</p>
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs mt-0.5 shadow-md">2</div>
+                                        <div className="space-y-0.5">
+                                            <p className="text-xs text-gray-900 font-extrabold">Compartilhar e Mais</p>
+                                            <p className="text-[10px] text-gray-500 leading-tight">Clique em <strong>Compartilhar</strong>, role até o fim e se necessário clique em <strong>'Mais...'</strong>.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm mt-0.5 shadow-md">3</div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm text-gray-900 font-bold">Adicionar à Tela de Início</p>
-                                            <p className="text-xs text-gray-500 leading-tight">Toque em <strong>Adicionar à Tela de Início</strong> <PlusSquareIcon className="w-3.5 h-3.5 inline text-gray-700" /> e confirme clicando em 'Adicionar'.</p>
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs mt-0.5 shadow-md">3</div>
+                                        <div className="space-y-0.5">
+                                            <p className="text-xs text-gray-900 font-extrabold">Adicionar à Tela de Início</p>
+                                            <p className="text-[10px] text-gray-500 leading-tight">Toque em <strong>Adicionar à Tela de Início</strong> <PlusSquareIcon className="w-3 h-3 inline text-gray-700" /> e confirme clicando em 'Adicionar'.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -133,30 +133,31 @@ const PWAInstallOverlay: React.FC = () => {
                         ) : (
                             <button
                                 onClick={handleAndroidInstall}
-                                className="w-full group relative flex items-center justify-between bg-indigo-600 text-white p-5 rounded-3xl font-bold shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95 overflow-hidden"
+                                className="w-full group relative flex items-center justify-between bg-indigo-600 text-white p-4 rounded-3xl font-bold shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95 overflow-hidden"
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
                                     <div className="p-2 bg-white/20 rounded-xl">
-                                        <DownloadIcon className="w-6 h-6" />
+                                        <DownloadIcon className="w-5 h-5" />
                                     </div>
-                                    <span className="text-lg">Instalar Agora</span>
+                                    <span className="text-base">Instalar Agora</span>
                                 </div>
-                                <ChevronRightIcon className="w-6 h-6 opacity-50 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                                <ChevronRightIcon className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
                             </button>
                         )}
 
                         <button
                             onClick={() => setShow(false)}
-                            className="w-full py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
+                            className="w-full py-2 text-[11px] font-black text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-[0.2em]"
                         >
                             Continuar pelo navegador
                         </button>
                     </div>
                 </div>
 
-                <div className="bg-indigo-50/50 p-4 border-t border-indigo-50">
-                    <p className="text-[10px] text-center font-bold text-indigo-400 uppercase tracking-widest">
-                        Experiência otimizada para moradores
+                <div className="bg-indigo-50/30 p-3 border-t border-indigo-50 flex items-center justify-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+                    <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">
+                        Experiência otimizada Porto Seguro 1
                     </p>
                 </div>
             </div>
