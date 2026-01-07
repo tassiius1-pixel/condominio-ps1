@@ -79,13 +79,17 @@ const PWAInstallOverlay: React.FC = () => {
                 </button>
 
                 <div className="p-6 pt-8">
-                    <div className="flex justify-center mb-4">
+                    <div className="flex justify-center mb-6">
                         <div className="relative">
-                            <div className="absolute -inset-4 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
-                            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-3xl shadow-xl relative">
-                                <SmartphoneIcon className="w-8 h-8 text-white" />
-                                <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-xl shadow-lg">
-                                    <DownloadIcon className="w-3.5 h-3.5 text-indigo-600" />
+                            <div className="absolute -inset-6 bg-indigo-500/10 rounded-full blur-2xl animate-pulse"></div>
+                            <div className="bg-white p-2 rounded-[2rem] shadow-xl relative border border-gray-100">
+                                <img
+                                    src="/condo-logo-new.png"
+                                    alt="Logo Condomínio"
+                                    className="w-24 h-24 object-contain"
+                                />
+                                <div className="absolute -bottom-2 -right-2 bg-indigo-600 p-2 rounded-2xl shadow-lg border-2 border-white">
+                                    <DownloadIcon className="w-4 h-4 text-white" />
                                 </div>
                             </div>
                         </div>
@@ -157,7 +161,7 @@ const PWAInstallOverlay: React.FC = () => {
                 <div className="bg-indigo-50/30 p-3 border-t border-indigo-50 flex items-center justify-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
                     <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">
-                        Experiência otimizada Porto Seguro 1
+                        Experiência Porto Seguro Residencial
                     </p>
                 </div>
             </div>
