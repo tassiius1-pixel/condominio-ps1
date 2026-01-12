@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "id": "mjr2cihgs8QnJB52QXdR",
+      "name": "Taniajuliani ",
+      "house": 16
+    }
+  ],
+  "votings": [
+    {
+      "id": "hzi1Oa9EexnUOpBuXu9W",
+      "title": "Acesso as câmeras de monitoramento ",
+      "relevantVotes": [
+        {
+          "index": 20,
+          "userName": "TANIA JULIANI",
+          "house": 16,
+          "userId": "mjr2cihgs8QnJB52QXdR"
+        }
+      ]
+    }
+  ]
+}
