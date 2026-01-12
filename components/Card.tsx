@@ -95,11 +95,23 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
   };
 
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const author = users.find(u => u.id === request.authorId);
   const authorFirstName = author ? author.name.split(' ')[0] : 'Desconhecido';
   const authorDisplay = author ? `${authorFirstName} • Unidade ${author.houseNumber}` : request.authorName;
   const formattedDate = new Date(request.createdAt).toLocaleDateString('pt-BR');
   const style = getStatusStyle(request.status);
+
+  const toggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
+  const shouldTruncate = request.description.length > 120;
+  const displayDescription = isExpanded || !shouldTruncate
+    ? request.description
+    : `${request.description.substring(0, 120)}...`;
 
   return (
     <>
@@ -128,7 +140,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                 {typeIcons[request.type]}
               </span>
               <div className="min-w-0">
-                <h4 className="font-bold text-gray-900 text-sm leading-tight truncate pr-2 tracking-tight">{request.title}</h4>
+                <h4 className="font-bold text-gray-900 text-sm leading-tight pr-2 tracking-tight line-clamp-1">{request.title}</h4>
                 <p className="text-[10px] uppercase font-bold text-gray-400 mt-0.5 tracking-wider">{formattedDate} • {authorDisplay}</p>
               </div>
             </div>
@@ -142,10 +154,21 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
           {/* Body: Description + Image */}
           <div className="flex gap-4">
             <div className="flex-1 min-w-0">
-              {/* Description */}
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed font-medium">
-                {request.description}
-              </p>
+              {/* Description Container */}
+              <div className="relative group/desc">
+                <p className={`text-sm text-gray-600 mt-1 leading-relaxed font-medium transition-all duration-300 ${!isExpanded && 'line-clamp-2'}`}>
+                  {displayDescription}
+                </p>
+                {shouldTruncate && (
+                  <button
+                    onClick={toggleExpand}
+                    className="text-[11px] font-black text-indigo-600 uppercase tracking-widest mt-2 hover:text-indigo-800 transition-colors flex items-center gap-1"
+                  >
+                    {isExpanded ? 'Ver menos' : 'Ver mais'}
+                    <span className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>↓</span>
+                  </button>
+                )}
+              </div>
 
               {/* Admin Response Preview */}
               {request.adminResponse && (
@@ -155,7 +178,7 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                     <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>Resposta da Gestão</span>
                     <span className="text-xs">{style.icon}</span>
                   </div>
-                  <p className={`text-xs ${style.text} leading-relaxed font-semibold pl-1`}>
+                  <p className={`text-xs ${style.text} leading-relaxed font-semibold pl-1 ${!isExpanded && 'line-clamp-2'}`}>
                     {request.adminResponse}
                   </p>
                 </div>

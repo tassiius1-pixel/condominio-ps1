@@ -337,44 +337,57 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
           {/* Header Barra Superior */}
           <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 bg-indigo-600 border-b border-indigo-700 z-10 shrink-0 pt-[env(safe-area-inset-top,1.25rem)]">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-2xl bg-white/10 text-white shadow-inner`}>
-                {request ? (request.type === RequestType.SUGESTOES ? <LightbulbIcon className="w-6 h-6" /> : <InfoIcon className="w-6 h-6" />) : <PlusIcon className="w-6 h-6" />}
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-sm sm:text-base font-black text-white tracking-tight leading-none uppercase truncate">
-                  {request ? 'Detalhes' : 'Nova Demanda'}
-                </h2>
-                {request && (
-                  <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
-                    <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 whitespace-nowrap`}>
-                      {request.status}
-                    </span>
-                    <span className="text-[10px] uppercase font-black text-indigo-50 border border-white/20 px-2 py-0.5 rounded-full bg-white/10 whitespace-nowrap">
-                      Público
-                    </span>
-                    <span className="text-[10px] uppercase font-black text-indigo-200 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
-                      • {formattedDate}
-                    </span>
-                  </div>
-                )}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="flex items-center gap-1.5 p-2 -ml-2 hover:bg-white/10 text-white rounded-xl transition-colors group"
+                aria-label="Voltar"
+              >
+                <XIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                <span className="hidden sm:inline text-xs font-black uppercase tracking-widest opacity-80 group-hover:opacity-100">Voltar</span>
+              </button>
+
+              <div className="flex items-center gap-3 sm:gap-4 pl-1 sm:pl-2 border-l border-white/20">
+                <div className={`p-2.5 rounded-xl bg-white/10 text-white shadow-inner hidden xs:flex`}>
+                  {request ? (request.type === RequestType.SUGESTOES ? <LightbulbIcon className="w-5 h-5" /> : <InfoIcon className="w-5 h-5" />) : <PlusIcon className="w-5 h-5" />}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm sm:text-base font-black text-white tracking-tight leading-none uppercase truncate">
+                    {request ? 'Detalhes' : 'Nova Demanda'}
+                  </h2>
+                  {request && (
+                    <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
+                      <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 whitespace-nowrap`}>
+                        {request.status}
+                      </span>
+                      <span className="text-[10px] uppercase font-black text-indigo-200 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
+                        • {formattedDate}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {request && (isAuthor || canManage) && !isEditing && (
-                <button onClick={() => setIsEditing(true)} className="p-2 sm:p-2.5 hover:bg-white/20 text-white rounded-xl transition-colors" title="Editar">
-                  <EditIcon className="w-5 h-5" />
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="p-2.5 sm:p-3 hover:bg-white/10 text-white rounded-xl transition-all active:scale-90"
+                  title="Editar"
+                >
+                  <EditIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               )}
               {request && (isAuthor || canManage) && (
-                <button onClick={handleDelete} className="p-2 sm:p-2.5 hover:bg-red-500/80 text-white/90 rounded-xl transition-colors" title="Excluir">
-                  <TrashIcon className="w-5 h-5" />
+                <button
+                  onClick={handleDelete}
+                  className="p-2.5 sm:p-3 hover:bg-red-500 text-white rounded-xl transition-all active:scale-95 group"
+                  title="Excluir"
+                >
+                  <TrashIcon className="w-5 h-5 sm:w-6 sm:h-6 opacity-90 group-hover:opacity-100" />
                 </button>
               )}
-              <button onClick={onClose} className="p-2 sm:p-2.5 hover:bg-white/20 text-white rounded-xl transition-colors">
-                <XIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-              </button>
             </div>
           </div>
 
