@@ -168,20 +168,23 @@ const App: React.FC = () => {
           await triggerBeep();
 
           // 🔥 FORÇA O POPUP DO SISTEMA NO CELULAR (MESMO COM APP ABERTO)
+          // Mas só se o documento estiver visível e as permissões ok
           if ("serviceWorker" in navigator && Notification.permission === 'granted') {
             try {
               const registration = await navigator.serviceWorker.ready;
-              console.log("🔔 [App.tsx] ServiceWorker pronto para mostrar notificação.");
+              console.log("🔔 [App.tsx] ServiceWorker pronto para mostrar notificação em foreground.");
+
+              // Evitamos duplicar se o sistema já mostrou via background (raro mas possível em transições)
               registration.showNotification(title, {
                 body: body,
-                icon: "/favicon.png",
-                badge: "/favicon.png",
-                tag: "gestao-ps1",
+                icon: "/logo.png", // Usando logo.png consistente
+                badge: "/logo.png",
+                tag: payload.data?.tag || "gestao-ps1",
                 renotify: true,
                 vibrate: [200, 100, 200],
-                data: { url: window.location.href }
+                data: { url: window.location.href, foreground: true }
               } as any).then(() => {
-                console.log("✅ [App.tsx] showNotification chamado com sucesso.");
+                console.log("✅ [App.tsx] showNotification (foreground) chamado com sucesso.");
               }).catch(e => {
                 console.error("❌ [App.tsx] Falha ao chamar showNotification:", e);
               });

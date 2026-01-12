@@ -1,4 +1,4 @@
-// SOS UNIFIED SERVICE WORKER - VERSION 1.2
+// SOS UNIFIED SERVICE WORKER - VERSION 1.4 (STABILITY BUMP)
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
@@ -18,7 +18,7 @@ messaging.onBackgroundMessage((payload) => {
     console.log("[FCM SOS] Background message received:", payload);
     const title = payload.data?.title || payload.notification?.title || "Porto Seguro 1";
     const body = payload.data?.body || payload.notification?.body || "Nova mensagem recebida";
-    const tag = "gestao-ps1";
+    const tag = payload.data?.tag || "gestao-ps1";
 
     const options = {
         body,
@@ -27,8 +27,10 @@ messaging.onBackgroundMessage((payload) => {
         tag: tag,
         renotify: true,
         vibrate: [200, 100, 200],
+        requireInteraction: true,
         data: {
-            url: payload.data?.url || '/'
+            url: payload.data?.url || '/',
+            receivedAt: new Date().toISOString()
         }
     };
 

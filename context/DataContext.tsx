@@ -810,7 +810,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast('Documento adicionado com sucesso!', 'success');
 
     // Notificar todos (In-App)
-    addNotification({
+    await addNotification({
       message: `Novo documento disponível: ${docData.title}`,
       userId: "all",
       requestId: "",

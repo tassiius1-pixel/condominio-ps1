@@ -85,7 +85,7 @@ export const requestPushPermission = async (
 
         if (!token) return { status: 'error' };
 
-        console.log("✅ Token obtido!");
+        console.log("✅ Token obtido:", token.substring(0, 10) + "...");
         const { arrayUnion } = await import("firebase/firestore");
         await updateDoc(doc(db, "users", userId), {
             fcmToken: token, // mantemos para retrocompatibilidade
@@ -93,6 +93,7 @@ export const requestPushPermission = async (
             pushEnabled: true,
             lastTokenSync: new Date().toISOString(),
         });
+        console.log("💾 Token sincronizado no Firestore para usuário:", userId);
 
         return { status: 'granted', token };
 
