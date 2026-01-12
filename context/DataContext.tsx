@@ -82,6 +82,7 @@ interface DataContextType {
 
   documents: DocumentType[];
   addDocument: (docData: Omit<DocumentType, 'id' | 'createdAt'>) => Promise<void>;
+  updateDocument: (id: string, data: Partial<DocumentType>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   toggleDocumentPin: (id: string) => Promise<void>;
 }
@@ -809,22 +810,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addToast('Documento adicionado com sucesso!', 'success');
 
     // Notificar todos (In-App)
-    await addNotification({
+    addNotification({
       message: `Novo documento disponível: ${docData.title}`,
       userId: "all",
       requestId: "",
     });
 
-    // 🔥 Push Notification para todos (Mobile/Desktop)
-    try {
-      await sendPushNotification(
-        "all",
-        "Novo Documento Adicionado",
-        `${docData.title} (${docData.category})`
-      );
-    } catch (err) {
-      console.error("Erro ao disparar broadcast de documentos:", err);
-    }
+    // 🔥 Push Notification para todos (Mobile/Desktop) - Fire and forget like Voting
+    sendPushNotification(
+      "all",
+      "Novo Documento Adicionado",
+      `${docData.title} (${docData.category})`
+    ).catch(err => console.error("Erro ao disparar broadcast de documentos:", err));
+  };
+
+  const updateDocument = async (id: string, data: Partial<DocumentType>) => {
+    await updateDoc(doc(db, 'documents', id), data);
+    addToast('Documento atualizado com sucesso!', 'success');
   };
 
   const deleteDocument = async (id: string) => {
@@ -885,10 +887,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearLegacyData,
     documents,
     addDocument,
+    updateDocument,
     deleteDocument,
     toggleDocumentPin,
   }), [
-    users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices, documents
+    users, requests, notifications, toasts, loading, reservations, occurrences, votings, notices, documents, updateDocument
   ]);
 
   return (

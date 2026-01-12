@@ -13,7 +13,8 @@ import {
     ShieldCheckIcon,
     BarChartIcon,
     InfoIcon,
-    EyeIcon
+    EyeIcon,
+    EditIcon
 } from './Icons';
 import Skeleton from './Skeleton';
 import { uploadFile } from '../services/storage';
@@ -34,12 +35,14 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 };
 
 const Documents: React.FC<DocumentsProps> = ({ setView }) => {
-    const { documents, addDocument, deleteDocument, toggleDocumentPin, addToast, loading } = useData();
+    const { documents, addDocument, updateDocument, deleteDocument, toggleDocumentPin, addToast, loading } = useData();
     const { currentUser } = useAuth();
 
     const [activeCategory, setActiveCategory] = useState('Todos');
     const [searchQuery, setSearchQuery] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingDocId, setEditingDocId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewDoc, setPreviewDoc] = useState<DocumentType | null>(null);
@@ -124,41 +127,56 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
             return matchesCategory && matchesSearch;
         });
 
-    const handleAddDocument = async (e: React.FormEvent) => {
+    const handleSaveDocument = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newDoc.title || (!selectedFile && !newDoc.fileUrl)) return;
+        if (!newDoc.title) return;
+        if (!isEditMode && !selectedFile && !newDoc.fileUrl) return;
 
         setIsUploading(true);
         try {
-            let finalFileUrl = newDoc.fileUrl;
-            let finalFileName = newDoc.fileName;
-            let finalFileSize = Math.floor(Math.random() * 5000000) + 500000;
+            if (isEditMode && editingDocId) {
+                // UPDATE
+                await updateDocument(editingDocId, {
+                    title: newDoc.title,
+                    description: newDoc.description,
+                    category: newDoc.category,
+                    isPinned: newDoc.isPinned
+                });
+            } else {
+                // ADD
+                let finalFileUrl = newDoc.fileUrl;
+                let finalFileName = newDoc.fileName;
+                let finalFileSize = Math.floor(Math.random() * 5000000) + 500000;
 
-            if (selectedFile) {
-                const uploadedUrl = await uploadFile(selectedFile, 'archives', 'documents');
-                if (uploadedUrl) {
-                    finalFileUrl = uploadedUrl;
-                    finalFileName = selectedFile.name;
-                    finalFileSize = selectedFile.size;
-                } else {
-                    throw new Error("Falha no upload do arquivo.");
+                if (selectedFile) {
+                    const uploadedUrl = await uploadFile(selectedFile, 'archives', 'documents');
+                    if (uploadedUrl) {
+                        finalFileUrl = uploadedUrl;
+                        finalFileName = selectedFile.name;
+                        finalFileSize = selectedFile.size;
+                    } else {
+                        throw new Error("Falha no upload do arquivo.");
+                    }
                 }
-            }
 
-            await addDocument({
-                ...newDoc,
-                fileUrl: finalFileUrl,
-                fileName: finalFileName,
-                fileType: 'pdf',
-                fileSize: finalFileSize,
-                uploadedBy: currentUser?.name || 'Admin',
-            });
+                await addDocument({
+                    ...newDoc,
+                    fileUrl: finalFileUrl,
+                    fileName: finalFileName,
+                    fileType: 'pdf',
+                    fileSize: finalFileSize,
+                    uploadedBy: currentUser?.name || 'Admin',
+                });
+            }
 
             setNewDoc({ title: '', description: '', category: 'Regimento', fileUrl: '', fileName: '', isPinned: false });
             setSelectedFile(null);
             setIsAddModalOpen(false);
+            setIsEditMode(false);
+            setEditingDocId(null);
         } catch (error) {
-            console.error("Erro ao adicionar documento:", error);
+            console.error("Erro ao salvar documento:", error);
+            addToast("Erro ao salvar documento.", "error");
         } finally {
             setIsUploading(false);
         }
@@ -225,7 +243,13 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
 
                     {canManage && (
                         <button
-                            onClick={() => setIsAddModalOpen(true)}
+                            onClick={() => {
+                                setIsEditMode(false);
+                                setEditingDocId(null);
+                                setNewDoc({ title: '', description: '', category: 'Regimento', fileUrl: '', fileName: '', isPinned: false });
+                                setSelectedFile(null);
+                                setIsAddModalOpen(true);
+                            }}
                             className="p-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
                             title="Adicionar Documento"
                         >
@@ -299,6 +323,26 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                                     title={doc.isPinned ? "Desafixar" : "Fixar no topo"}
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={doc.isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10h-8V2l-1 1v7H4v1l1 1h6v10l1 1 1-1V12h8V10z"></path></svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingDocId(doc.id);
+                                                        setIsEditMode(true);
+                                                        setNewDoc({
+                                                            title: doc.title,
+                                                            description: doc.description || '',
+                                                            category: doc.category,
+                                                            fileUrl: doc.fileUrl,
+                                                            fileName: doc.fileName,
+                                                            isPinned: doc.isPinned
+                                                        });
+                                                        setSelectedFile(null);
+                                                        setIsAddModalOpen(true);
+                                                    }}
+                                                    className="text-gray-300 hover:text-indigo-500 transition-colors p-1"
+                                                    title="Editar"
+                                                >
+                                                    <EditIcon className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => {
@@ -420,9 +464,13 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                 <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="bg-white w-full max-w-lg sm:rounded-3xl rounded-t-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 duration-500 flex flex-col max-h-[95dvh]">
                         <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 pt-[calc(env(safe-area-inset-top,0rem)+1.5rem)] sm:pt-6">
-                            <h3 className="text-xl font-black text-gray-900">Novo Documento</h3>
+                            <h3 className="text-xl font-black text-gray-900">{isEditMode ? 'Editar Documento' : 'Novo Documento'}</h3>
                             <button
-                                onClick={() => setIsAddModalOpen(false)}
+                                onClick={() => {
+                                    setIsAddModalOpen(false);
+                                    setIsEditMode(false);
+                                    setEditingDocId(null);
+                                }}
                                 className="p-2 hover:bg-gray-200 rounded-xl transition-colors"
                                 type="button"
                             >
@@ -430,7 +478,7 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleAddDocument} className="p-6 space-y-4 overflow-y-auto flex-1 pb-[calc(env(safe-area-inset-bottom,0rem)+2rem)]">
+                        <form onSubmit={handleSaveDocument} className="p-6 space-y-4 overflow-y-auto flex-1 pb-[calc(env(safe-area-inset-bottom,0rem)+2rem)]">
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Título</label>
                                 <input
@@ -468,32 +516,41 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Arquivo (PDF)</label>
-                                    <input
-                                        type="file"
-                                        accept=".pdf"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                setSelectedFile(file);
-                                                // Preenche o título automaticamente se estiver vazio
-                                                if (!newDoc.title) {
-                                                    const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
-                                                    setNewDoc(prev => ({ ...prev, title: cleanName, fileName: file.name }));
-                                                } else {
-                                                    setNewDoc(prev => ({ ...prev, fileName: file.name }));
-                                                }
-                                            }
-                                        }}
-                                        className="hidden"
-                                        id="file-upload"
-                                    />
-                                    <label
-                                        htmlFor="file-upload"
-                                        className="flex items-center justify-center gap-3 p-4 bg-indigo-50 border-2 border-dashed border-indigo-200 rounded-2xl cursor-pointer hover:bg-indigo-100 transition-all text-indigo-600 font-bold h-[52px]"
-                                    >
-                                        <PlusIcon className="w-5 h-5 flex-shrink-0" />
-                                        <span className="truncate">{selectedFile ? selectedFile.name : 'Selecionar'}</span>
-                                    </label>
+                                    {!isEditMode ? (
+                                        <>
+                                            <input
+                                                type="file"
+                                                accept=".pdf"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        setSelectedFile(file);
+                                                        // Preenche o título automaticamente se estiver vazio
+                                                        if (!newDoc.title) {
+                                                            const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+                                                            setNewDoc(prev => ({ ...prev, title: cleanName, fileName: file.name }));
+                                                        } else {
+                                                            setNewDoc(prev => ({ ...prev, fileName: file.name }));
+                                                        }
+                                                    }
+                                                }}
+                                                className="hidden"
+                                                id="file-upload"
+                                            />
+                                            <label
+                                                htmlFor="file-upload"
+                                                className="flex items-center justify-center gap-3 p-4 bg-indigo-50 border-2 border-dashed border-indigo-200 rounded-2xl cursor-pointer hover:bg-indigo-100 transition-all text-indigo-600 font-bold h-[52px]"
+                                            >
+                                                <PlusIcon className="w-5 h-5 flex-shrink-0" />
+                                                <span className="truncate">{selectedFile ? selectedFile.name : 'Selecionar'}</span>
+                                            </label>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center gap-3 p-4 bg-gray-100 border border-gray-200 rounded-2xl text-gray-500 font-bold h-[52px] opacity-60 cursor-not-allowed">
+                                            <FileIcon className="w-5 h-5 flex-shrink-0" />
+                                            <span className="truncate text-sm font-medium">{newDoc.fileName}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
