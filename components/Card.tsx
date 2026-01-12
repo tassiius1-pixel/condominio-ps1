@@ -161,62 +161,65 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
             </span>
           </div>
 
-          {/* Body: Description + Image */}
-          <div className="flex gap-4">
-            <div className="flex-1 min-w-0">
-              {/* Description Container */}
-              <div className="relative group/desc">
-                <p
-                  ref={descriptionRef}
-                  className={`text-sm text-gray-600 mt-1 leading-relaxed font-medium transition-all duration-300 ${!isExpanded && 'line-clamp-2'}`}
+          {/* Body: Content with Floated Image */}
+          <div className="block min-w-0">
+            {/* 1. Description: Always full-width at the top */}
+            <div className="relative group/desc mb-2">
+              <p
+                ref={descriptionRef}
+                className={`text-sm text-gray-600 mt-1 leading-relaxed font-medium transition-all duration-300 ${!isExpanded && 'line-clamp-2'}`}
+              >
+                {request.description}
+              </p>
+              {(hasOverflow || isExpanded) && (
+                <button
+                  onClick={toggleExpand}
+                  className="text-[11px] font-black text-indigo-600 uppercase tracking-widest mt-2 hover:text-indigo-800 transition-colors flex items-center gap-1"
                 >
-                  {request.description}
-                </p>
-                {(hasOverflow || isExpanded) && (
-                  <button
-                    onClick={toggleExpand}
-                    className="text-[11px] font-black text-indigo-600 uppercase tracking-widest mt-2 hover:text-indigo-800 transition-colors flex items-center gap-1"
-                  >
-                    {isExpanded ? 'Ver menos' : 'Ver mais'}
-                    <span className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>↓</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Admin Response Preview */}
-              {request.adminResponse && (
-                <div className={`mt-4 ${style.bg}/50 border ${style.border}/50 rounded-xl p-3 relative transition-colors overflow-hidden group/resp`}>
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>Resposta da Gestão</span>
-                    <span className="text-xs">{style.icon}</span>
-                  </div>
-                  <p className={`text-xs ${style.text} leading-relaxed font-semibold pl-1 ${!isExpanded && 'line-clamp-2'}`}>
-                    {request.adminResponse}
-                  </p>
-                </div>
+                  {isExpanded ? 'Ver menos' : 'Ver mais'}
+                  <span className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>↓</span>
+                </button>
               )}
             </div>
 
-            {/* Image Thumbnail */}
+            {/* 2. Photo: Floated right to stay on the side of the response/bottom content */}
             {request.photos.length > 0 && (
-              <div className="shrink-0 relative w-20 h-20 self-end mb-1 group/thumb">
-                <img
-                  src={request.photos[0]}
-                  alt="Anexo"
-                  className="w-full h-full object-cover rounded-xl border-2 border-white shadow-md cursor-zoom-in hover:brightness-110 transition-all duration-300 group-hover/thumb:scale-105"
-                  onClick={(e) => openLightbox(e, 0)}
-                />
-                {request.photos.length > 1 && (
-                  <div
-                    className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl cursor-pointer backdrop-blur-[1.5px]"
+              <div className="float-right ml-4 mb-1 group/thumb">
+                <div className="relative w-20 h-20">
+                  <img
+                    src={request.photos[0]}
+                    alt="Anexo"
+                    className="w-full h-full object-cover rounded-xl border-2 border-white shadow-md cursor-zoom-in hover:brightness-110 transition-all duration-300 group-hover/thumb:scale-105"
                     onClick={(e) => openLightbox(e, 0)}
-                  >
-                    <span className="text-white font-black text-xs">+{request.photos.length - 1}</span>
-                  </div>
-                )}
+                  />
+                  {request.photos.length > 1 && (
+                    <div
+                      className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl cursor-pointer backdrop-blur-[1.5px]"
+                      onClick={(e) => openLightbox(e, 0)}
+                    >
+                      <span className="text-white font-black text-xs">+{request.photos.length - 1}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
+
+            {/* 3. Admin Response: Flows around the photo if present */}
+            {request.adminResponse && (
+              <div className={`mt-3 ${style.bg}/50 border ${style.border}/50 rounded-xl p-3 relative transition-colors overflow-hidden group/resp`}>
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.text.replace('text-', 'bg-')} opacity-60`}></div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>Resposta da Gestão</span>
+                  <span className="text-xs">{style.icon}</span>
+                </div>
+                <p className={`text-xs ${style.text} leading-relaxed font-semibold pl-1 ${!isExpanded && 'line-clamp-2'}`}>
+                  {request.adminResponse}
+                </p>
+              </div>
+            )}
+
+            {/* Clear floats to ensure card footer starts properly */}
+            <div className="clear-both"></div>
           </div>
         </div>
 
