@@ -113,10 +113,22 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
       }
     };
 
+    // Use ResizeObserver for more reliable detection on all screen sizes/states
+    const resizeObserver = new ResizeObserver(() => {
+      checkOverflow();
+    });
+
+    if (descriptionRef.current) {
+      resizeObserver.observe(descriptionRef.current);
+    }
+
+    // Initial check
     checkOverflow();
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [request.description]);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [request.description, request.photos.length]); // Re-run if content changes
 
   const toggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
