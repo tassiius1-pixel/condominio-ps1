@@ -112,19 +112,41 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
         currentUser?.role === Role.GESTAO ||
         currentUser?.role === Role.SINDICO;
 
+    const parseDateFromDescription = (description: string | undefined): { year: number, month: number } | null => {
+        if (!description) return null;
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const lowerDesc = description.toLowerCase();
+        let foundMonth = -1;
+        months.forEach((m, index) => {
+            if (lowerDesc.includes(m)) foundMonth = index + 1;
+        });
+        const yearMatch = description.match(/\b(20\d{2})\b/);
+        const foundYear = yearMatch ? parseInt(yearMatch[1]) : null;
+        if (foundMonth !== -1 && foundYear) return { year: foundYear, month: foundMonth };
+        return null;
+    };
+
     const filteredDocuments = documents
-        .sort((a, b) => {
-            // Pinned documents first
-            if (a.isPinned && !b.isPinned) return -1;
-            if (!a.isPinned && b.isPinned) return 1;
-            // Then by date
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        })
-        .filter(doc => {
+        .filter((doc) => {
             const matchesCategory = activeCategory === 'Todos' || doc.category === activeCategory;
             const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                doc.description.toLowerCase().includes(searchQuery.toLowerCase());
+                (doc.description?.toLowerCase().includes(searchQuery.toLowerCase()));
             return matchesCategory && matchesSearch;
+        })
+        .sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+
+            const dateA = parseDateFromDescription(a.description);
+            const dateB = parseDateFromDescription(b.description);
+
+            if (dateA && dateB) {
+                if (dateA.year !== dateB.year) return dateB.year - dateA.year;
+                return dateB.month - dateA.month;
+            } else if (dateA) return -1;
+            else if (dateB) return 1;
+
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
 
     const handleSaveDocument = async (e: React.FormEvent) => {

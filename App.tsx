@@ -172,21 +172,21 @@ const App: React.FC = () => {
           if ("serviceWorker" in navigator && Notification.permission === 'granted') {
             try {
               const registration = await navigator.serviceWorker.ready;
-              console.log("🔔 [App.tsx] ServiceWorker pronto para mostrar notificação em foreground.");
+              console.log("🔔 [App.tsx] ServiceWorker pronto.");
 
               // Evitamos duplicar se o sistema já mostrou via background (raro mas possível em transições)
               registration.showNotification(title, {
                 body: body,
-                icon: "/logo.png", // Usando logo.png consistente
-                badge: "/logo.png",
-                tag: payload.data?.tag || "gestao-ps1",
+                icon: "/favicon.png",
+                badge: "/favicon.png",
+                tag: "gestao-ps1",
                 renotify: true,
                 vibrate: [200, 100, 200],
-                data: { url: window.location.href, foreground: true }
+                data: { url: window.location.href }
               } as any).then(() => {
-                console.log("✅ [App.tsx] showNotification (foreground) chamado com sucesso.");
+                console.log("✅ [App.tsx] showNotification chamado com sucesso.");
               }).catch(e => {
-                console.error("❌ [App.tsx] Falha ao chamar showNotification:", e);
+                console.error("Falha ao chamar showNotification:", e);
               });
             } catch (e) {
               console.error("Erro ao acessar registration.ready:", e);

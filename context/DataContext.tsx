@@ -816,8 +816,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       requestId: "",
     });
 
-    // 🔥 Push Notification para todos (Mobile/Desktop) - Fire and forget like Voting
-    sendPushNotification(
+    // 🔥 Push Notification para todos (Mobile/Desktop) - Await for stability like before
+    await sendPushNotification(
       "all",
       "Novo Documento Adicionado",
       `${docData.title} (${docData.category})`
