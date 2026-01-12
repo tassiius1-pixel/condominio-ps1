@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Request, Role, Priority, RequestType, Status } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import RequestModal from './RequestModal';
@@ -96,6 +96,8 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
 
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasOverflow, setHasOverflow] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   const author = users.find(u => u.id === request.authorId);
   const authorFirstName = author ? author.name.split(' ')[0] : 'Desconhecido';
@@ -103,15 +105,23 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
   const formattedDate = new Date(request.createdAt).toLocaleDateString('pt-BR');
   const style = getStatusStyle(request.status);
 
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (descriptionRef.current) {
+        const isOverflowing = descriptionRef.current.scrollHeight > descriptionRef.current.clientHeight;
+        setHasOverflow(isOverflowing);
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [request.description]);
+
   const toggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
-
-  const shouldTruncate = request.description.length > 120;
-  const displayDescription = isExpanded || !shouldTruncate
-    ? request.description
-    : `${request.description.substring(0, 120)}...`;
 
   return (
     <>
@@ -156,10 +166,13 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
             <div className="flex-1 min-w-0">
               {/* Description Container */}
               <div className="relative group/desc">
-                <p className={`text-sm text-gray-600 mt-1 leading-relaxed font-medium transition-all duration-300 ${!isExpanded && 'line-clamp-2'}`}>
-                  {displayDescription}
+                <p
+                  ref={descriptionRef}
+                  className={`text-sm text-gray-600 mt-1 leading-relaxed font-medium transition-all duration-300 ${!isExpanded && 'line-clamp-2'}`}
+                >
+                  {request.description}
                 </p>
-                {shouldTruncate && (
+                {(hasOverflow || isExpanded) && (
                   <button
                     onClick={toggleExpand}
                     className="text-[11px] font-black text-indigo-600 uppercase tracking-widest mt-2 hover:text-indigo-800 transition-colors flex items-center gap-1"
