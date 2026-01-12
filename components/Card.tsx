@@ -200,11 +200,11 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
 
             {/* Image Thumbnail */}
             {request.photos.length > 0 && (
-              <div className="shrink-0 relative w-20 h-20 self-end mb-1">
+              <div className="shrink-0 relative w-20 h-20 self-end mb-1 group/thumb">
                 <img
                   src={request.photos[0]}
                   alt="Anexo"
-                  className="w-full h-full object-cover rounded-xl border-2 border-white shadow-md cursor-zoom-in hover:brightness-110 transition transition-transform hover:scale-105"
+                  className="w-full h-full object-cover rounded-xl border-2 border-white shadow-md cursor-zoom-in hover:brightness-110 transition-all duration-300 group-hover/thumb:scale-105"
                   onClick={(e) => openLightbox(e, 0)}
                 />
                 {request.photos.length > 1 && (

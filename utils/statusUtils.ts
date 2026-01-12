@@ -46,10 +46,10 @@ export const getStatusStyle = (status: Status | string): StatusStyle => {
             };
         case Status.CONCLUIDO:
             return {
-                bg: 'bg-sky-100',
-                text: 'text-sky-700',
-                border: 'border-sky-200',
-                icon: '🎉'
+                bg: 'bg-emerald-100',
+                text: 'text-emerald-700',
+                border: 'border-emerald-200',
+                icon: '✅'
             };
         case Status.EM_VOTACAO:
             return {
