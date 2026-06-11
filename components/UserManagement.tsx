@@ -5,6 +5,7 @@ import { Role, User } from '../types';
 import { TrashIcon } from './Icons';
 import { formatCPF, formatName } from '../utils/formatters';
 import ConfirmModal from './ConfirmModal';
+import { loadJsPDF } from '../utils/scriptLoader';
 
 const UserManagement: React.FC = () => {
   const { users, updateUserRole, deleteUser } = useData();
@@ -70,29 +71,35 @@ const UserManagement: React.FC = () => {
     });
   };
 
-  const handleExportPDF = () => {
-    const { jsPDF } = (window as any).jspdf;
-    const doc = new jsPDF();
+  const handleExportPDF = async () => {
+    try {
+      await loadJsPDF();
+      const { jsPDF } = (window as any).jspdf;
+      const doc = new jsPDF();
 
-    doc.setFontSize(18);
-    doc.text('Relatório de Usuários', 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+      doc.setFontSize(18);
+      doc.text('Relatório de Usuários', 14, 22);
+      doc.setFontSize(11);
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
 
-    const rows = users.map(user => [
-      formatName(user.name),
-      formatCPF(user.cpf),
-      user.houseNumber.toString(),
-      user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    ]);
+      const rows = users.map(user => [
+        formatName(user.name),
+        formatCPF(user.cpf),
+        user.houseNumber.toString(),
+        user.role.charAt(0).toUpperCase() + user.role.slice(1)
+      ]);
 
-    doc.autoTable({
-      startY: 40,
-      head: [['Nome', 'CPF', 'Casa', 'Perfil']],
-      body: rows,
-    });
+      doc.autoTable({
+        startY: 40,
+        head: [['Nome', 'CPF', 'Casa', 'Perfil']],
+        body: rows,
+      });
 
-    doc.save('relatorio_usuarios.pdf');
+      doc.save('relatorio_usuarios.pdf');
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      alert("Ocorreu um erro ao gerar o PDF. Verifique sua conexão.");
+    }
   };
 
   const handleExportExcel = () => {

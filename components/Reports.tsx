@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Status, Role } from '../types';
+import { loadChartJS, loadJsPDF } from '../utils/scriptLoader';
 
 import {
     WrenchScrewdriverIcon,
@@ -103,6 +104,32 @@ const Reports: React.FC = () => {
     const [activeTab, setActiveTab] = useState<ReportTab>('sugestoes');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [librariesLoaded, setLibrariesLoaded] = useState(false);
+    const [loadingError, setLoadingError] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadLibraries = async () => {
+            try {
+                await Promise.all([
+                    loadChartJS(),
+                    loadJsPDF()
+                ]);
+                if (isMounted) {
+                    setLibrariesLoaded(true);
+                }
+            } catch (err) {
+                console.error("Erro ao carregar bibliotecas de relatório:", err);
+                if (isMounted) {
+                    setLoadingError(true);
+                }
+            }
+        };
+        loadLibraries();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
@@ -283,6 +310,24 @@ const Reports: React.FC = () => {
             </div>
         </div>
     );
+
+    if (loadingError) {
+        return (
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 text-center">
+                <p className="text-red-500 font-bold">Erro ao carregar componentes do relatório.</p>
+                <p className="text-xs text-gray-500 mt-2 font-medium">Por favor, verifique sua conexão com a internet e tente novamente.</p>
+            </div>
+        );
+    }
+
+    if (!librariesLoaded) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-4">Carregando painel de relatórios...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-fade-in pb-20 sm:pb-8">
