@@ -59,7 +59,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v1.3'; // Bumped version
+const CACHE_NAME = 'porto-seguro-sos-v1.4'; // Bumped version
 const assetsToCache = [
     '/',
     '/index.html',
