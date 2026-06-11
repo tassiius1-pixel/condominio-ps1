@@ -59,7 +59,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v1.4'; // Bumped version
+const CACHE_NAME = 'porto-seguro-sos-v1.5'; // Bumped version
 const assetsToCache = [
     '/',
     '/index.html',
@@ -94,6 +94,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
+    // Para navegação, tentamos rede primeiro, mas com fallback imediato para o cache
     if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
         event.respondWith(
             fetch(event.request)
@@ -102,6 +103,35 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Cache dinâmico (Cache-First) para assets estáticos do build e CDNs externos
+    if (url.pathname.startsWith('/assets/') || 
+        url.hostname.includes('cdn') || 
+        url.hostname.includes('cdnjs') || 
+        url.hostname.includes('gstatic') ||
+        url.hostname.includes('googleapis')) {
+        
+        event.respondWith(
+            caches.match(event.request).then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                return fetch(event.request).then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const cacheCopy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, cacheCopy);
+                        });
+                    }
+                    return networkResponse;
+                }).catch(() => {
+                    // Ignora erros de rede silenciosamente
+                });
+            })
+        );
+        return;
+    }
+
+    // Comportamento padrão para outras requisições (ex: chamadas de API do Firebase)
     event.respondWith(
         caches.match(event.request).then((response) => {
             return response || fetch(event.request);
