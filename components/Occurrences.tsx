@@ -328,7 +328,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     <button onClick={() => setView && setView('home')} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
                         <ChevronLeftIcon className="w-6 h-6" />
                     </button>
-                    <h2 className="text-2xl font-bold text-gray-800">Livro de Ocorrências</h2>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Livro de Ocorrências</h2>
                 </div>
 
                 {!isFormOpen && (
@@ -341,7 +341,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                             setPhotos([]);
                             setIsFormOpen(true);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm w-full md:w-auto justify-center"
+                        className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 w-full md:w-auto justify-center font-black text-xs uppercase tracking-widest active:scale-95 touch-active"
                     >
                         <PlusIcon className="w-5 h-5" />
                         <span>Nova Ocorrência</span>
@@ -365,16 +365,24 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
             {/* Tabs for all Users */}
             {!isFormOpen && (
-                <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
+                <div className="flex bg-white p-1.5 rounded-2xl border border-gray-100 w-full sm:w-fit shadow-sm">
                     <button
                         onClick={() => setActiveTab('open')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'open' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 sm:flex-none px-8 py-2.5 rounded-[1.25rem] text-xs font-black uppercase tracking-wider transition-all touch-active ${
+                            activeTab === 'open'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
+                                : 'text-gray-500 hover:text-gray-800'
+                        }`}
                     >
                         Em Aberto
                     </button>
                     <button
                         onClick={() => setActiveTab('resolved')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'resolved' ? 'bg-white shadow text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 sm:flex-none px-8 py-2.5 rounded-[1.25rem] text-xs font-black uppercase tracking-wider transition-all touch-active ${
+                            activeTab === 'resolved'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
+                                : 'text-gray-500 hover:text-gray-800'
+                        }`}
                     >
                         Arquivadas
                     </button>

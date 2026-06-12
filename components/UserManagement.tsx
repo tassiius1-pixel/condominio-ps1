@@ -122,48 +122,48 @@ const UserManagement: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-800">Gerenciamento de Usuários</h2>
-          <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold border border-blue-100 shadow-sm">
-            Total: {users.length}
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Gerenciamento de Usuários</h2>
+          <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
+            {users.length} Usuários
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={handleExportPDF} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors">
+          <button onClick={handleExportPDF} className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-sm transition-all active:scale-95">
             PDF
           </button>
-          <button onClick={handleExportExcel} className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-colors">
+          <button onClick={handleExportExcel} className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-sm transition-all active:scale-95">
             Excel
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-2xl border border-gray-100">
+        <table className="min-w-full divide-y divide-gray-100">
+          <thead className="bg-gray-50/50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Casa</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
-              <th scope="col" className="relative px-6 py-3">
+              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Nome</th>
+              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">CPF</th>
+              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Casa</th>
+              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Perfil</th>
+              <th scope="col" className="relative px-6 py-4">
                 <span className="sr-only">Ações</span>
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-50">
             {users.map(user => (
-              <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatName(user.name)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCPF(user.cpf)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.houseNumber}</td>
+              <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{formatName(user.name)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium tabular-nums">{formatCPF(user.cpf)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">{user.houseNumber}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <select
                     value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
                     disabled={user.role === Role.ADMIN}
-                    className="block w-full pl-3 pr-10 py-1 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md disabled:bg-gray-200 disabled:cursor-not-allowed bg-white text-gray-900"
+                    className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
                   >
                     <option value={Role.MORADOR}>Morador</option>
                     <option value={Role.GESTAO}>Gestão</option>

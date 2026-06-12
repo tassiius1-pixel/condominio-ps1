@@ -177,8 +177,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reservas</h1>
-                    <p className="text-gray-500 text-sm mt-1">Gerencie e visualize a disponibilidade das áreas comuns.</p>
+                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Reservas</h1>
+                    <p className="text-gray-500 text-[10px] md:text-sm mt-0.5 font-medium leading-tight">Gerencie e visualize a disponibilidade das áreas comuns.</p>
                 </div>
 
                 {/* Month Navigation */}

@@ -236,85 +236,87 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100/60">
-          <div className="flex items-center gap-4">
-            {isSuggestion && (
-              <button
-                onClick={handleLike}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all text-[11px] font-black uppercase tracking-tight
-                  ${isLiked
-                    ? 'text-red-600 bg-red-50 shadow-sm shadow-red-100'
-                    : 'text-gray-500 hover:bg-gray-50'}
-                  `}
-                title="Apoiar sugestão"
-              >
-                <HeartIcon className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                <span>{likesCount}</span>
-              </button>
-            )}
+        <div className="pt-3 border-t border-gray-100/60 space-y-3">
+          {/* Row 1: Likes + Comments */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {isSuggestion && (
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all text-[11px] font-black uppercase tracking-tight
+                    ${isLiked
+                      ? 'text-red-600 bg-red-50 shadow-sm shadow-red-100'
+                      : 'text-gray-500 hover:bg-gray-50'}
+                    `}
+                  title="Apoiar sugestão"
+                >
+                  <HeartIcon className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                  <span>{likesCount}</span>
+                </button>
+              )}
 
-            <div className="flex items-center gap-1.5 text-gray-400 text-xs font-bold">
-              <MessageSquareIcon className="w-4 h-4" />
-              <span>{request.comments.length}</span>
+              <div className="flex items-center gap-1.5 text-gray-400 text-xs font-bold">
+                <MessageSquareIcon className="w-4 h-4" />
+                <span>{request.comments.length}</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            {canManage && isSuggestion && (
-              <>
-                <div className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-2xl p-1.5 gap-2 shadow-inner">
-                  <button
-                    type="button"
-                    onClick={(e) => handleStatusClick(e, Status.RECUSADA)}
-                    className="p-3 rounded-xl text-red-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-red-100"
-                    title="Recusar"
-                  >
-                    <XIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleStatusClick(e, Status.EM_ANALISE)}
-                    className="p-3 rounded-xl text-blue-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
-                    title="Analisar"
-                  >
-                    <InfoIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleStatusClick(e, Status.EM_ANDAMENTO)}
-                    className="p-3 rounded-xl text-orange-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-orange-100"
-                    title="Em Andamento"
-                  >
-                    <WrenchScrewdriverIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleStatusClick(e, Status.CONCLUIDO)}
-                    className="p-3 rounded-xl text-green-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-green-100"
-                    title="Concluir"
-                  >
-                    <CheckCircleIcon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="w-px h-6 bg-gray-200 mx-1"></div>
-
+          {/* Row 2: Management Actions (only for managers) */}
+          {canManage && isSuggestion && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              {/* Status Action Buttons */}
+              <div className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-2xl p-1 gap-1 shadow-inner flex-1 justify-center">
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onCreateVoting) {
-                      onCreateVoting(request.title, request.description);
-                    }
-                  }}
-                  className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95"
+                  onClick={(e) => handleStatusClick(e, Status.RECUSADA)}
+                  className="p-2.5 sm:p-3 rounded-xl text-red-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-red-100"
+                  title="Recusar"
                 >
-                  <BarChartIcon className="w-4 h-4" />
-                  Votar
+                  <XIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
-              </>
-            )}
-          </div>
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusClick(e, Status.EM_ANALISE)}
+                  className="p-2.5 sm:p-3 rounded-xl text-blue-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
+                  title="Analisar"
+                >
+                  <InfoIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusClick(e, Status.EM_ANDAMENTO)}
+                  className="p-2.5 sm:p-3 rounded-xl text-orange-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-orange-100"
+                  title="Em Andamento"
+                >
+                  <WrenchScrewdriverIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusClick(e, Status.CONCLUIDO)}
+                  className="p-2.5 sm:p-3 rounded-xl text-green-600 hover:bg-white hover:shadow-md hover:scale-110 active:scale-90 transition-all flex items-center justify-center border border-transparent hover:border-green-100"
+                  title="Concluir"
+                >
+                  <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
+
+              {/* Votar Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onCreateVoting) {
+                    onCreateVoting(request.title, request.description);
+                  }
+                }}
+                className="flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95 w-full sm:w-auto"
+              >
+                <BarChartIcon className="w-4 h-4" />
+                Criar Votação
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
