@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { XIcon, AlertTriangleIcon } from './Icons';
 
 interface ConfirmModalProps {
@@ -29,7 +30,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     const isDanger = type === 'danger';
     const isSuccess = type === 'success';
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in px-6">
             <div
                 className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 animate-scale-in border border-gray-100"
@@ -77,7 +78,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

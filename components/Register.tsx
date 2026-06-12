@@ -222,7 +222,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(prev => !prev)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                  className="absolute right-4 top-0 bottom-0 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors p-1"
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
