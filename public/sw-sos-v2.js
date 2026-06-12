@@ -67,7 +67,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v1.6'; // Bumped version
+const CACHE_NAME = 'porto-seguro-sos-v2.0'; // Bumped version
 const assetsToCache = [
     '/',
     '/index.html',
@@ -101,6 +101,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+
+    // 🔥 IGNORA REQUISIÇÕES QUE NÃO SEJAM GET (POST, PUT, DELETE, etc.)
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    // 🔥 IGNORA REQUISIÇÕES PARA O SUPABASE (evita travar chamadas de API e Auth)
+    if (url.hostname.includes('supabase.co')) {
+        return;
+    }
 
     // Para navegação, tentamos rede primeiro, mas com fallback imediato para o cache
     if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {

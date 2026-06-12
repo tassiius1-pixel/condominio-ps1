@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // BUSCA PERFIL DO USUÁRIO NO SUPABASE
   const fetchUserProfile = async (uid: string) => {
+    console.log("🔍 [AuthContext] fetchUserProfile iniciando para UID:", uid);
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -32,7 +33,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .eq("id", uid)
         .single();
 
-      if (data && !error) {
+      if (error) {
+        console.error("❌ [AuthContext] Erro ao buscar perfil no Supabase:", error);
+        setCurrentUser(null);
+        return;
+      }
+
+      if (data) {
+        console.log("🔍 [AuthContext] Perfil encontrado no banco:", data);
         const formattedUser: User = {
           id: data.id,
           name: data.name,
@@ -42,20 +50,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           role: data.role.toLowerCase() as any, // Mapeia 'ADMIN'/'MORADOR' para 'admin'/'morador'
           email: data.email,
         };
+        console.log("🔍 [AuthContext] formattedUser gerado:", formattedUser);
         setCurrentUser(formattedUser);
       } else {
+        console.warn("⚠️ [AuthContext] Perfil retornado vazio (null) para UID:", uid);
         setCurrentUser(null);
       }
     } catch (error) {
-      console.error("Erro ao buscar perfil do usuário no Supabase:", error);
+      console.error("❌ [AuthContext] Erro fatal ao buscar perfil:", error);
       setCurrentUser(null);
     }
   };
 
   // LISTENER DE AUTH DO SUPABASE
   useEffect(() => {
+    console.log("🔌 [AuthContext] Inicializando listener do Auth...");
     // Busca sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("🔌 [AuthContext] getSession resolvido. Sessão:", session?.user?.id ? "Sim" : "Não");
       if (session?.user) {
         fetchUserProfile(session.user.id).finally(() => setLoadingAuth(false));
       } else {
@@ -65,35 +77,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     // Escuta mudanças de sessão
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setCurrentUser(null);
-      }
-      setLoadingAuth(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`🔌 [AuthContext] onAuthStateChange disparado! Evento: ${event}, User UID: ${session?.user?.id || 'Nenhum'}`);
+      setTimeout(async () => {
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          console.log("🔌 [AuthContext] Sem usuário na sessão, definindo currentUser para null.");
+          setCurrentUser(null);
+        }
+        setLoadingAuth(false);
+      }, 0);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("🔌 [AuthContext] Desinscrevendo listener do Auth...");
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // TRANSFORMA username → email válido para o Supabase (para evitar bloqueio de MX record e usar domínio real)
+  // TRANSFORMA username → email válido para o Supabase (para evitar domínio inválido)
   const usernameToEmail = (username: string) =>
     `${username.toLowerCase().replace(/\s+/g, "")}.ps1@gmail.com`;
 
   // LOGIN -------------------------------------------------------
   const login = async (username: string, password: string): Promise<boolean> => {
+    console.log(`⏳ [AuthContext] Iniciando login para usuário '${username}'...`);
     try {
       const email = usernameToEmail(username);
+      console.log(`⏳ [AuthContext] Email gerado: ${email}`);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ [AuthContext] signInWithPassword retornou erro:", error.message);
+        throw error;
+      }
+      console.log("✅ [AuthContext] signInWithPassword resolvido com sucesso!");
       return true;
     } catch (err) {
-      console.error("Erro no login Supabase:", err);
+      console.error("❌ [AuthContext] Erro capturado no login:", err);
       return false;
     }
   };

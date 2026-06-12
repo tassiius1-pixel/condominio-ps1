@@ -192,4 +192,15 @@ export interface Document {
   isPinned?: boolean;
 }
 
-export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents";
+export interface Boleto {
+  id: string;
+  houseNumber: number;
+  referenceMonth: string; // "2026-06" (YYYY-MM)
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents" | "boletos";

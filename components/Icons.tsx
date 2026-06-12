@@ -369,3 +369,18 @@ export const LinkIcon: React.FC<{ className?: string }> = ({ className }) => (
     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
   </svg>
 );
+
+export const BoletoIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="7" y1="7" x2="17" y2="7"></line>
+    <line x1="7" y1="11" x2="13" y2="11"></line>
+    <line x1="6" y1="15" x2="6" y2="17" strokeWidth="2.5"></line>
+    <line x1="9" y1="15" x2="9" y2="17" strokeWidth="1"></line>
+    <line x1="11" y1="15" x2="11" y2="17" strokeWidth="2"></line>
+    <line x1="14" y1="15" x2="14" y2="17" strokeWidth="1"></line>
+    <line x1="16" y1="15" x2="16" y2="17" strokeWidth="2.5"></line>
+    <line x1="18" y1="15" x2="18" y2="17" strokeWidth="1"></line>
+  </svg>
+);
+

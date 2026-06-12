@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ConfirmModal from './ConfirmModal';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon, SearchIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon, SearchIcon, BoletoIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
 import { useData } from '../hooks/useData';
@@ -10,7 +10,7 @@ import NotificationsDropdown from './NotificationsDropdown';
 
 interface HeaderProps {
   currentView: string;
-  setView: (view: 'home' | 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'documents') => void;
+  setView: (view: 'home' | 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'documents' | 'boletos') => void;
   condoLogo: string | null;
   setCondoLogo: (logo: string | null) => void;
   mobileMenuOpen: boolean;
@@ -122,6 +122,7 @@ const Header: React.FC<HeaderProps> = ({
     { id: "occurrences", label: "Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
     { id: "documents", label: "Documentos", icon: FileIcon },
+    { id: "boletos", label: "Boletos", icon: BoletoIcon },
     { id: "users", label: "Usuários", icon: UsersIcon, adminOnly: true },
     { id: "reports", label: "Relatórios", icon: BarChartIcon, adminOnly: true },
   ];
@@ -133,7 +134,7 @@ const Header: React.FC<HeaderProps> = ({
     : navItems.filter(i => !i.adminOnly);
 
   const secondaryItems = isManagement
-    ? navItems.filter(i => ['reservations', 'occurrences', 'voting', 'documents'].includes(i.id))
+    ? navItems.filter(i => ['reservations', 'occurrences', 'voting', 'documents', 'boletos'].includes(i.id))
     : [];
 
   const managementItems = navItems.filter(i => i.adminOnly);

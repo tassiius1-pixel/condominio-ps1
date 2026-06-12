@@ -7,6 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Condomínio Porto Seguro 1</title>
 
+  <!-- Desativa Cache HTTP do index.html -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2563eb">
@@ -51,12 +56,47 @@
   <!-- 🔥 REGISTRO DO SERVICE WORKER FCM -->
   <!-- =============================== -->
   <script>
+    // 🔥 Varre e desregistra especificamente o Service Worker antigo (sw-sos-v1.js)
     if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        let hasV1 = false;
+        for (let registration of registrations) {
+          const scriptURL = registration.active?.scriptURL || registration.installing?.scriptURL || registration.waiting?.scriptURL || "";
+          if (scriptURL.includes("sw-sos-v1.js")) {
+            hasV1 = true;
+            registration.unregister().then((ok) => {
+              if (ok) console.log("🧹 [PWA] Service Worker antigo (v1) desregistrado:", scriptURL);
+            });
+          }
+        }
+        if (hasV1) {
+          console.log("🧹 [PWA] Service Worker v1 detectado e desregistrado. Limpando caches e recarregando...");
+          if ("caches" in window) {
+            caches.keys().then((keys) => {
+              keys.forEach((key) => caches.delete(key));
+            });
+          }
+          setTimeout(() => window.location.reload(), 300);
+        }
+      });
+    }
+
+    // Registro do novo Service Worker v2
+    const SW_CLEAN_KEY = "sw-cleaned-v2.0";
+    if (!localStorage.getItem(SW_CLEAN_KEY)) {
+      if ("caches" in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((key) => caches.delete(key));
+        });
+      }
+      localStorage.setItem(SW_CLEAN_KEY, "true");
+      setTimeout(() => window.location.reload(), 300);
+    }
+
+    if ("serviceWorker" in navigator && localStorage.getItem(SW_CLEAN_KEY)) {
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      // Verifica se o app está instalado (modo standalone)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-      // Se for iOS e NÃO estiver instalado (estiver no navegador Safari), remove o SW para evitar bugs
       if (isIOS && !isStandalone) {
         console.log("iOS no navegador detectado: Desativando SW para evitar conflitos.");
         navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -65,29 +105,23 @@
           }
         });
       } else if (typeof Notification !== "undefined") {
-        // Registra se for Android, Desktop OU iOS Instalado (Standalone)
         navigator.serviceWorker
-          .register("/sw-sos-v1.js?v=1.6")
+          .register("/sw-sos-v2.js?v=2.0")
           .then((reg) => {
-            console.log("SW SOS registrado (PWA):", reg);
-
-            // Verifica atualizações
+            console.log("SW SOS registrado (PWA v2.0):", reg);
             reg.onupdatefound = () => {
               const installingWorker = reg.installing;
               if (installingWorker) {
                 installingWorker.onstatechange = () => {
                   if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log("Nova versão detectada. Atualizando...");
-                    // No sw-sos-v1.js o skipWaiting() já é chamado, 
-                    // então o controllerchange vai disparar abaixo.
+                    console.log("Nova versão v2.0 detectada. Atualizando...");
                   }
                 };
               }
             };
           })
-          .catch((err) => console.error("Erro ao registrar SW SOS:", err));
+          .catch((err) => console.error("Erro ao registrar SW SOS v2.0:", err));
 
-        // Recarrega a página automaticamente quando o novo SW assume o controle
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (!refreshing) {

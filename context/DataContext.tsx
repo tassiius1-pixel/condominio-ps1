@@ -14,7 +14,8 @@ import {
   Voting,
   Vote,
   Notice,
-  Document as DocumentType
+  Document as DocumentType,
+  Boleto
 } from "../types";
 
 interface DataContextType {
@@ -71,6 +72,12 @@ interface DataContextType {
   updateDocument: (id: string, data: Partial<DocumentType>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   toggleDocumentPin: (id: string) => Promise<void>;
+
+  boletos: Boleto[];
+  addBoleto: (boleto: Omit<Boleto, 'id' | 'createdAt'>) => Promise<any>;
+  addBoletos: (boletosData: Omit<Boleto, 'id' | 'createdAt'>[]) => Promise<void>;
+  deleteBoletosByMonth: (month: string) => Promise<void>;
+  getBoletoSignedUrl: (fileUrl: string) => Promise<string>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -85,6 +92,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [votings, setVotings] = useState<Voting[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
+  const [boletos, setBoletos] = useState<Boleto[]>([]);
   const [loading, setLoading] = useState(true);
 
   const addToast = useCallback((message: string, type: "success" | "error" | "info") => {
@@ -275,6 +283,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const fetchBoletos = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("boletos")
+      .select("*")
+      .order("reference_month", { ascending: false })
+      .order("house_number", { ascending: true });
+    if (data && !error) {
+      setBoletos(data.map(b => ({
+        id: b.id,
+        houseNumber: b.house_number,
+        referenceMonth: b.reference_month,
+        fileUrl: b.file_url,
+        fileName: b.file_name,
+        fileSize: b.file_size,
+        uploadedBy: b.uploaded_by,
+        createdAt: b.created_at
+      })));
+    }
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     const { data, error } = await supabase
       .from("notifications")
@@ -292,52 +320,115 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  // Gerenciamento unificado de carregamento de dados e conexões Realtime de acordo com a sessão
   useEffect(() => {
-    setLoading(true);
+    let activeChannels: any[] = [];
 
-    Promise.all([
-      fetchUsers(),
-      fetchRequests(),
-      fetchReservations(),
-      fetchOccurrences(),
-      fetchVotings(),
-      fetchNotices(),
-      fetchDocuments(),
-      fetchNotifications()
-    ]).finally(() => setLoading(false));
+    const unsubscribeAll = () => {
+      if (activeChannels.length > 0) {
+        console.log("🧹 [DataContext] Removendo assinaturas de Realtime antigas...");
+        activeChannels.forEach(ch => {
+          try {
+            ch.unsubscribe();
+          } catch (e) {
+            console.error("Erro ao remover canal Realtime:", e);
+          }
+        });
+        activeChannels = [];
+      }
+    };
 
-    const chUsers = supabase.channel("rt-users").on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, fetchUsers).subscribe();
-    const chRequests = supabase.channel("rt-requests").on("postgres_changes", { event: "*", schema: "public", table: "requests" }, fetchRequests).subscribe();
-    const chLikes = supabase.channel("rt-likes").on("postgres_changes", { event: "*", schema: "public", table: "request_likes" }, fetchRequests).subscribe();
-    const chComments = supabase.channel("rt-comments").on("postgres_changes", { event: "*", schema: "public", table: "comments" }, fetchRequests).subscribe();
-    const chCommentLikes = supabase.channel("rt-comment-likes").on("postgres_changes", { event: "*", schema: "public", table: "comment_likes" }, fetchRequests).subscribe();
-    const chRes = supabase.channel("rt-reservations").on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, fetchReservations).subscribe();
-    const chOcc = supabase.channel("rt-occurrences").on("postgres_changes", { event: "*", schema: "public", table: "occurrences" }, fetchOccurrences).subscribe();
-    const chVotings = supabase.channel("rt-votings").on("postgres_changes", { event: "*", schema: "public", table: "votings" }, fetchVotings).subscribe();
-    const chVotes = supabase.channel("rt-votes").on("postgres_changes", { event: "*", schema: "public", table: "votes" }, fetchVotings).subscribe();
-    const chNotices = supabase.channel("rt-notices").on("postgres_changes", { event: "*", schema: "public", table: "notices" }, fetchNotices).subscribe();
-    const chReactions = supabase.channel("rt-reactions").on("postgres_changes", { event: "*", schema: "public", table: "notice_reactions" }, fetchNotices).subscribe();
-    const chDocs = supabase.channel("rt-docs").on("postgres_changes", { event: "*", schema: "public", table: "documents" }, fetchDocuments).subscribe();
-    const chNotif = supabase.channel("rt-notifications").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, fetchNotifications).subscribe();
-    const chNotifReads = supabase.channel("rt-notif-reads").on("postgres_changes", { event: "*", schema: "public", table: "notification_reads" }, fetchNotifications).subscribe();
+    const loadDataAndSubscribe = async (userId: string) => {
+      setLoading(true);
+      console.log(`🔑 [DataContext] Sessão ativa para ${userId}. Carregando dados e ativando Realtime...`);
+      
+      try {
+        await Promise.all([
+          fetchUsers(),
+          fetchRequests(),
+          fetchReservations(),
+          fetchOccurrences(),
+          fetchVotings(),
+          fetchNotices(),
+          fetchDocuments(),
+          fetchNotifications(),
+          fetchBoletos()
+        ]);
+      } catch (err) {
+        console.error("Erro ao carregar dados protegidos:", err);
+      } finally {
+        setLoading(false);
+      }
+
+      // Desinscreve canais antigos antes de abrir novos
+      unsubscribeAll();
+
+      // Assina canais Realtime apenas enquanto estiver logado
+      const chUsers = supabase.channel("rt-users").on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, fetchUsers).subscribe();
+      const chRequests = supabase.channel("rt-requests").on("postgres_changes", { event: "*", schema: "public", table: "requests" }, fetchRequests).subscribe();
+      const chLikes = supabase.channel("rt-likes").on("postgres_changes", { event: "*", schema: "public", table: "request_likes" }, fetchRequests).subscribe();
+      const chComments = supabase.channel("rt-comments").on("postgres_changes", { event: "*", schema: "public", table: "comments" }, fetchRequests).subscribe();
+      const chCommentLikes = supabase.channel("rt-comment-likes").on("postgres_changes", { event: "*", schema: "public", table: "comment_likes" }, fetchRequests).subscribe();
+      const chRes = supabase.channel("rt-reservations").on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, fetchReservations).subscribe();
+      const chOcc = supabase.channel("rt-occurrences").on("postgres_changes", { event: "*", schema: "public", table: "occurrences" }, fetchOccurrences).subscribe();
+      const chVotings = supabase.channel("rt-votings").on("postgres_changes", { event: "*", schema: "public", table: "votings" }, fetchVotings).subscribe();
+      const chVotes = supabase.channel("rt-votes").on("postgres_changes", { event: "*", schema: "public", table: "votes" }, fetchVotings).subscribe();
+      const chNotices = supabase.channel("rt-notices").on("postgres_changes", { event: "*", schema: "public", table: "notices" }, fetchNotices).subscribe();
+      const chReactions = supabase.channel("rt-reactions").on("postgres_changes", { event: "*", schema: "public", table: "notice_reactions" }, fetchNotices).subscribe();
+      const chDocs = supabase.channel("rt-docs").on("postgres_changes", { event: "*", schema: "public", table: "documents" }, fetchDocuments).subscribe();
+      const chBoletos = supabase.channel("rt-boletos").on("postgres_changes", { event: "*", schema: "public", table: "boletos" }, fetchBoletos).subscribe();
+      const chNotif = supabase.channel("rt-notifications").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, fetchNotifications).subscribe();
+      const chNotifReads = supabase.channel("rt-notif-reads").on("postgres_changes", { event: "*", schema: "public", table: "notification_reads" }, fetchNotifications).subscribe();
+
+      activeChannels = [
+        chUsers, chRequests, chLikes, chComments, chCommentLikes,
+        chRes, chOcc, chVotings, chVotes, chNotices, chReactions,
+        chDocs, chBoletos, chNotif, chNotifReads
+      ];
+    };
+
+    const clearAllData = () => {
+      console.log("🧹 [DataContext] Usuário deslogado. Limpando dados da memória e desativando Realtime...");
+      unsubscribeAll();
+      setUsers([]);
+      setRequests([]);
+      setReservations([]);
+      setOccurrences([]);
+      setVotings([]);
+      setNotices([]);
+      setDocuments([]);
+      setBoletos([]);
+      setNotifications([]);
+      setLoading(false);
+    };
+
+    // Verifica sessão inicial imediatamente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadDataAndSubscribe(session.user.id);
+      } else {
+        clearAllData();
+      }
+    });
+
+    // Escuta mudanças de sessão de forma unificada
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setTimeout(() => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            loadDataAndSubscribe(session.user.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          clearAllData();
+        }
+      }, 0);
+    });
 
     return () => {
-      chUsers.unsubscribe();
-      chRequests.unsubscribe();
-      chLikes.unsubscribe();
-      chComments.unsubscribe();
-      chCommentLikes.unsubscribe();
-      chRes.unsubscribe();
-      chOcc.unsubscribe();
-      chVotings.unsubscribe();
-      chVotes.unsubscribe();
-      chNotices.unsubscribe();
-      chReactions.unsubscribe();
-      chDocs.unsubscribe();
-      chNotif.unsubscribe();
-      chNotifReads.unsubscribe();
+      subscription.unsubscribe();
+      unsubscribeAll();
     };
-  }, [fetchUsers, fetchRequests, fetchReservations, fetchOccurrences, fetchVotings, fetchNotices, fetchDocuments, fetchNotifications]);
+  }, [fetchUsers, fetchRequests, fetchReservations, fetchOccurrences, fetchVotings, fetchNotices, fetchDocuments, fetchNotifications, fetchBoletos]);
 
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
 
@@ -942,6 +1033,96 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const addBoleto = async (boleto: Omit<Boleto, 'id' | 'createdAt'>) => {
+    const { data, error } = await supabase.from("boletos").insert({
+      house_number: boleto.houseNumber,
+      reference_month: boleto.referenceMonth,
+      file_url: boleto.fileUrl,
+      file_name: boleto.fileName,
+      file_size: boleto.fileSize,
+      uploaded_by: boleto.uploadedBy
+    }).select().single();
+
+    if (error) {
+      console.error("Erro ao adicionar boleto:", error);
+      throw error;
+    }
+    return data;
+  };
+
+  const addBoletos = async (boletosData: Omit<Boleto, 'id' | 'createdAt'>[]) => {
+    const inserts = boletosData.map(b => ({
+      house_number: b.houseNumber,
+      reference_month: b.referenceMonth,
+      file_url: b.fileUrl,
+      file_name: b.fileName,
+      file_size: b.fileSize,
+      uploaded_by: b.uploadedBy
+    }));
+
+    const { error } = await supabase.from("boletos").insert(inserts);
+
+    if (error) {
+      console.error("Erro ao adicionar boletos em lote:", error);
+      addToast("Erro ao salvar boletos no banco.", "error");
+      throw error;
+    }
+
+    addToast(`${boletosData.length} boletos cadastrados com sucesso!`, "success");
+  };
+
+  const deleteBoletosByMonth = async (month: string) => {
+    // 1. Buscar boletos do mês para obter os file_urls (caminhos no storage)
+    const { data: list, error: fetchError } = await supabase
+      .from("boletos")
+      .select("file_url")
+      .eq("reference_month", month);
+
+    if (fetchError) {
+      console.error("Erro ao buscar boletos para deleção:", fetchError);
+      addToast("Erro ao buscar boletos antigos.", "error");
+      return;
+    }
+
+    if (list && list.length > 0) {
+      const filePaths = list.map(b => b.file_url);
+      
+      // 2. Deletar os arquivos do storage
+      const { error: storageError } = await supabase.storage
+        .from("boletos")
+        .remove(filePaths);
+
+      if (storageError) {
+        console.error("Erro ao remover arquivos antigos do storage:", storageError);
+      }
+    }
+
+    // 3. Deletar os registros do banco de dados
+    const { error: dbError } = await supabase
+      .from("boletos")
+      .delete()
+      .eq("reference_month", month);
+
+    if (dbError) {
+      console.error("Erro ao remover registros de boletos do banco:", dbError);
+      addToast("Erro ao remover boletos antigos do banco.", "error");
+      throw dbError;
+    }
+
+    addToast(`Boletos do mês ${month} removidos para reupload.`, "info");
+  };
+
+  const getBoletoSignedUrl = async (fileUrl: string) => {
+    const { data, error } = await supabase.storage
+      .from('boletos')
+      .createSignedUrl(fileUrl, 3600); // 1 hora
+    if (error || !data) {
+      console.error("Erro ao gerar URL assinada:", error);
+      return "";
+    }
+    return data.signedUrl;
+  };
+
   const clearLegacyData = async () => {
     try {
       await supabase.from("requests").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -997,6 +1178,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateDocument,
     deleteDocument,
     toggleDocumentPin,
+    boletos,
+    addBoleto,
+    addBoletos,
+    deleteBoletosByMonth,
+    getBoletoSignedUrl,
   }), [
     users,
     requests,
@@ -1007,7 +1193,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     occurrences,
     votings,
     notices,
-    documents
+    documents,
+    boletos
   ]);
 
   return (
