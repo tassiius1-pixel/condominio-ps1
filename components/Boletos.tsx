@@ -39,7 +39,9 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
     getBoletoSignedUrl,
     addDocument,
     addToast,
-    loading: dataLoading
+    loading: dataLoading,
+    boletoUploads,
+    addBoletoUpload
   } = useData();
 
   const { currentUser } = useAuth();
@@ -101,17 +103,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
     return boletos.filter(b => b.houseNumber === currentUser.houseNumber);
   }, [boletos, currentUser]);
 
-  // Agrupar boletos por mês no histórico da Gestão
-  const managementHistory = useMemo(() => {
-    const groups: Record<string, number> = {};
-    boletos.forEach(b => {
-      groups[b.referenceMonth] = (groups[b.referenceMonth] || 0) + 1;
-    });
-    return Object.entries(groups).map(([month, count]) => ({
-      month,
-      count
-    })).sort((a, b) => b.month.localeCompare(a.month));
-  }, [boletos]);
+
 
   // Processar o arquivo ZIP selecionado
   const handleProcessZip = async () => {
@@ -277,6 +269,20 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
       // Inserir todos no banco em lote
       if (boletosToInsert.length > 0) {
         await addBoletos(boletosToInsert);
+
+        // Registrar log de upload histórico
+        try {
+          await addBoletoUpload({
+            referenceMonth: refMonth,
+            uploadedBy: currentUser?.id || '',
+            fileName: selectedFile?.name || 'lote_boletos.zip',
+            fileSize: selectedFile?.size || 0,
+            totalFiles: activeBoletos.length,
+            matchedFiles: usersToNotify.length
+          });
+        } catch (uploadLogErr) {
+          console.error("Erro ao registrar log de upload histórico:", uploadLogErr);
+        }
       }
 
       // 3. Processar Balancete se houver
@@ -441,8 +447,23 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         addToast(`Boleto da Casa ${houseNumber} enviado com sucesso!`, 'success');
       }
 
-      // Notifica o morador da unidade se ele estiver cadastrado no app
       const matchedUser = users.find(u => u.houseNumber === houseNumber);
+
+      // Registrar log de upload histórico para o envio individual
+      try {
+        await addBoletoUpload({
+          referenceMonth: activeManagementMonth,
+          uploadedBy: currentUser?.id || '',
+          fileName: file.name,
+          fileSize: file.size,
+          totalFiles: 1,
+          matchedFiles: matchedUser ? 1 : 0
+        });
+      } catch (uploadLogErr) {
+        console.error("Erro ao registrar log de upload histórico individual:", uploadLogErr);
+      }
+
+      // Notifica o morador da unidade se ele estiver cadastrado no app
       if (matchedUser) {
         try {
           sendPushNotification(
@@ -1032,7 +1053,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                   </div>
-                ) : managementHistory.length === 0 ? (
+                ) : boletoUploads.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                       <BoletoIcon className="w-8 h-8 text-blue-400" />
@@ -1053,7 +1074,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                             Mês de Referência
                           </th>
                           <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Boletos Distribuídos
+                            Envio e Arquivo
                           </th>
                           <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Status de Distribuição
@@ -1064,40 +1085,61 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-850 divide-y divide-gray-200 dark:divide-gray-800">
-                        {managementHistory.map((group) => (
-                          <tr key={group.month} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800 dark:text-white">
-                              {formatMonthName(group.month)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-gray-600 dark:text-gray-300">
-                              {group.count} boletos
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/40">
-                                Enviado e Ativo
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button
-                                onClick={() => setActiveManagementMonth(group.month)}
-                                className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors mr-2"
-                                title="Gerenciar boletos individuais deste mês"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => setDeletingMonth(group.month)}
-                                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                                title="Remover lote completo deste mês"
-                              >
-                                <TrashIcon className="w-5 h-5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                        {boletoUploads.map((upload) => {
+                          const isActive = boletos.some(b => b.referenceMonth === upload.referenceMonth);
+                          return (
+                            <tr key={upload.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-bold text-gray-800 dark:text-white">
+                                  {formatMonthName(upload.referenceMonth)}
+                                </div>
+                                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                  Enviado em: {new Date(upload.uploadedAt).toLocaleString('pt-BR')}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <div className="text-sm font-semibold text-gray-750 dark:text-gray-300">
+                                  {upload.totalFiles} boletos
+                                </div>
+                                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-[200px] mx-auto" title={upload.fileName}>
+                                  {upload.fileName} ({Math.round(upload.fileSize / 1024)} KB)
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                {isActive ? (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+                                    Ativo (No Storage)
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-850 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-750">
+                                    Arquivado (Excluído)
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={() => isActive && setActiveManagementMonth(upload.referenceMonth)}
+                                  disabled={!isActive}
+                                  className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 disabled:opacity-30 disabled:hover:text-blue-500 p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors mr-2"
+                                  title={isActive ? "Gerenciar boletos individuais deste mês" : "Lote arquivado. Não é possível gerenciar."}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => isActive && setDeletingMonth(upload.referenceMonth)}
+                                  disabled={!isActive}
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                                  title={isActive ? "Remover lote completo deste mês" : "Lote arquivado. Já removido fisicamente."}
+                                >
+                                  <TrashIcon className="w-5 h-5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

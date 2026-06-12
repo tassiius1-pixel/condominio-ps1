@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import ConfirmModal from './ConfirmModal';
 import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon, SearchIcon, BoletoIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
@@ -341,86 +342,92 @@ const Header: React.FC<HeaderProps> = ({
 
       </header>
 
-      {/* Mobile Menu Backdrop - FORA do header arredondado para evitar clipping */}
-      {mobileMenuOpen && (
+      {/* Mobile Menu Backdrop - Renderizado via Portal diretamente no body */}
+      {mobileMenuOpen && createPortal(
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] lg:hidden animate-fade-in"
           onClick={() => setMobileMenuOpen(false)}
-        />
+        />,
+        document.body
       )}
 
-      {/* Mobile Menu Drawer - FORA do header arredondado para evitar clipping */}
-      <div
-        className="fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden transform transition-transform duration-500 flex flex-col"
-        style={{
-          transform: mobileMenuOpen ? `translateX(${menuTranslateX}px)` : 'translateX(-100%)',
-          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-        onTouchStart={handleMenuTouchStart}
-        onTouchMove={handleMenuTouchMove}
-        onTouchEnd={handleMenuTouchEnd}
-      >
-        <div className="flex-1 flex flex-col p-4 h-full">
-          {/* Menu Header */}
-          <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <img src={logoURL} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">Menu</h2>
-                <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase">Porto Seguro 1</p>
+      {/* Mobile Menu Drawer - Renderizado via Portal diretamente no body */}
+      {createPortal(
+        <div
+          className={`fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 shadow-2xl z-[70] lg:hidden transform transition-all duration-500 flex flex-col ${
+            mobileMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
+          }`}
+          style={{
+            transform: mobileMenuOpen ? `translateX(${menuTranslateX}px)` : 'translateX(-100%)',
+            transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+          onTouchStart={handleMenuTouchStart}
+          onTouchMove={handleMenuTouchMove}
+          onTouchEnd={handleMenuTouchEnd}
+        >
+          <div className="flex flex-col h-full p-4 overflow-hidden">
+            {/* Menu Header */}
+            <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <img src={logoURL} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight">Menu</h2>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">Porto Seguro 1</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Menu Items */}
+            <nav className="flex-1 space-y-2 overflow-y-auto px-1">
+              {navItems.map((item, idx) => {
+                if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
+                if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+
+                const Icon = item.icon;
+                const isActive = currentView === item.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setView(item.id as any);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active ${isActive
+                      ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-950/20 translate-x-1'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60'
+                      }`}
+                    style={{ animationDelay: `${idx * 0.05}s` }}
+                  >
+                    <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500'}`} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Menu Footer */}
+            <div className="mt-auto px-4 pt-6 pb-[calc(env(safe-area-inset-bottom,0rem)+6rem)] border-t border-gray-100 dark:border-gray-800 flex flex-col items-center flex-shrink-0 bg-white dark:bg-gray-900">
+              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black mb-3 shadow-inner">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">{currentUser.name}</p>
+                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                  {currentUser.role} • Unidade {currentUser.houseNumber}
+                </p>
               </div>
             </div>
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
-            >
-              <XIcon className="h-5 w-5" />
-            </button>
           </div>
-
-          {/* Menu Items */}
-          <nav className="flex-1 space-y-2 overflow-y-auto px-1">
-            {navItems.map((item, idx) => {
-              if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
-              if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
-
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setView(item.id as any);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active ${isActive
-                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
-                    : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  style={{ animationDelay: `${idx * 0.05}s` }}
-                >
-                  <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Menu Footer */}
-          <div className="mt-auto px-4 pt-6 pb-[calc(env(safe-area-inset-bottom,0rem)+6rem)] border-t border-gray-100 flex flex-col items-center flex-shrink-0 bg-white">
-            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
-              {currentUser.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">{currentUser.name}</p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {currentUser.role} • Unidade {currentUser.houseNumber}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
 
       {/* Logout Confirmation Modal */}
       <ConfirmModal

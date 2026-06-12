@@ -203,4 +203,15 @@ export interface Boleto {
   createdAt: string;
 }
 
+export interface BoletoUpload {
+  id: string;
+  referenceMonth: string; // "2026-06" (YYYY-MM)
+  uploadedAt: string;
+  uploadedBy: string;
+  fileName: string;
+  fileSize: number;
+  totalFiles: number;
+  matchedFiles: number;
+}
+
 export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents" | "boletos";

@@ -82,7 +82,7 @@
     }
 
     // Registro do novo Service Worker v2
-    const SW_CLEAN_KEY = "sw-cleaned-v2.3";
+    const SW_CLEAN_KEY = "sw-cleaned-v2.4";
     if (!localStorage.getItem(SW_CLEAN_KEY)) {
       if ("caches" in window) {
         caches.keys().then((keys) => {
@@ -106,21 +106,21 @@
         });
       } else if (typeof Notification !== "undefined") {
         navigator.serviceWorker
-          .register("/sw-sos-v2.js?v=2.0")
+          .register("/sw-sos-v2.js?v=2.1")
           .then((reg) => {
-            console.log("SW SOS registrado (PWA v2.0):", reg);
+            console.log("SW SOS registrado (PWA v2.1):", reg);
             reg.onupdatefound = () => {
               const installingWorker = reg.installing;
               if (installingWorker) {
                 installingWorker.onstatechange = () => {
                   if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log("Nova versão v2.0 detectada. Atualizando...");
+                    console.log("Nova versão v2.1 detectada. Atualizando...");
                   }
                 };
               }
             };
           })
-          .catch((err) => console.error("Erro ao registrar SW SOS v2.0:", err));
+          .catch((err) => console.error("Erro ao registrar SW SOS v2.1:", err));
 
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {

@@ -17,10 +17,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log("[FCM SOS] Background message received:", payload);
     
-    // Se o payload já possui a propriedade 'notification', o SDK do FCM
-    // exibe a notificação automaticamente. Não chamamos showNotification para evitar duplicação.
-    if (payload.notification) {
-        console.log("[FCM SOS] Notificação tratada automaticamente pelo SDK do FCM.");
+    // Se o payload já possui a propriedade 'notification' ou se a tag de dados é 'gestao-ps1' 
+    // (o que indica que foi enviado pela nossa Edge function que sempre envia a chave notification 
+    // no topo para Android/iOS e que o SDK do FCM já está exibindo no navegador), 
+    // não chamamos showNotification para evitar duplicação na web.
+    if (payload.notification || payload.data?.tag === "gestao-ps1") {
+        console.log("[FCM SOS] Notificação tratada automaticamente pelo SDK do FCM (ou com tag gestao-ps1).");
         return;
     }
 
@@ -67,7 +69,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v2.0'; // Bumped version
+const CACHE_NAME = 'porto-seguro-sos-v2.1'; // Bumped version
 const assetsToCache = [
     '/',
     '/index.html',

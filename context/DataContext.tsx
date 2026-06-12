@@ -15,7 +15,8 @@ import {
   Vote,
   Notice,
   Document as DocumentType,
-  Boleto
+  Boleto,
+  BoletoUpload
 } from "../types";
 
 interface DataContextType {
@@ -78,6 +79,9 @@ interface DataContextType {
   addBoletos: (boletosData: Omit<Boleto, 'id' | 'createdAt'>[]) => Promise<void>;
   deleteBoletosByMonth: (month: string) => Promise<void>;
   getBoletoSignedUrl: (fileUrl: string) => Promise<string>;
+
+  boletoUploads: BoletoUpload[];
+  addBoletoUpload: (upload: Omit<BoletoUpload, 'id' | 'uploadedAt'>) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -93,6 +97,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [notices, setNotices] = useState<Notice[]>([]);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [boletos, setBoletos] = useState<Boleto[]>([]);
+  const [boletoUploads, setBoletoUploads] = useState<BoletoUpload[]>([]);
   const [loading, setLoading] = useState(true);
 
   const addToast = useCallback((message: string, type: "success" | "error" | "info") => {
@@ -303,6 +308,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const fetchBoletoUploads = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("boleto_uploads")
+      .select("*")
+      .order("reference_month", { ascending: false });
+    if (data && !error) {
+      setBoletoUploads(data.map(bu => ({
+        id: bu.id,
+        referenceMonth: bu.reference_month,
+        uploadedAt: bu.uploaded_at,
+        uploadedBy: bu.uploaded_by,
+        fileName: bu.file_name,
+        fileSize: bu.file_size,
+        totalFiles: bu.total_files,
+        matchedFiles: bu.matched_files
+      })));
+    }
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     const { data, error } = await supabase
       .from("notifications")
@@ -352,7 +376,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           fetchNotices(),
           fetchDocuments(),
           fetchNotifications(),
-          fetchBoletos()
+          fetchBoletos(),
+          fetchBoletoUploads()
         ]);
       } catch (err) {
         console.error("Erro ao carregar dados protegidos:", err);
@@ -377,13 +402,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const chReactions = supabase.channel("rt-reactions").on("postgres_changes", { event: "*", schema: "public", table: "notice_reactions" }, fetchNotices).subscribe();
       const chDocs = supabase.channel("rt-docs").on("postgres_changes", { event: "*", schema: "public", table: "documents" }, fetchDocuments).subscribe();
       const chBoletos = supabase.channel("rt-boletos").on("postgres_changes", { event: "*", schema: "public", table: "boletos" }, fetchBoletos).subscribe();
+      const chBoletoUploads = supabase.channel("rt-boleto-uploads").on("postgres_changes", { event: "*", schema: "public", table: "boleto_uploads" }, fetchBoletoUploads).subscribe();
       const chNotif = supabase.channel("rt-notifications").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, fetchNotifications).subscribe();
       const chNotifReads = supabase.channel("rt-notif-reads").on("postgres_changes", { event: "*", schema: "public", table: "notification_reads" }, fetchNotifications).subscribe();
 
       activeChannels = [
         chUsers, chRequests, chLikes, chComments, chCommentLikes,
         chRes, chOcc, chVotings, chVotes, chNotices, chReactions,
-        chDocs, chBoletos, chNotif, chNotifReads
+        chDocs, chBoletos, chBoletoUploads, chNotif, chNotifReads
       ];
     };
 
@@ -398,6 +424,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setNotices([]);
       setDocuments([]);
       setBoletos([]);
+      setBoletoUploads([]);
       setNotifications([]);
       setLoading(false);
     };
@@ -428,7 +455,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       subscription.unsubscribe();
       unsubscribeAll();
     };
-  }, [fetchUsers, fetchRequests, fetchReservations, fetchOccurrences, fetchVotings, fetchNotices, fetchDocuments, fetchNotifications, fetchBoletos]);
+  }, [fetchUsers, fetchRequests, fetchReservations, fetchOccurrences, fetchVotings, fetchNotices, fetchDocuments, fetchNotifications, fetchBoletos, fetchBoletoUploads]);
 
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
 
@@ -1033,6 +1060,74 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const rotateOldBoletos = async () => {
+    try {
+      // 1. Busca todos os meses únicos na tabela de boletos
+      const { data: allBoletos, error: fetchError } = await supabase
+        .from("boletos")
+        .select("reference_month");
+
+      if (fetchError || !allBoletos) {
+        console.error("Erro ao buscar meses de referência para rotação:", fetchError);
+        return;
+      }
+
+      // 2. Extrai os meses únicos e ordena em ordem decrescente (mais recente primeiro)
+      const uniqueMonths = Array.from(new Set(allBoletos.map(b => b.reference_month)))
+        .sort((a, b) => b.localeCompare(a));
+
+      // Se temos 3 ou menos meses, não há necessidade de rotação
+      if (uniqueMonths.length <= 3) return;
+
+      // 3. Os meses antigos são todos aqueles após os 3 primeiros
+      const monthsToRotate = uniqueMonths.slice(3);
+      console.log("Meses a serem rotacionados:", monthsToRotate);
+
+      for (const oldMonth of monthsToRotate) {
+        // Busca os boletos desse mês antigo para extrair as URLs de arquivo
+        const { data: boletosToDelete, error: selectError } = await supabase
+          .from("boletos")
+          .select("file_url")
+          .eq("reference_month", oldMonth);
+
+        if (selectError) {
+          console.error(`Erro ao buscar boletos para rotação do mês ${oldMonth}:`, selectError);
+          continue;
+        }
+
+        if (boletosToDelete && boletosToDelete.length > 0) {
+          const filePaths = boletosToDelete.map(b => b.file_url).filter(Boolean);
+          
+          if (filePaths.length > 0) {
+            console.log(`Deletando ${filePaths.length} arquivos físicos do storage para o mês ${oldMonth}...`);
+            const { error: storageError } = await supabase.storage
+              .from("boletos")
+              .remove(filePaths);
+
+            if (storageError) {
+              console.error(`Erro ao remover arquivos físicos do storage para ${oldMonth}:`, storageError);
+            }
+          }
+        }
+
+        // Deleta as linhas no banco de dados para esse mês
+        console.log(`Deletando registros no banco de dados para o mês ${oldMonth}...`);
+        const { error: deleteError } = await supabase
+          .from("boletos")
+          .delete()
+          .eq("reference_month", oldMonth);
+
+        if (deleteError) {
+          console.error(`Erro ao deletar registros de boletos do banco para ${oldMonth}:`, deleteError);
+        } else {
+          addToast(`Boletos do período antigo (${oldMonth}) arquivados automaticamente.`, "info");
+        }
+      }
+    } catch (err) {
+      console.error("Erro geral na rotação de boletos:", err);
+    }
+  };
+
   const addBoleto = async (boleto: Omit<Boleto, 'id' | 'createdAt'>) => {
     const { data, error } = await supabase.from("boletos").insert({
       house_number: boleto.houseNumber,
@@ -1047,6 +1142,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error("Erro ao adicionar boleto:", error);
       throw error;
     }
+
+    // Dispara a rotação de boletos se necessário
+    await rotateOldBoletos();
+
     return data;
   };
 
@@ -1067,6 +1166,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast("Erro ao salvar boletos no banco.", "error");
       throw error;
     }
+
+    // Dispara a rotação de boletos se necessário
+    await rotateOldBoletos();
 
     addToast(`${boletosData.length} boletos cadastrados com sucesso!`, "success");
   };
@@ -1121,6 +1223,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return "";
     }
     return data.signedUrl;
+  };
+
+  const addBoletoUpload = async (upload: Omit<BoletoUpload, 'id' | 'uploadedAt'>) => {
+    const { error } = await supabase.from("boleto_uploads").insert({
+      reference_month: upload.referenceMonth,
+      uploaded_by: upload.uploadedBy,
+      file_name: upload.fileName,
+      file_size: upload.fileSize,
+      total_files: upload.totalFiles,
+      matched_files: upload.matchedFiles
+    });
+
+    if (error) {
+      console.error("Erro ao salvar log de upload de boleto:", error);
+      addToast("Erro ao registrar histórico de upload.", "error");
+      throw error;
+    }
   };
 
   const clearLegacyData = async () => {
@@ -1183,6 +1302,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addBoletos,
     deleteBoletosByMonth,
     getBoletoSignedUrl,
+    boletoUploads,
+    addBoletoUpload,
   }), [
     users,
     requests,
@@ -1194,7 +1315,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     votings,
     notices,
     documents,
-    boletos
+    boletos,
+    boletoUploads
   ]);
 
   return (
