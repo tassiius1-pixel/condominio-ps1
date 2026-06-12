@@ -122,9 +122,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         comments (
           *,
           comment_likes (user_id),
-          profiles (name, house_number)
+          profiles:profiles!comments_author_id_fkey (name, house_number)
         ),
-        profiles (name)
+        profiles:profiles!requests_author_id_fkey (name)
       `)
       .order("created_at", { ascending: false });
 

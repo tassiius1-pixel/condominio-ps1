@@ -1,4 +1,4 @@
-// SOS UNIFIED SERVICE WORKER - VERSION 1.5 (ROLLBACK TO STABLE)
+// SOS UNIFIED SERVICE WORKER - VERSION 1.6 (FIX DOUBLE NOTIFICATION)
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
@@ -16,8 +16,16 @@ const messaging = firebase.messaging();
 // Background Messages
 messaging.onBackgroundMessage((payload) => {
     console.log("[FCM SOS] Background message received:", payload);
-    const title = payload.data?.title || payload.notification?.title || "Porto Seguro 1";
-    const body = payload.data?.body || payload.notification?.body || "Nova mensagem recebida";
+    
+    // Se o payload já possui a propriedade 'notification', o SDK do FCM
+    // exibe a notificação automaticamente. Não chamamos showNotification para evitar duplicação.
+    if (payload.notification) {
+        console.log("[FCM SOS] Notificação tratada automaticamente pelo SDK do FCM.");
+        return;
+    }
+
+    const title = payload.data?.title || "Porto Seguro 1";
+    const body = payload.data?.body || "Nova mensagem recebida";
     const tag = "gestao-ps1";
 
     const options = {
@@ -59,7 +67,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // PWA Cache
-const CACHE_NAME = 'porto-seguro-sos-v1.5'; // Bumped version
+const CACHE_NAME = 'porto-seguro-sos-v1.6'; // Bumped version
 const assetsToCache = [
     '/',
     '/index.html',

@@ -19,9 +19,16 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log("[FCM - BACKGROUND] Recebido:", payload);
 
-    // Prioriza notification, depois data, depois fallback
-    const title = payload.notification?.title || payload.data?.title || "Nova Notificação";
-    const body = payload.notification?.body || payload.data?.body || "";
+    // Se o payload já possui a propriedade 'notification', o SDK do FCM
+    // exibe a notificação automaticamente. Não chamamos showNotification para evitar duplicação.
+    if (payload.notification) {
+        console.log("[FCM - BACKGROUND] Notificação tratada automaticamente pelo SDK do FCM.");
+        return;
+    }
+
+    // Prioriza data, depois fallback
+    const title = payload.data?.title || "Nova Notificação";
+    const body = payload.data?.body || "";
 
     const notificationOptions = {
         body: body,
@@ -45,7 +52,7 @@ messaging.onBackgroundMessage((payload) => {
 // ===============================
 // CACHE / PWA (Offline Support)
 // ===============================
-const CACHE_NAME = 'porto-seguro-v3'; // Bump version for SOS Sync
+const CACHE_NAME = 'porto-seguro-v4'; // Bump version for SOS Sync
 const urlsToCache = [
     '/',
     '/index.html',
