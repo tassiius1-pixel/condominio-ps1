@@ -1,13 +1,12 @@
 import React from 'react';
-import { Reservation, Role } from '../../types';
-import { User } from 'firebase/auth'; // Adjust import if User type is defined elsewhere
+import { Reservation, Role, User } from '../../types';
 import { ChevronLeftIcon, ChevronRightIcon } from '../Icons';
 
 interface CalendarGridProps {
     currentDate: Date;
     selectedDate: Date | null;
     reservations: Reservation[];
-    currentUser: any; // Using any for now to match Reservations.tsx usage, or import User type
+    currentUser: User | null;
     onPrevMonth: () => void;
     onNextMonth: () => void;
     onSelectDate: (date: Date) => void;

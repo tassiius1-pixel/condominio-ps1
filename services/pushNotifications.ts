@@ -1,7 +1,6 @@
 import { messagingPromise, vapidKey } from "./firebase";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "./firebase";
 import { getToken, onMessage } from "firebase/messaging";
+import { supabase } from "./supabase";
 
 export type PushPermissionResult =
     | { status: 'granted'; token: string }
@@ -86,14 +85,24 @@ export const requestPushPermission = async (
         if (!token) return { status: 'error' };
 
         console.log("✅ Token obtido:", token.substring(0, 10) + "...");
-        const { arrayUnion } = await import("firebase/firestore");
-        await updateDoc(doc(db, "users", userId), {
-            fcmToken: token, // mantemos para retrocompatibilidade
-            fcmTokens: arrayUnion(token), // nova lista para múltiplos dispositivos
-            pushEnabled: true,
-            lastTokenSync: new Date().toISOString(),
-        });
-        console.log("💾 Token sincronizado no Firestore para usuário:", userId);
+        const { error: tokenError } = await supabase
+            .from("user_push_tokens")
+            .upsert({ user_id: userId, token: token }, { onConflict: "token" });
+
+        if (tokenError) {
+            console.error("❌ Erro ao salvar token no Supabase:", tokenError.message);
+        } else {
+            console.log("💾 Token sincronizado no Supabase para usuário:", userId);
+        }
+
+        const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ push_enabled: true })
+            .eq("id", userId);
+
+        if (profileError) {
+            console.error("❌ Erro ao atualizar push_enabled no perfil:", profileError.message);
+        }
 
         return { status: 'granted', token };
 

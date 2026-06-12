@@ -6,16 +6,8 @@ import React, {
   useContext,
 } from "react";
 
-import { auth, db } from "../services/firebase";
-import { useData } from "../hooks/useData";
+import { supabase } from "../services/supabase";
 import { User } from "../types";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
 
 interface AuthContextType {
   currentUser: User | null;
@@ -31,59 +23,77 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
-  const { addUser, addToast } = useData();
+  // BUSCA PERFIL DO USUÁRIO NO SUPABASE
+  const fetchUserProfile = async (uid: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", uid)
+        .single();
 
-  // LISTENER DE AUTH DO FIREBASE
+      if (data && !error) {
+        const formattedUser: User = {
+          id: data.id,
+          name: data.name,
+          username: data.username,
+          cpf: data.cpf,
+          houseNumber: Number(data.house_number),
+          role: data.role.toLowerCase() as any, // Mapeia 'ADMIN'/'MORADOR' para 'admin'/'morador'
+          email: data.email,
+        };
+        setCurrentUser(formattedUser);
+      } else {
+        setCurrentUser(null);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar perfil do usuário no Supabase:", error);
+      setCurrentUser(null);
+    }
+  };
+
+  // LISTENER DE AUTH DO SUPABASE
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Usuário está logado no Firebase, buscar dados no Firestore
-        try {
-          // Tenta buscar pelo email (que é username@...)
-          const q = query(collection(db, "users"), where("email", "==", firebaseUser.email));
-          const querySnapshot = await getDocs(q);
+    // Busca sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserProfile(session.user.id).finally(() => setLoadingAuth(false));
+      } else {
+        setCurrentUser(null);
+        setLoadingAuth(false);
+      }
+    });
 
-          if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data() as User;
-            setCurrentUser({ ...userData, id: querySnapshot.docs[0].id });
-          } else {
-            // Fallback: Tenta buscar pelo authUid se tiver salvo (menos provável no modelo atual mas bom ter)
-            const qUid = query(collection(db, "users"), where("authUid", "==", firebaseUser.uid));
-            const querySnapshotUid = await getDocs(qUid);
-            if (!querySnapshotUid.empty) {
-              const userData = querySnapshotUid.docs[0].data() as User;
-              setCurrentUser({ ...userData, id: querySnapshotUid.docs[0].id });
-            } else {
-              console.error("Usuário autenticado mas não encontrado no Firestore.");
-              setCurrentUser(null);
-            }
-          }
-        } catch (error) {
-          console.error("Erro ao buscar usuário logado:", error);
-          setCurrentUser(null);
-        }
+    // Escuta mudanças de sessão
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
       } else {
         setCurrentUser(null);
       }
       setLoadingAuth(false);
     });
 
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
-  // TRANSFORMA username → email para Firebase
+  // TRANSFORMA username → email válido para o Supabase (para evitar bloqueio de MX record e usar domínio real)
   const usernameToEmail = (username: string) =>
-    `${username.toLowerCase()}@condominio-ps1.local`;
+    `${username.toLowerCase().replace(/\s+/g, "")}.ps1@gmail.com`;
 
   // LOGIN -------------------------------------------------------
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const email = usernameToEmail(username);
-      await signInWithEmailAndPassword(auth, email, password);
-      // O onAuthStateChanged vai lidar com o setCurrentUser
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
       return true;
     } catch (err) {
-      console.error("Erro no login:", err);
+      console.error("Erro no login Supabase:", err);
       return false;
     }
   };
@@ -91,11 +101,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // LOGOUT --------------------------------------------------------
   const logout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
     } catch (err) {
-      console.error("Erro ao sair:", err);
+      console.error("Erro ao sair Supabase:", err);
     }
-    // onAuthStateChanged lidará com o null
   };
 
   // REGISTRO ------------------------------------------------------
@@ -104,31 +113,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   ): Promise<{ success: boolean; message?: string }> => {
     try {
       const email = usernameToEmail(data.username);
+      const cleanCpf = data.cpf.replace(/\D/g, "");
 
-      // 1) Cria no Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, data.password);
-      const uid = userCredential.user.uid;
+      // 1) Cria no Supabase Auth (O Trigger handle_new_user cria o perfil no banco automaticamente)
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: data.password || cleanCpf,
+        options: {
+          data: {
+            name: data.name,
+            username: data.username,
+            cpf: cleanCpf,
+            houseNumber: String(data.houseNumber),
+            phone: (data as any).phone || "",
+            role: "MORADOR",
+          },
+        },
+      });
 
-      // 2) Grava no Firestore
-      const newUser = await addUser(data, uid);
-      if (!newUser) {
-        return { success: false, message: "Erro ao salvar dados no banco de dados." };
-      }
-
-      // O onAuthStateChanged vai atualizar o currentUser automaticamente
+      if (error) throw error;
       return { success: true };
     } catch (err: any) {
-      console.error("Erro ao registrar:", err);
+      console.error("Erro ao registrar no Supabase:", err);
 
       let msg = "Erro ao cadastrar usuário.";
-      if (err.code === 'auth/email-already-in-use') {
+      if (err.message?.includes("already registered") || err.message?.includes("already exists")) {
         msg = "Este nome de usuário já está em uso. Tente outro ou faça login.";
-      } else if (err.code === 'auth/weak-password') {
+      } else if (err.message?.includes("weak password") || err.message?.includes("should be at least")) {
         msg = "A senha é muito fraca. Use pelo menos 6 caracteres.";
-      } else if (err.code === 'auth/invalid-email') {
-        msg = "Nome de usuário inválido.";
-      } else if (err.code === 'auth/network-request-failed') {
-        msg = "Erro de conexão. Verifique sua internet.";
       }
 
       return { success: false, message: msg };

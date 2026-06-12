@@ -2,8 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useData } from "../hooks/useData";
 import { useAuth } from "../hooks/useAuth";
 import type { Notification } from "../types";
-import { db } from "../services/firebase";
-import { doc, writeBatch } from "firebase/firestore";
+import { supabase } from "../services/supabase";
 import { TrashIcon, XIcon } from "./Icons";
 import { requestPushPermission } from "../services/pushNotifications";
 
@@ -60,14 +59,13 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
   // 🔥 EXCLUIR TODAS – sem vários toasts!
   const handleDeleteAll = async () => {
     try {
-      const batch = writeBatch(db);
+      const idsToDelete = filtered.map((n) => n.id);
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .in("id", idsToDelete);
 
-      filtered.forEach((n) => {
-        const ref = doc(db, "notifications", n.id);
-        batch.delete(ref);
-      });
-
-      await batch.commit();
+      if (error) throw error;
 
       addToast("Todas as notificações foram removidas.", "info");
     } catch (err) {
