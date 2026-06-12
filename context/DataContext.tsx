@@ -135,7 +135,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         description: req.description,
         sector: req.sector || "Outros",
         type: req.type || "Sugestões",
-        status: req.status.replace("_", " ").toLowerCase().split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') as any,
+        status: (() => {
+          if (req.status === 'RESOLVIDO') return Status.CONCLUIDO;
+          if (req.status === 'REJEITADO') return Status.RECUSADA;
+          if (req.status === 'EM_ANDAMENTO') return Status.EM_ANDAMENTO;
+          return Status.PENDENTE;
+        })(),
         priority: req.priority || "Média",
         photos: req.photos || [],
         authorId: req.author_id,
