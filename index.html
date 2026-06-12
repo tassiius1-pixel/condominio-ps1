@@ -82,7 +82,7 @@
     }
 
     // Registro do novo Service Worker v2
-    const SW_CLEAN_KEY = "sw-cleaned-v2.0";
+    const SW_CLEAN_KEY = "sw-cleaned-v2.3";
     if (!localStorage.getItem(SW_CLEAN_KEY)) {
       if ("caches" in window) {
         caches.keys().then((keys) => {
