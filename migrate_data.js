@@ -50,6 +50,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // ========================================================
 const DRY_RUN = false; 
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function migrate() {
   console.log(`====================================================`);
   console.log(`🚀 INICIANDO SCRIPT DE MIGRAÇÃO: FIREBASE -> SUPABASE`);
@@ -111,73 +113,81 @@ async function migrate() {
   // Mapa de IDs antigos (Firestore) para IDs novos (UUIDs do Supabase)
   const userMap = {}; // { [oldFirestoreId]: newSupabaseId }
 
-  // A. Migrar Usuários (Criar no Supabase Auth)
-  console.log("\n👤 Migrando Usuários para o Supabase Auth...");
-  for (const u of usersList) {
+  // A. Migrar Usuários (Criar no Supabase Auth em lote via Edge Function)
+  console.log("\n👤 Migrando Usuários para o Supabase Auth em lote via Edge Function...");
+  
+  const batchUsers = usersList.map(u => {
     const cleanCpf = u.cpf ? u.cpf.replace(/\D/g, '') : '';
     const email = `${u.username.toLowerCase().replace(/\s+/g, '')}.ps1@gmail.com`;
+    const password = cleanCpf || 'Nexora123!';
     
-    // Senha provisória é o CPF completo (mínimo de 6 dígitos garantido por CPF de 11 números)
-    // Se o CPF estiver em branco por algum motivo, usamos uma senha padrão temporária
-    const password = cleanCpf || 'Nexora123!'; 
+    const tokens = [];
+    if (u.fcmToken) tokens.push(u.fcmToken);
+    if (u.fcmTokens) u.fcmTokens.forEach(t => tokens.push(t));
+    const uniqueTokens = [...new Set(tokens)];
 
-    console.log(`⏳ Criando Auth para: ${u.name} (${email})...`);
-    
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    return {
+      oldId: u.id,
       email,
       password,
-      options: {
-        data: {
-          name: u.name,
-          username: u.username,
-          cpf: cleanCpf,
-          houseNumber: String(u.houseNumber || ''),
-          phone: u.phone || '',
-          role: u.role ? u.role.toUpperCase() : 'MORADOR'
-        }
+      fcmTokens: uniqueTokens,
+      metadata: {
+        name: u.name,
+        username: u.username,
+        cpf: cleanCpf,
+        houseNumber: String(u.houseNumber || ''),
+        phone: u.phone || '',
+        role: u.role ? u.role.toUpperCase() : 'MORADOR'
       }
-    });
+    };
+  });
 
-    if (signUpError) {
-      // Se o usuário já existir (ex: rodou o script pela segunda vez), tenta buscar o ID existente
-      if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists")) {
-        console.log(`   ℹ️ Usuário já cadastrado no Auth. Buscando ID na tabela pública profiles...`);
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', u.username)
-          .single();
-          
-        if (profileData) {
-          userMap[u.id] = profileData.id;
-          console.log(`   ✅ ID Mapeado (Existente): ${u.id} -> ${profileData.id}`);
-        } else {
-          console.error(`   ❌ Falha ao encontrar perfil para usuário já existente: ${u.username}`);
-        }
+  // Fazer a chamada HTTP para a Edge Function
+  const functionsUrl = envVars.VITE_SUPABASE_FUNCTIONS_URL || 'https://hjrhipbzuzkxrzlffwlb.supabase.co/functions/v1';
+  console.log(`⏳ Enviando payload de lote para a Edge Function: ${batchUsers.length} usuários...`);
+  
+  const response = await fetch(`${functionsUrl}/manage-supabase-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": supabaseAnonKey,
+      "Authorization": "Bearer " + supabaseAnonKey,
+      "x-bypass-token": "PortoSeguro1MigracaoSecreta!"
+    },
+    body: JSON.stringify({
+      action: "batch_create",
+      users: batchUsers
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("❌ Erro ao chamar a Edge Function de lote:", errText);
+    process.exit(1);
+  }
+
+  const resData = await response.json();
+  if (!resData.success) {
+    console.error("❌ Falha na criação em lote de usuários:", resData.error);
+    process.exit(1);
+  }
+
+  // Mapear os resultados para o userMap
+  let successCount = 0;
+  let existCount = 0;
+  let failCount = 0;
+
+  for (const r of resData.results) {
+    if (r.newId) {
+      userMap[r.oldId] = r.newId;
+      if (r.status === 'created') {
+        successCount++;
       } else {
-        console.error(`   ❌ Erro ao criar Auth para ${u.name}:`, signUpError.message);
+        existCount++;
       }
-      continue;
-    }
-
-    if (signUpData.user) {
-      const newId = signUpData.user.id;
-      userMap[u.id] = newId;
-      console.log(`   ✅ Criado com sucesso! ID Mapeado: ${u.id} -> ${newId}`);
-      
-      // Sincroniza tokens de push se existirem no Firestore
-      if (u.fcmToken || (u.fcmTokens && u.fcmTokens.length > 0)) {
-        const tokensToSave = new Set();
-        if (u.fcmToken) tokensToSave.add(u.fcmToken);
-        if (u.fcmTokens) u.fcmTokens.forEach(t => tokensToSave.add(t));
-        
-        for (const token of tokensToSave) {
-          await supabase.from('user_push_tokens').insert({
-            user_id: newId,
-            token: token
-          });
-        }
-      }
+    } else {
+      console.error(`   ❌ Falha para o ID antigo ${r.oldId}:`, r.error);
+      failCount++;
     }
   }
 
