@@ -105,27 +105,34 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     }
   };
 
-  const logoURL = "https://hjrhipbzuzkxrzlffwlb.supabase.co/storage/v1/object/public/logotipos/WhatsApp%20Image%202025-11-17%20at%2011.06.58.jpeg";
+  const logoURL = "/favicon.png";
+
+  const inputClass = "w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/50 focus:bg-white outline-none shadow-sm text-sm";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
-          <div className="flex flex-col items-center mb-6">
-            <div className="w-20 h-20 bg-white rounded-full shadow-md flex items-center justify-center mb-4 overflow-hidden p-2">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+      {/* Animated Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/40 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+      <div className="w-full max-w-md glass rounded-3xl shadow-2xl overflow-hidden relative z-10 animate-scale-in">
+        <div className="p-8 sm:p-10">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-5 overflow-hidden p-3 hover-lift">
               <img
                 src={logoURL}
                 alt="Condomínio Porto Seguro 1"
                 className="w-full h-full object-contain"
               />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 text-center">Criar Conta</h2>
+            <h2 className="text-3xl font-bold text-gray-900 text-center tracking-tight">Criar Conta</h2>
+            <p className="text-gray-500 text-center mt-2 font-medium">Condomínio Porto Seguro 1</p>
           </div>
 
           {message && (
-            <div className={`mb-4 p-3 border-l-4 text-sm rounded ${message.includes("sucesso")
-              ? "bg-green-50 border-green-500 text-green-700"
-              : "bg-red-50 border-red-500 text-red-700"
+            <div className={`mb-5 p-4 border-l-4 text-sm rounded-xl animate-fade-in ${message.includes("sucesso")
+              ? "bg-green-50/80 border-green-500 text-green-700"
+              : "bg-red-50/80 border-red-500 text-red-700"
               }`}>
               {message}
             </div>
@@ -133,7 +140,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                 Nome Completo
               </label>
               <input
@@ -141,34 +148,34 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
+                className={inputClass}
                 placeholder="Seu nome completo"
                 onBlur={handleBlur}
               />
-              {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+              {errors.name && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                 Nome de Usuário
               </label>
-              <span className="text-xs text-gray-500 block mb-1">
-                (Use apenas letras minúsculas e números. Sem espaços, acentos ou caracteres especiais.)
+              <span className="text-[10px] text-gray-400 block mb-1 ml-1 font-medium">
+                (Apenas letras minúsculas e números. Sem espaços ou acentos.)
               </span>
               <input
                 name="username"
                 type="text"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
+                className={inputClass}
                 placeholder="Escolha um nome de usuário"
               />
-              {errors.username && <p className="mt-1 text-xs text-red-600">{errors.username}</p>}
+              {errors.username && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.username}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                   CPF
                 </label>
                 <input
@@ -176,14 +183,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type="text"
                   value={formData.cpf}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
+                  className={inputClass}
                   placeholder="000.000.000-00"
                 />
-                {errors.cpf && <p className="mt-1 text-xs text-red-600">{errors.cpf}</p>}
+                {errors.cpf && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.cpf}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                   Nº Casa
                 </label>
                 <input
@@ -191,15 +198,15 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type="text"
                   value={formData.houseNumber}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
+                  className={inputClass}
                   placeholder="Ex: 101"
                 />
-                {errors.houseNumber && <p className="mt-1 text-xs text-red-600">{errors.houseNumber}</p>}
+                {errors.houseNumber && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.houseNumber}</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                 Senha
               </label>
               <input
@@ -207,32 +214,42 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-gray-50 focus:bg-white"
+                className={inputClass}
                 placeholder="Mínimo 6 caracteres"
               />
-              {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.password}</p>}
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all hover-lift active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4"
             >
-              {loading ? "Cadastrando..." : "Cadastrar"}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Cadastrando...
+                </span>
+              ) : "Cadastrar"}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500 font-medium">
               Já tem uma conta?{" "}
               <button
                 onClick={onSwitchToLogin}
-                className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors ml-1"
               >
                 Faça login
               </button>
             </p>
           </div>
+        </div>
+        <div className="bg-gray-50/50 px-8 py-5 border-t border-gray-100/50 text-center">
+          <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">
+            © {new Date().getFullYear()} Porto Seguro 1 • Todos os direitos reservados
+          </p>
         </div>
       </div>
     </div>

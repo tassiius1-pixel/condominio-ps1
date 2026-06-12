@@ -163,7 +163,7 @@ const PWAInstallOverlay: React.FC = () => {
                 <div className="bg-indigo-50/30 p-3 border-t border-indigo-50 flex items-center justify-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
                     <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">
-                        Experiência Porto Seguro Residencial
+                        Sistema de Gestão Condominial
                     </p>
                 </div>
             </div>

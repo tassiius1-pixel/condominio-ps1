@@ -37,7 +37,7 @@ const NotificationPrompt: React.FC = () => {
     if (!showPrompt) return null;
 
     return (
-        <div className="fixed top-24 left-4 right-4 z-[90] animate-bounce-in">
+        <div className="mb-4 animate-fade-in">
             <div className="bg-indigo-600 rounded-3xl shadow-xl p-4 flex items-center justify-between gap-4 border border-indigo-500">
                 <div className="flex items-center gap-3">
                     <div className="bg-white/20 p-2 rounded-2xl text-white">

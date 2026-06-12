@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ConfirmModal from './ConfirmModal';
 import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, BellIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, MenuIcon, XIcon, InfoIcon, FileIcon, LightbulbIcon, SearchIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../types';
@@ -35,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({
   // local mobileMenuOpen removed, using props
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const lastScrollY = useRef(0);
   const bellRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +63,16 @@ const Header: React.FC<HeaderProps> = ({
     }
     setMenuTranslateX(0);
   };
+
+  // Bloqueia scroll do body quando menu mobile está aberto
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -237,7 +249,7 @@ const Header: React.FC<HeaderProps> = ({
                     <button
                       className={`
                         flex items-center px-4 py-2 text-sm font-semibold rounded-xl cursor-pointer transition-all
-                        ${managementItems.some(i => i.id === currentView) ? "bg-indigo-50 text-indigo-100 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                        ${managementItems.some(i => i.id === currentView) ? "bg-indigo-50 text-indigo-700 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
                       `}
                     >
                       <LayoutDashboardIcon className="h-4.5 w-4.5 mr-2 text-gray-400" />
@@ -315,7 +327,7 @@ const Header: React.FC<HeaderProps> = ({
 
                 {/* LOGOUT */}
                 <button
-                  onClick={logout}
+                  onClick={() => setShowLogoutModal(true)}
                   className="p-2.5 rounded-xl text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all active:scale-95"
                   title="Sair do App"
                 >
@@ -326,88 +338,100 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile Menu Backdrop */}
-        {mobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] lg:hidden animate-fade-in"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
+      </header>
 
-        {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Backdrop - FORA do header arredondado para evitar clipping */}
+      {mobileMenuOpen && (
         <div
-          className={`
-            fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden
-            transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-            flex flex-col
-          `}
-          style={{ transform: mobileMenuOpen ? `translateX(${menuTranslateX}px)` : 'translateX(-100%)' }}
-          onTouchStart={handleMenuTouchStart}
-          onTouchMove={handleMenuTouchMove}
-          onTouchEnd={handleMenuTouchEnd}
-        >
-          <div className="flex-1 flex flex-col p-4 h-full">
-            {/* Menu Header */}
-            <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <img src={logoURL} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">Menu</h2>
-                  <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase">Porto Seguro 1</p>
-                </div>
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] lg:hidden animate-fade-in"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer - FORA do header arredondado para evitar clipping */}
+      <div
+        className="fixed top-0 left-0 bottom-0 w-72 bg-white shadow-2xl z-[70] lg:hidden transform transition-transform duration-500 flex flex-col"
+        style={{
+          transform: mobileMenuOpen ? `translateX(${menuTranslateX}px)` : 'translateX(-100%)',
+          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+        onTouchStart={handleMenuTouchStart}
+        onTouchMove={handleMenuTouchMove}
+        onTouchEnd={handleMenuTouchEnd}
+      >
+        <div className="flex-1 flex flex-col p-4 h-full">
+          {/* Menu Header */}
+          <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <img src={logoURL} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">Menu</h2>
+                <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase">Porto Seguro 1</p>
               </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
-              >
-                <XIcon className="h-5 w-5" />
-              </button>
             </div>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+            >
+              <XIcon className="h-5 w-5" />
+            </button>
+          </div>
 
-            {/* Menu Items */}
-            <nav className="flex-1 space-y-2 overflow-y-auto px-1">
-              {navItems.map((item, idx) => {
-                if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
-                if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
+          {/* Menu Items */}
+          <nav className="flex-1 space-y-2 overflow-y-auto px-1">
+            {navItems.map((item, idx) => {
+              if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
+              if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
 
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
 
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setView(item.id as any);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active ${isActive
-                      ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
-                      : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    style={{ animationDelay: `${idx * 0.05}s` }}
-                  >
-                    <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setView(item.id as any);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active ${isActive
+                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
+                    : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  style={{ animationDelay: `${idx * 0.05}s` }}
+                >
+                  <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
 
-            {/* Menu Footer */}
-            <div className="mt-auto px-4 pt-6 pb-[calc(env(safe-area-inset-bottom,0rem)+6rem)] border-t border-gray-100 flex flex-col items-center flex-shrink-0 bg-white">
-              <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
-                {currentUser.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">{currentUser.name}</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  {currentUser.role} • Unidade {currentUser.houseNumber}
-                </p>
-              </div>
+          {/* Menu Footer */}
+          <div className="mt-auto px-4 pt-6 pb-[calc(env(safe-area-inset-bottom,0rem)+6rem)] border-t border-gray-100 flex flex-col items-center flex-shrink-0 bg-white">
+            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-black mb-3 shadow-inner">
+              {currentUser.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">{currentUser.name}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                {currentUser.role} • Unidade {currentUser.houseNumber}
+              </p>
             </div>
           </div>
         </div>
-      </header>
+      </div>
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={logout}
+        title="Sair do App"
+        message="Tem certeza que deseja sair? Você precisará fazer login novamente."
+        confirmText="Sim, Sair"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 };

@@ -72,6 +72,9 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
                     <div className="p-1.5 rounded-xl mb-1">
                         <MenuIcon className="w-6 h-6" />
                     </div>
+                    <span className="text-[10px] font-bold leading-none opacity-60">
+                        Menu
+                    </span>
                     {hasUnreadNotifications && (
                         <span className="absolute top-2 right-4 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
                     )}

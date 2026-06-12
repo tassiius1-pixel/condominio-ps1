@@ -26,9 +26,12 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
       }
     } catch (err: any) {
       console.error("Login error:", err);
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      const msg = err?.message?.toLowerCase() || '';
+      if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
         setError("Usuário ou senha incorretos.");
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (msg.includes('email not confirmed')) {
+        setError("Conta ainda não confirmada. Verifique com a administração.");
+      } else if (msg.includes('too many requests') || msg.includes('rate limit')) {
         setError("Muitas tentativas falhas. Tente novamente mais tarde.");
       } else {
         setError("Ocorreu um erro ao tentar fazer login. Tente novamente.");
