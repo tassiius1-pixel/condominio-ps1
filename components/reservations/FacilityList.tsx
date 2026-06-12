@@ -170,7 +170,7 @@ const FacilityList: React.FC<FacilityListProps> = ({
                                                 {(currentUser?.id === res.userId || [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR)) && (
                                                     <button
                                                         onClick={() => onCancel(res)}
-                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200"
                                                         title="Cancelar Reserva"
                                                     >
                                                         <TrashIcon className="w-4 h-4" />

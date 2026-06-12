@@ -191,7 +191,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     {canEdit && (
                         <button
                             onClick={() => handleEdit(occ)}
-                            className="p-1.5 bg-white text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition border border-gray-100 shadow-sm"
+                            className="p-2 bg-white text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition border border-gray-100 shadow-sm active:scale-95 duration-200"
                             title="Editar"
                         >
                             <EditIcon className="w-4 h-4" />
@@ -200,7 +200,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                     {canDelete && (
                         <button
                             onClick={() => handleDelete(occ.id)}
-                            className="p-1.5 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition border border-gray-100 shadow-sm"
+                            className="p-2 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition border border-gray-100 shadow-sm active:scale-95 duration-200"
                             title="Excluir (Admin)"
                         >
                             <TrashIcon className="w-4 h-4" />

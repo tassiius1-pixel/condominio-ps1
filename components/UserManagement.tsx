@@ -176,7 +176,8 @@ const UserManagement: React.FC = () => {
                   <button
                     onClick={() => handleDeleteUser(user)}
                     disabled={user.role === Role.ADMIN}
-                    className="text-red-600 hover:text-red-900 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200 disabled:text-gray-200 disabled:bg-transparent disabled:cursor-not-allowed"
+                    title="Excluir Usuário"
                   >
                     <TrashIcon className="w-5 h-5" />
                   </button>

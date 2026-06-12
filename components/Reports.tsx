@@ -152,13 +152,12 @@ const Reports: React.FC = () => {
     // --- FILTERS ---
     const filterByDate = (dateStr: string) => {
         if (!dateStr) return false;
-        const date = new Date(dateStr);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
-        if (start) start.setHours(0, 0, 0, 0);
-        if (end) end.setHours(23, 59, 59, 999);
-        if (start && date < start) return false;
-        if (end && date > end) return false;
+        
+        // Extract only the YYYY-MM-DD part to avoid timezone offset issues (UTC vs local)
+        const itemDateStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+        
+        if (startDate && itemDateStr < startDate) return false;
+        if (endDate && itemDateStr > endDate) return false;
         return true;
     };
 
@@ -348,33 +347,33 @@ const Reports: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
-                        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 sm:gap-2 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100">
-                            <div className="flex items-center px-4 py-2 gap-3 bg-white sm:bg-transparent rounded-xl sm:rounded-none shadow-sm sm:shadow-none border border-gray-100 sm:border-none">
+                        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100/80 shadow-inner">
+                            <div className="flex items-center px-3 py-2.5 gap-2 bg-white sm:bg-transparent rounded-xl sm:rounded-none shadow-sm sm:shadow-none border border-gray-100 sm:border-none focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
                                 <CalendarIcon className="w-4 h-4 text-indigo-500 shrink-0" />
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={e => setStartDate(e.target.value)}
-                                    className="bg-transparent border-none text-[11px] font-black text-gray-700 p-0 focus:ring-0 cursor-pointer w-full"
+                                    className="bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0 cursor-pointer w-full outline-none"
                                 />
                             </div>
-                            <div className="hidden sm:block w-px h-4 bg-gray-200 mx-1"></div>
-                            <div className="flex items-center px-4 py-2 gap-3 bg-white sm:bg-transparent rounded-xl sm:rounded-none shadow-sm sm:shadow-none border border-gray-100 sm:border-none">
+                            <div className="hidden sm:block w-px h-5 bg-gray-200 mx-1"></div>
+                            <div className="flex items-center px-3 py-2.5 gap-2 bg-white sm:bg-transparent rounded-xl sm:rounded-none shadow-sm sm:shadow-none border border-gray-100 sm:border-none focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all">
                                 <CalendarIcon className="w-4 h-4 text-indigo-500 shrink-0 sm:hidden" />
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={e => setEndDate(e.target.value)}
-                                    className="bg-transparent border-none text-[11px] font-black text-gray-700 p-0 focus:ring-0 cursor-pointer w-full"
+                                    className="bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0 cursor-pointer w-full outline-none"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex gap-3 justify-center sm:justify-end">
-                            <button onClick={handleExportPDF} title="Exportar PDF" className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-red-600 rounded-2xl hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center">
+                        <div className="flex gap-2 justify-center sm:justify-end">
+                            <button onClick={handleExportPDF} title="Exportar PDF" className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-red-600 rounded-2xl hover:bg-red-50 hover:border-red-100 transition-all shadow-sm active:scale-95 flex items-center justify-center cursor-pointer">
                                 <FileIcon className="w-5 h-5" />
                             </button>
-                            <button onClick={handleExportExcel} title="Exportar Excel" className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-emerald-600 rounded-2xl hover:bg-emerald-50 transition-all shadow-sm active:scale-95 flex items-center justify-center">
+                            <button onClick={handleExportExcel} title="Exportar Excel" className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-emerald-600 rounded-2xl hover:bg-emerald-50 hover:border-emerald-100 transition-all shadow-sm active:scale-95 flex items-center justify-center cursor-pointer">
                                 <DownloadIcon className="w-5 h-5" />
                             </button>
                             {currentUser?.role === Role.ADMIN && (
@@ -391,7 +390,7 @@ const Reports: React.FC = () => {
                                             }
                                         });
                                     }}
-                                    className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-gray-400 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95 flex items-center justify-center"
+                                    className="flex-1 sm:flex-none p-4 bg-white border border-gray-100 text-gray-400 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95 flex items-center justify-center cursor-pointer"
                                     title="Limpar Dados Legados"
                                 >
                                     <TrashIcon className="w-5 h-5" />

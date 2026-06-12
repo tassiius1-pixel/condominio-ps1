@@ -241,7 +241,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                                 {canDelete && (
                                     <button
                                         onClick={() => handleDeleteVoting(voting.id)}
-                                        className="text-gray-300 hover:text-red-500 transition p-1 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all p-1.5 rounded-xl active:scale-95 duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                         title="Excluir Votação"
                                     >
                                         <TrashIcon className="w-4 h-4" />
@@ -562,7 +562,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveOption(index)}
-                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition mt-0.5"
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200 mt-0.5"
                                             title="Remover opção"
                                         >
                                             <TrashIcon className="w-5 h-5" />
