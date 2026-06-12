@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
     DownloadIcon,
     ShareIcon,
@@ -18,10 +19,11 @@ const PWAInstallOverlay: React.FC = () => {
         const params = new URLSearchParams(window.location.search);
         const forceShow = params.get('debug_install') === 'true';
 
-        // 1. Detect if already installed (standalone mode)
+        // 1. Detect if already installed (standalone mode) or running inside Capacitor (native)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
             || (window.navigator as any).standalone
-            || document.referrer.includes('android-app://');
+            || document.referrer.includes('android-app://')
+            || Capacitor.isNativePlatform();
 
         if (isStandalone && !forceShow) return;
 
