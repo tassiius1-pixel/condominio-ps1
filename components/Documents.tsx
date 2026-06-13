@@ -15,7 +15,8 @@ import {
     InfoIcon,
     EyeIcon,
     EditIcon,
-    LinkIcon
+    LinkIcon,
+    PinIcon
 } from './Icons';
 import Skeleton from './Skeleton';
 import { uploadFile } from '../services/storage';
@@ -47,6 +48,8 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewDoc, setPreviewDoc] = useState<DocumentType | null>(null);
+    const [blobUrl, setBlobUrl] = useState<string | null>(null);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
     // Sync preview with browser history
     React.useEffect(() => {
@@ -61,8 +64,10 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    const openPreview = (doc: DocumentType) => {
+    const openPreview = async (doc: DocumentType) => {
         setPreviewDoc(doc);
+        setBlobUrl(null);
+        
         // Adiciona um estado no histórico para o modal
         const currentParams = new URLSearchParams(window.location.search);
         window.history.pushState(
@@ -70,9 +75,47 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
             "",
             `?view=documents&preview=${doc.id}`
         );
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            // No celular, não fazemos fetch do blob, usamos o comportamento original
+            return;
+        }
+
+        const fileType = doc.fileType?.toLowerCase() || doc.fileName?.split('.').pop()?.toLowerCase() || '';
+        const isPdf = fileType === 'pdf';
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileType);
+
+        // Só fazemos o fetch do blob se for no desktop (para PDFs e Imagens)
+        if (isPdf || isImage) {
+            setIsPreviewLoading(true);
+            try {
+                const response = await fetch(doc.fileUrl);
+                if (!response.ok) throw new Error("Falha ao carregar arquivo.");
+                const blob = await response.blob();
+                let correctBlob = blob;
+                // Corrige o MIME type caso o banco retorne octet-stream para que o navegador renderize inline
+                if (blob.type === 'application/octet-stream') {
+                    const mimeType = isPdf ? 'application/pdf' : `image/${fileType === 'jpg' ? 'jpeg' : fileType}`;
+                    correctBlob = new Blob([blob], { type: mimeType });
+                }
+                const url = URL.createObjectURL(correctBlob);
+                setBlobUrl(url);
+            } catch (err) {
+                console.error("Erro ao carregar preview via Blob:", err);
+                // Fallback para o link direto
+                setBlobUrl(doc.fileUrl);
+            } finally {
+                setIsPreviewLoading(false);
+            }
+        }
     };
 
     const closePreview = () => {
+        if (blobUrl && blobUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(blobUrl);
+        }
+        setBlobUrl(null);
         setPreviewDoc(null);
         // Se estivermos fechando manualmente, remove o estado do histórico 
         // apenas se o estado atual for o do modal (para não voltar demais no histórico)
@@ -230,6 +273,13 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
         );
     }
 
+    const previewFileType = previewDoc?.fileType?.toLowerCase() || 
+                           previewDoc?.fileName?.split('.').pop()?.toLowerCase() || 
+                           '';
+    const isPreviewImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(previewFileType);
+    const isPreviewPdf = previewFileType === 'pdf';
+    const downloadButtonText = isPreviewImage ? "Download Imagem" : isPreviewPdf ? "Download PDF" : "Download Arquivo";
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header & Search */}
@@ -324,8 +374,8 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-2 mb-2">
                                             {doc.isPinned && (
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-white bg-amber-500 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M21 10h-8V2l-1 1v7H4v1l1 1h6v10l1 1 1-1V12h8V10z"></path></svg>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white bg-amber-500 px-2 py-0.5 rounded-md inline-flex items-center gap-1.5">
+                                                    <PinIcon className="w-3 h-3" fill="currentColor" />
                                                     Fixado
                                                 </span>
                                             )}
@@ -345,7 +395,7 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                                     className={`p-1 transition-colors ${doc.isPinned ? 'text-amber-500' : 'text-gray-300 hover:text-amber-500'}`}
                                                     title={doc.isPinned ? "Desafixar" : "Fixar no topo"}
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={doc.isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10h-8V2l-1 1v7H4v1l1 1h6v10l1 1 1-1V12h8V10z"></path></svg>
+                                                    <PinIcon className="w-4 h-4" fill={doc.isPinned ? "currentColor" : "none"} />
                                                 </button>
                                                 <button
                                                     onClick={() => {
@@ -460,33 +510,68 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                         </div>
                     </div>
 
-                    {/* PDF Viewer */}
-                    <div className="flex-1 bg-gray-50 flex flex-col items-center justify-center relative overflow-hidden p-6">
-                        {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
+                    {/* Viewer based on file type */}
+                    <div className="flex-1 bg-gray-50 flex flex-col items-center justify-center relative overflow-hidden p-6 w-full">
+                        {isPreviewLoading ? (
+                            <div className="flex flex-col items-center justify-center gap-3">
+                                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                                <p className="text-xs text-gray-500 font-bold">Carregando visualização...</p>
+                            </div>
+                        ) : isPreviewImage ? (
+                            <div className="max-w-full max-h-full flex items-center justify-center p-4">
+                                <img
+                                    src={blobUrl || previewDoc.fileUrl}
+                                    alt={previewDoc.title}
+                                    className="max-h-[70vh] max-w-full rounded-2xl shadow-lg object-contain bg-white border border-gray-100"
+                                />
+                            </div>
+                        ) : isPreviewPdf ? (
+                            /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
+                                <div className="text-center max-w-sm p-8 bg-white rounded-3xl border border-gray-100 shadow-md animate-in fade-in duration-300">
+                                    <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3 shadow-inner">
+                                        <FileIcon className="w-10 h-10" />
+                                    </div>
+                                    <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-2">Visualização no Celular</h4>
+                                    <p className="text-xs text-gray-500 font-medium leading-relaxed mb-8">
+                                        Para garantir a melhor leitura do documento oficial em seu celular, abra-o no leitor nativo do sistema.
+                                    </p>
+                                    <a
+                                        href={previewDoc.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full flex items-center justify-center gap-2 py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 mb-3"
+                                    >
+                                        <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        Abrir em Tela Cheia
+                                    </a>
+                                </div>
+                            ) : (
+                                <iframe
+                                    src={blobUrl ? `${blobUrl}#toolbar=0` : `${previewDoc.fileUrl}#toolbar=0`}
+                                    className="w-full h-full border-none bg-white shadow-inner"
+                                    title={previewDoc.title}
+                                />
+                            )
+                        ) : (
                             <div className="text-center max-w-sm p-8 bg-white rounded-3xl border border-gray-100 shadow-md animate-in fade-in duration-300">
                                 <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3 shadow-inner">
                                     <FileIcon className="w-10 h-10" />
                                 </div>
-                                <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-2">Visualização no Celular</h4>
+                                <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-2">Visualização não suportada</h4>
                                 <p className="text-xs text-gray-500 font-medium leading-relaxed mb-8">
-                                    Para garantir a melhor leitura do documento oficial em seu celular, abra-o no leitor nativo do sistema.
+                                    Este tipo de arquivo ({previewFileType.toUpperCase()}) não pode ser exibido diretamente no navegador. Faça o download para abrir o documento.
                                 </p>
                                 <a
                                     href={previewDoc.fileUrl}
+                                    download
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full flex items-center justify-center gap-2 py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 mb-3"
                                 >
-                                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
-                                    Abrir em Tela Cheia
+                                    <DownloadIcon className="w-4.5 h-4.5" />
+                                    Download do Arquivo
                                 </a>
                             </div>
-                        ) : (
-                            <iframe
-                                src={`${previewDoc.fileUrl}#toolbar=0`}
-                                className="w-full h-full border-none bg-white shadow-inner"
-                                title={previewDoc.title}
-                            />
                         )}
                     </div>
 

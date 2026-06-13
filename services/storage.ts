@@ -13,6 +13,7 @@ export async function uploadFile(file: File, folder: string, bucket: string = "p
       .upload(filePath, file, {
         cacheControl: "3600",
         upsert: false, // NÃO sobrescreve
+        contentType: file.type, // Garante tipo MIME correto
       });
 
     if (error) {

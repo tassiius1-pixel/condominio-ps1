@@ -367,7 +367,7 @@ const Header: React.FC<HeaderProps> = ({
         >
           <div className="flex flex-col h-full p-4 overflow-hidden">
             {/* Menu Header */}
-            <div className="flex items-center justify-between mb-8 px-2 flex-shrink-0">
+            <div className="flex items-center justify-between mb-6 px-2 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <img src={logoURL} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shadow-sm bg-white p-1" />
                 <div>
@@ -384,7 +384,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Menu Items */}
-            <nav className="flex-1 space-y-2 overflow-y-auto px-1">
+            <nav className="flex-1 flex flex-col justify-evenly py-4 overflow-y-auto px-1 min-h-0">
               {navItems.map((item, idx) => {
                 if (item.adminOnly && ![Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role)) return null;
                 if (item.id === 'users' && currentUser.role !== Role.ADMIN) return null;
@@ -399,13 +399,13 @@ const Header: React.FC<HeaderProps> = ({
                       setView(item.id as any);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center px-4 py-4 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active ${isActive
+                    className={`w-full flex items-center px-4 py-3 text-sm font-bold rounded-2xl transition-all animate-slideFadeIn touch-active flex-shrink-0 ${isActive
                       ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-950/20 translate-x-1'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60'
                       }`}
                     style={{ animationDelay: `${idx * 0.05}s` }}
                   >
-                    <Icon className={`h-6 w-6 mr-4 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500'}`} />
+                    <Icon className={`h-5 w-5 mr-4 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500'}`} />
                     {item.label}
                   </button>
                 );
@@ -413,13 +413,13 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* Menu Footer */}
-            <div className="mt-auto px-4 pt-6 pb-[calc(env(safe-area-inset-bottom,0rem)+6rem)] border-t border-gray-100 dark:border-gray-800 flex flex-col items-center flex-shrink-0 bg-white dark:bg-gray-900">
-              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black mb-3 shadow-inner">
+            <div className="mt-auto px-5 py-6 pb-[calc(env(safe-area-inset-bottom,0rem)+1.5rem)] border-t border-gray-100 dark:border-gray-800 flex items-center gap-4 flex-shrink-0 bg-white dark:bg-gray-900 shadow-sm">
+              <div className="w-11 h-11 bg-indigo-50 dark:bg-indigo-950/40 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black shadow-inner flex-shrink-0">
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>
-              <div className="text-center">
-                <p className="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">{currentUser.name}</p>
-                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight whitespace-normal break-words leading-tight">{currentUser.name}</p>
+                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest truncate mt-0.5">
                   {currentUser.role} • Unidade {currentUser.houseNumber}
                 </p>
               </div>

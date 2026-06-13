@@ -384,3 +384,10 @@ export const BoletoIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+export const PinIcon: React.FC<{ className?: string, fill?: string }> = ({ className, fill = "none" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="12" y1="17" x2="12" y2="22"></line>
+    <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.56A2 2 0 0 1 15 9.2V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.2a2 2 0 0 1-.78 1.56L5.44 14a2 2 0 0 0-.44 1.24Z"></path>
+  </svg>
+);
+
