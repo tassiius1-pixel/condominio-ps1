@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             cpf: cleanCpf,
             houseNumber: String(data.houseNumber),
             phone: (data as any).phone || "",
-            role: "MORADOR",
+            role: "PROPRIETARIO",
           },
         },
       });

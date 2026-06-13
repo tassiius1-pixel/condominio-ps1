@@ -7,6 +7,7 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import UserManagement from "./components/UserManagement";
 import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
 import { Role, Toast as ToastType, View } from "./types";
 import { useData } from "./hooks/useData";
 
@@ -285,18 +286,26 @@ const App: React.FC = () => {
       <PWAInstallOverlay />
       <div className="min-h-screen bg-slate-200 text-gray-900 transition-colors duration-300">
         {currentUser && (
-          <Header
-            currentView={mainView}
-            setView={handleViewChange}
-            condoLogo={condoLogo}
-            setCondoLogo={handleSetLogo}
-            mobileMenuOpen={mobileMenuOpen}
-            setMobileMenuOpen={setMobileMenuOpen}
-          />
+          <>
+            <Header
+              currentView={mainView}
+              setView={handleViewChange}
+              condoLogo={condoLogo}
+              setCondoLogo={handleSetLogo}
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+            />
+            <Sidebar
+              currentView={mainView}
+              setView={handleViewChange}
+              condoLogo={condoLogo}
+              setCondoLogo={handleSetLogo}
+            />
+          </>
         )}
 
         <main
-          className={`max-w-7xl mx-auto ${currentUser ? "px-4 sm:px-6 lg:px-8 pb-32 sm:pb-24 lg:pb-8 pt-24 sm:pt-[120px]" : ""}`}
+          className={`${currentUser ? "px-4 sm:px-6 lg:px-10 pb-32 sm:pb-24 lg:pb-8 pt-24 sm:pt-[120px] lg:pt-6 lg:ml-64" : "max-w-7xl mx-auto"}`}
         >
           {currentUser && <NotificationPrompt />}
           {renderContent()}

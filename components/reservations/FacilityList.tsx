@@ -167,7 +167,7 @@ const FacilityList: React.FC<FacilityListProps> = ({
                                                     </div>
                                                 </div>
 
-                                                {(currentUser?.id === res.userId || [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR)) && (
+                                                {(currentUser?.id === res.userId || [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.PROPRIETARIO)) && (
                                                     <button
                                                         onClick={() => onCancel(res)}
                                                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200"

@@ -141,7 +141,7 @@ const Header: React.FC<HeaderProps> = ({
   const managementItems = navItems.filter(i => i.adminOnly);
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 ${visible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 py-4 lg:hidden ${visible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
       <header className={`bg-white max-w-7xl mx-auto rounded-[2.5rem] transition-all duration-300 shadow-xl shadow-gray-200/50 border border-gray-100 ${scrolled ? 'shadow-2xl shadow-indigo-200/50 border-b border-gray-100 py-1' : ''}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">

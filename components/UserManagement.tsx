@@ -165,7 +165,8 @@ const UserManagement: React.FC = () => {
                     disabled={user.role === Role.ADMIN}
                     className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
                   >
-                    <option value={Role.MORADOR}>Morador</option>
+                    <option value={Role.PROPRIETARIO}>Proprietário</option>
+                    <option value={Role.INQUILINO}>Inquilino</option>
                     <option value={Role.GESTAO}>Gestão</option>
                     <option value={Role.SINDICO}>Síndico</option>
                     <option value={Role.SUBSINDICO}>Subsíndico</option>

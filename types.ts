@@ -1,5 +1,6 @@
 export enum Role {
-  MORADOR = 'morador',
+  PROPRIETARIO = 'proprietario',
+  INQUILINO = 'inquilino',
   GESTAO = 'gestao',
   ADMIN = 'admin',
   SINDICO = 'sindico',

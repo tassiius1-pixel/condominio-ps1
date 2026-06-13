@@ -409,7 +409,7 @@ const Reports: React.FC = () => {
                     { id: 'ocorrencias', label: 'Ocorrências', icon: <AlertTriangleIcon className="w-4 h-4" />, roles: [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO] },
                     { id: 'votacoes', label: 'Votações', icon: <CheckCircleIcon className="w-4 h-4" /> },
                 ]
-                    .filter(tab => !tab.roles || tab.roles.includes(currentUser?.role || Role.MORADOR))
+                    .filter(tab => !tab.roles || tab.roles.includes(currentUser?.role || Role.PROPRIETARIO))
                     .map((tab) => (
                         <button
                             key={tab.id}

@@ -221,9 +221,10 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         const status = getVotingStatus(voting);
         const hasVoted = voting.votes.some(v => v.houseNumber === currentUser?.houseNumber);
         const results = calculateResults(voting);
-        const isAdmin = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
+        const isAdmin = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.PROPRIETARIO);
         const canDelete = currentUser?.role === Role.ADMIN;
         const showResults = hasVoted || status === 'closed' || isAdmin;
+        const canVote = currentUser?.role !== Role.INQUILINO;
 
         return (
             <div key={voting.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
@@ -234,27 +235,27 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                     }`} />
 
                 <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-lg font-bold text-gray-800 leading-tight">{voting.title}</h3>
-                                {canDelete && (
-                                    <button
-                                        onClick={() => handleDeleteVoting(voting.id)}
-                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all p-1.5 rounded-xl active:scale-95 duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                                        title="Excluir Votação"
-                                    >
-                                        <TrashIcon className="w-4 h-4" />
-                                    </button>
-                                )}
-                            </div>
+                    <div className="flex justify-between items-start mb-4 gap-4">
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-bold text-gray-800 leading-tight mb-1">{voting.title}</h3>
                             <p className="text-sm text-gray-500 line-clamp-2">{voting.description}</p>
                         </div>
-                        <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
-                            status === 'future' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                'bg-gray-100 text-gray-600 border-gray-200'
-                            }`}>
-                            {status === 'active' ? 'Destaque' : status === 'future' ? 'Agendada' : 'Finalizada'}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {canDelete && (
+                                <button
+                                    onClick={() => handleDeleteVoting(voting.id)}
+                                    className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 transition-all p-1.5 rounded-xl active:scale-95 duration-200"
+                                    title="Excluir Votação"
+                                >
+                                    <TrashIcon className="w-4 h-4" />
+                                </button>
+                            )}
+                            <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
+                                status === 'future' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                    'bg-gray-100 text-gray-600 border-gray-200'
+                                }`}>
+                                {status === 'active' ? 'Destaque' : status === 'future' ? 'Agendada' : 'Finalizada'}
+                            </div>
                         </div>
                     </div>
 
@@ -269,49 +270,57 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
 
                     {/* Voting Area */}
                     {status === 'active' && !hasVoted && (
-                        <div className="space-y-3 animate-fade-in-up">
-                            <p className="text-sm font-semibold text-gray-700 block mb-2">
-                                Escolha sua opção ({voting.allowMultipleChoices ? 'Múltipla' : 'Única'}):
-                            </p>
-                            <div className="grid grid-cols-1 gap-3">
-                                {voting.options.map(opt => (
-                                    <button
-                                        key={opt.id}
-                                        onClick={() => handleToggleOption(voting.id, opt.id, voting.allowMultipleChoices)}
-                                        className={`relative text-left p-3 rounded-xl border-2 transition-all flex items-center justify-between group/opt ${selectedOptions[voting.id]?.includes(opt.id)
-                                            ? 'bg-indigo-50 border-indigo-500 shadow-md'
-                                            : 'bg-white border-gray-100 hover:border-indigo-200 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {opt.imageUrl && (
-                                                <img
-                                                    src={opt.imageUrl}
-                                                    alt="Opção"
-                                                    className="w-10 h-10 rounded-lg object-cover border border-gray-200"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedImage(opt.imageUrl!);
-                                                    }}
-                                                />
+                        canVote ? (
+                            <div className="space-y-3 animate-fade-in-up">
+                                <p className="text-sm font-semibold text-gray-700 block mb-2">
+                                    Escolha sua opção ({voting.allowMultipleChoices ? 'Múltipla' : 'Única'}):
+                                </p>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {voting.options.map(opt => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => handleToggleOption(voting.id, opt.id, voting.allowMultipleChoices)}
+                                            className={`relative text-left p-3 rounded-xl border-2 transition-all flex items-center justify-between group/opt ${selectedOptions[voting.id]?.includes(opt.id)
+                                                ? 'bg-indigo-50 border-indigo-500 shadow-md'
+                                                : 'bg-white border-gray-100 hover:border-indigo-200 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {opt.imageUrl && (
+                                                    <img
+                                                        src={opt.imageUrl}
+                                                        alt="Opção"
+                                                        className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedImage(opt.imageUrl!);
+                                                        }}
+                                                    />
+                                                )}
+                                                <span className={`font-medium ${selectedOptions[voting.id]?.includes(opt.id) ? 'text-indigo-900' : 'text-gray-700'}`}>
+                                                    {opt.text}
+                                                </span>
+                                            </div>
+                                            {selectedOptions[voting.id]?.includes(opt.id) && (
+                                                <CheckIcon className="w-5 h-5 text-indigo-600 animate-scale-in" />
                                             )}
-                                            <span className={`font-medium ${selectedOptions[voting.id]?.includes(opt.id) ? 'text-indigo-900' : 'text-gray-700'}`}>
-                                                {opt.text}
-                                            </span>
-                                        </div>
-                                        {selectedOptions[voting.id]?.includes(opt.id) && (
-                                            <CheckIcon className="w-5 h-5 text-indigo-600 animate-scale-in" />
-                                        )}
-                                    </button>
-                                ))}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => handleSubmitVote(voting.id)}
+                                    className="w-full mt-4 bg-indigo-600 text-white py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md hover:shadow-lg transform active:scale-95"
+                                >
+                                    Confirmar Voto
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleSubmitVote(voting.id)}
-                                className="w-full mt-4 bg-indigo-600 text-white py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md hover:shadow-lg transform active:scale-95"
-                            >
-                                Confirmar Voto
-                            </button>
-                        </div>
+                        ) : (
+                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                                <p className="text-xs text-amber-800 font-bold">
+                                    ⚠️ Contas com perfil de Inquilino não têm permissão para votar.
+                                </p>
+                            </div>
+                        )
                     )}
 
                     {/* Results Area (Visual Charts) */}
@@ -357,7 +366,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
     const activeVotings = votings.filter(v => getVotingStatus(v) === 'active' || getVotingStatus(v) === 'future');
     const pastVotings = votings.filter(v => getVotingStatus(v) === 'closed');
 
-    const canManageVotings = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.MORADOR);
+    const canManageVotings = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.PROPRIETARIO);
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

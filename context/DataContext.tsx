@@ -539,7 +539,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               cpf: userData.cpf.replace(/\D/g, ''),
               houseNumber: String(userData.houseNumber),
               phone: (userData as any).phone || "",
-              role: 'MORADOR'
+              role: 'PROPRIETARIO'
             }
           }),
         }
@@ -561,7 +561,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return {
         ...userData,
         id: resData.uid,
-        role: Role.MORADOR,
+        role: Role.PROPRIETARIO,
         email,
       };
     } catch (e: any) {
@@ -625,7 +625,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   ) => {
     const tempId = `temp-${Date.now()}`;
     const author = users.find((u) => u.id === requestData.authorId);
-    const authorName = author?.name || "Morador";
+    const authorName = author?.name || "Proprietário";
     const newRequest: Request = {
       id: tempId,
       title: requestData.title,
@@ -1238,6 +1238,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const castVote = async (votingId: string, optionIds: string[], currentUser: User) => {
     if (!currentUser) return;
+
+    if (currentUser.role === Role.INQUILINO) {
+      addToast('Inquilinos não têm permissão para participar de votações.', 'error');
+      return;
+    }
 
     const previousVotings = [...votings];
 
