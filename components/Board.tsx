@@ -40,7 +40,7 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
 
   if (loading) {
     return (
-      <div className="max-w-4xl space-y-8 pb-12 animate-pulse">
+      <div className="w-full space-y-8 pb-12 animate-pulse">
         <div className="flex gap-2">
           <Skeleton className="h-12 w-32 rounded-2xl" />
           <Skeleton className="h-12 w-38 rounded-2xl" />
@@ -62,7 +62,7 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
   };
 
   return (
-    <div className="max-w-4xl space-y-8 pb-12 animate-fade-in">
+    <div className="w-full space-y-8 pb-12 animate-fade-in">
       {/* Tabs System */}
       <div className="flex items-center justify-between">
         <div className="flex p-1 bg-gray-200/50 rounded-2xl backdrop-blur-sm border border-gray-200/50">

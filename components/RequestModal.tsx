@@ -322,7 +322,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
           onClick={onClose}
         />
         <div
-          className={`bg-white shadow-2xl w-full h-[100dvh] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'}`}
+          className={`bg-white shadow-2xl w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-[2rem] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'} sm:animate-scale-in border border-gray-100/50`}
           style={{ transform: `translateY(${translateY}px)` }}
         >
           {/* Visual Drag Handle for Mobile */}
@@ -336,31 +336,31 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
           </div>
 
           {/* Header Barra Superior */}
-          <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 bg-indigo-600 border-b border-indigo-700 z-10 shrink-0 pt-[env(safe-area-inset-top,1.25rem)]">
+          <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 bg-white border-b border-gray-100 z-10 shrink-0 pt-[env(safe-area-inset-top,0.5rem)] sm:pt-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={onClose}
-                className="flex items-center gap-1.5 p-2 -ml-2 hover:bg-white/10 text-white rounded-xl transition-colors group"
+                className="flex items-center gap-1.5 p-2 -ml-2 hover:bg-gray-50 text-gray-500 hover:text-gray-800 rounded-xl transition-colors group"
                 aria-label="Voltar"
               >
                 <XIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-                <span className="hidden sm:inline text-xs font-black uppercase tracking-widest opacity-80 group-hover:opacity-100">Voltar</span>
+                <span className="hidden sm:inline text-xs font-black uppercase tracking-widest opacity-85 group-hover:opacity-100">Voltar</span>
               </button>
 
-              <div className="flex items-center gap-3 sm:gap-4 pl-1 sm:pl-2 border-l border-white/20">
-                <div className={`p-2.5 rounded-xl bg-white/10 text-white shadow-inner hidden xs:flex`}>
+              <div className="flex items-center gap-3 sm:gap-4 pl-1 sm:pl-2 border-l border-gray-150">
+                <div className={`p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shadow-inner hidden xs:flex`}>
                   {request ? (request.type === RequestType.SUGESTOES ? <LightbulbIcon className="w-5 h-5" /> : <InfoIcon className="w-5 h-5" />) : <PlusIcon className="w-5 h-5" />}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-sm sm:text-base font-black text-white tracking-tight leading-none uppercase truncate">
+                  <h2 className="text-sm sm:text-base font-black text-gray-900 tracking-tight leading-none uppercase truncate">
                     {request ? 'Detalhes' : 'Nova Demanda'}
                   </h2>
                   {request && (
                     <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
-                      <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 whitespace-nowrap`}>
+                      <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${style.bg} ${style.text} border ${style.border} whitespace-nowrap`}>
                         {request.status}
                       </span>
-                      <span className="text-[10px] uppercase font-black text-indigo-200 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
+                      <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
                         • {formattedDate}
                       </span>
                     </div>
@@ -373,7 +373,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
               {request && (isAuthor || canManage) && !isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-2.5 sm:p-3 hover:bg-white/10 text-white rounded-xl transition-all active:scale-90"
+                  className="p-2.5 sm:p-3 hover:bg-gray-50 text-gray-500 hover:text-indigo-600 rounded-xl transition-all active:scale-90"
                   title="Editar"
                 >
                   <EditIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -382,7 +382,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
               {request && (isAuthor || canManage) && (
                 <button
                   onClick={handleDelete}
-                  className="p-2.5 sm:p-3 hover:bg-red-500 text-white rounded-xl transition-all active:scale-95 group"
+                  className="p-2.5 sm:p-3 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl transition-all active:scale-95 group"
                   title="Excluir"
                 >
                   <TrashIcon className="w-5 h-5 sm:w-6 sm:h-6 opacity-90 group-hover:opacity-100" />

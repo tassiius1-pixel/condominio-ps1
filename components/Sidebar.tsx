@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const badge = getRoleBadge(currentUser.role);
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen fixed left-0 top-0 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_24px_rgba(0,0,0,0.015)] z-40">
+    <aside className="hidden lg:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 shadow-[4px_0_24px_rgba(0,0,0,0.006)] z-40">
       {/* CABEÇALHO: LOGO */}
       <div className="px-6 py-5 border-b border-slate-200/60 flex items-center">
         <div className="flex items-center gap-3">
@@ -140,12 +140,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => setView(item.id as any)}
                   className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group active:scale-[0.98] ${
                     isActive
-                      ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/10 scale-[1.01] translate-x-0.5'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/40 hover:translate-x-1'
+                      ? 'bg-indigo-50/70 text-indigo-600 shadow-sm shadow-indigo-100/30 scale-[1.01] translate-x-0.5'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/50 hover:translate-x-1'
                   }`}
                 >
                   <Icon className={`w-5 h-5 mr-3 flex-shrink-0 transition-transform group-hover:scale-105 ${
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-500'
+                    isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-500'
                   }`} />
                   <span className="truncate">{item.label}</span>
                 </button>
@@ -170,12 +170,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => setView(item.id as any)}
                     className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group active:scale-[0.98] ${
                       isActive
-                        ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/10 scale-[1.01] translate-x-0.5'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/40 hover:translate-x-1'
+                        ? 'bg-indigo-50/70 text-indigo-600 shadow-sm shadow-indigo-100/30 scale-[1.01] translate-x-0.5'
+                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/50 hover:translate-x-1'
                     }`}
                   >
                     <Icon className={`w-5 h-5 mr-3 flex-shrink-0 transition-transform group-hover:scale-105 ${
-                      isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-500'
+                      isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-500'
                     }`} />
                     <span className="truncate">{item.label}</span>
                   </button>

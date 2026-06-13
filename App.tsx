@@ -284,7 +284,7 @@ const App: React.FC = () => {
   return (
     <>
       <PWAInstallOverlay />
-      <div className="min-h-screen bg-slate-200 text-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-slate-50 text-gray-900 transition-colors duration-300">
         {currentUser && (
           <>
             <Header

@@ -77,7 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
       </div>
 
       {/* Main Content - Board */}
-      <div className="bg-gray-50/50 rounded-2xl">
+      <div className="w-full">
         <Board setView={setView} />
       </div>
 
