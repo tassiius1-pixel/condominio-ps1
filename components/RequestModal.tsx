@@ -314,6 +314,52 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
   const fullFormattedDate = request ? new Date(request.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
   const style = getStatusStyle(request?.status || status);
 
+  // Mentions Suggestions Logic
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionQuery, setSuggestionQuery] = useState('');
+  
+  const handleInputChange = (val: string) => {
+    setNewComment(val);
+    
+    const words = val.split(' ');
+    const lastWord = words[words.length - 1];
+    
+    if (lastWord.startsWith('@')) {
+      setSuggestionQuery(lastWord.substring(1));
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectSuggestion = (user: any) => {
+    const words = newComment.split(' ');
+    words[words.length - 1] = `@${user.name.split(' ')[0]}`;
+    setNewComment(words.join(' ') + ' ');
+    setShowSuggestions(false);
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.id !== currentUser.id && 
+    (u.name.toLowerCase().includes(suggestionQuery.toLowerCase()) ||
+     u.username.toLowerCase().includes(suggestionQuery.toLowerCase()))
+  ).slice(0, 5);
+
+  const renderCommentText = (text: string) => {
+    const mentionRegex = /(@[A-Za-zÀ-ÖØ-öø-ÿ0-9._-]+)/g;
+    const parts = text.split(mentionRegex);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return (
+          <span key={index} className="inline-block text-indigo-600 font-bold bg-indigo-50/70 px-1.5 py-0.5 rounded-md text-xs border border-indigo-100/30">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center">
@@ -433,15 +479,24 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                     </h1>
 
                     {/* Autor Meta info */}
-                    <div className="flex items-center gap-3 py-1.5 border-y border-gray-100/50">
-                      <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-[10px] uppercase shadow-sm">
-                        {author?.name.split(' ')[0][0]}
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-gray-900">{author?.name.split(' ')[0]} • Unidade {author?.houseNumber}</p>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Autor da Sugestão</p>
-                      </div>
-                    </div>
+                     <div className="bg-gradient-to-r from-slate-50 to-indigo-50/20 border border-slate-100 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm">
+                       <div className="flex items-center gap-3">
+                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-black text-sm uppercase shadow-md shadow-indigo-100">
+                           {author ? author.name.charAt(0).toUpperCase() : request?.authorName?.charAt(0).toUpperCase() || 'U'}
+                         </div>
+                         <div>
+                           <p className="text-xs font-black text-slate-800 leading-tight">
+                             {author ? author.name : request?.authorName || 'Desconhecido'}
+                           </p>
+                           <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mt-0.5">
+                             {author ? `Unidade ${author.houseNumber}` : 'Morador'}
+                           </p>
+                         </div>
+                       </div>
+                       <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100/50">
+                         Autor da Sugestão
+                       </span>
+                     </div>
 
                     <p className="text-base text-gray-600 leading-relaxed font-normal whitespace-pre-wrap break-words">
                       {request?.description}
@@ -651,8 +706,11 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
                             // Instagram Style Layout
                             return (
-                              <div key={comment.id} className={`flex gap-3 w-full p-3 rounded-2xl animate-slide-fade-in
-                              ${idx % 2 === 0 ? 'bg-indigo-50/50' : 'bg-white border border-gray-100'}`}>
+                              <div key={comment.id} className={`flex gap-3 w-full p-4 rounded-2xl animate-slide-fade-in border transition-all hover:shadow-sm
+                               ${isMe 
+                                 ? 'bg-indigo-50/20 border-indigo-100/40 shadow-[0_4px_12px_rgba(79,70,229,0.015)]' 
+                                 : 'bg-white border-slate-100/80 shadow-[0_4px_12px_rgba(0,0,0,0.005)]'
+                               }`}>
 
                                 {/* Avatar */}
                                 <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase shadow-sm mt-1
@@ -700,9 +758,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                                         </div>
                                       </div>
                                     ) : (
-                                      <p className="text-sm text-gray-800 leading-relaxed font-medium mt-0.5 break-words">
-                                        {comment.text}
-                                      </p>
+                                       <p className="text-sm text-gray-800 leading-relaxed font-medium mt-0.5 break-words">
+                                         {renderCommentText(comment.text)}
+                                       </p>
                                     )}
 
                                     {/* Actions */}
@@ -776,23 +834,43 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-3 bg-slate-50 p-2 rounded-3xl border border-gray-100 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
-                  <input
-                    type="text"
-                    placeholder="Diga sua opinião..."
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-4 text-gray-700 placeholder:text-gray-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddComment}
-                    disabled={!newComment.trim()}
-                    className="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-90"
-                  >
-                    <SendIcon className="w-5 h-5 ml-0.5" />
-                  </button>
+                <div className="relative">
+                  {showSuggestions && filteredUsers.length > 0 && (
+                    <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-2xl shadow-xl p-1.5 flex flex-col gap-1 z-50 max-h-48 overflow-y-auto animate-scale-in">
+                      <p className="text-[9px] font-black uppercase text-gray-400 px-3 py-1.5 tracking-wider border-b border-gray-50">Mencionar Morador</p>
+                      {filteredUsers.map(u => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => selectSuggestion(u)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-[9px] uppercase">
+                            {u.name[0]}
+                          </div>
+                          <span>{u.name} (Unidade {u.houseNumber})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-3 bg-slate-50 p-2 rounded-3xl border border-gray-100 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+                    <input
+                      type="text"
+                      placeholder="Diga sua opinião..."
+                      value={newComment}
+                      onChange={e => handleInputChange(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-4 text-gray-700 placeholder:text-gray-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
+                      className="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-90"
+                    >
+                      <SendIcon className="w-5 h-5 ml-0.5" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

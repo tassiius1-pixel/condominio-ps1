@@ -868,11 +868,46 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const request = previousRequests.find((r) => r.id === requestId);
       if (request) {
+        // 1. Notificação geral de novo comentário
         await addNotification({
           message: `${commentData.authorName} comentou em: "${request.title}"`,
           userId: "all",
           requestId: request.id,
         });
+
+        // 2. Detecção e envio de notificações para usuários mencionados (@Nome ou @usuario)
+        const mentionRegex = /@([A-Za-zÀ-ÖØ-öø-ÿ0-9._-]+)/g;
+        let match;
+        const mentionedUserIds = new Set<string>();
+
+        while ((match = mentionRegex.exec(commentData.text)) !== null) {
+          const cleanName = match[1].toLowerCase();
+          
+          // Encontra o usuário correspondente (desconsiderando o próprio autor)
+          const mentionedUser = users.find(u => 
+            u.id !== commentData.authorId && 
+            (u.name.split(' ')[0].toLowerCase() === cleanName || 
+             u.username.toLowerCase() === cleanName)
+          );
+
+          if (mentionedUser && !mentionedUserIds.has(mentionedUser.id)) {
+            mentionedUserIds.add(mentionedUser.id);
+            
+            // Grava a notificação interna para o usuário mencionado
+            await addNotification({
+              message: `${commentData.authorName} mencionou você na demanda: "${request.title}"`,
+              userId: mentionedUser.id,
+              requestId: request.id,
+            });
+
+            // Dispara a Push Notification para o celular do morador
+            sendPushNotification(
+              mentionedUser.id,
+              "Você foi mencionado",
+              `${commentData.authorName} mencionou você em "${request.title}"`
+            );
+          }
+        }
       }
       addToast("Comentário adicionado.", "success");
     } else {
