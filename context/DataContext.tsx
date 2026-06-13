@@ -19,7 +19,9 @@ import {
   BoletoUpload,
   Sector,
   RequestType,
-  Priority
+  Priority,
+  GalleryAlbum,
+  GalleryMedia
 } from "../types";
 
 interface DataContextType {
@@ -86,6 +88,13 @@ interface DataContextType {
 
   boletoUploads: BoletoUpload[];
   addBoletoUpload: (upload: Omit<BoletoUpload, 'id' | 'uploadedAt'>) => Promise<void>;
+
+  albums: GalleryAlbum[];
+  galleryMedia: GalleryMedia[];
+  addAlbum: (albumData: Omit<GalleryAlbum, 'id' | 'createdAt'>) => Promise<void>;
+  deleteAlbum: (id: string) => Promise<void>;
+  addGalleryMedia: (mediaData: Omit<GalleryMedia, 'id' | 'createdAt'>) => Promise<void>;
+  deleteGalleryMedia: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -103,6 +112,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [boletos, setBoletos] = useState<Boleto[]>([]);
   const [boletoUploads, setBoletoUploads] = useState<BoletoUpload[]>([]);
+  const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
+  const [galleryMedia, setGalleryMedia] = useState<GalleryMedia[]>([]);
   const [loading, setLoading] = useState(true);
 
   const addToast = useCallback((message: string, type: "success" | "error" | "info") => {
@@ -349,6 +360,39 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const fetchAlbums = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("gallery_albums")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data && !error) {
+      setAlbums(data.map(d => ({
+        id: d.id,
+        title: d.title,
+        description: d.description || "",
+        createdAt: d.created_at,
+        createdBy: d.created_by
+      })));
+    }
+  }, []);
+
+  const fetchGalleryMedia = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("gallery_media")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (data && !error) {
+      setGalleryMedia(data.map(d => ({
+        id: d.id,
+        albumId: d.album_id,
+        url: d.url,
+        type: d.type as 'image' | 'video',
+        createdAt: d.created_at,
+        createdBy: d.created_by
+      })));
+    }
+  }, []);
+
   const fetchNotificationsDebounced = useCallback(() => {
     if (fetchNotificationsTimeout.current) {
       clearTimeout(fetchNotificationsTimeout.current);
@@ -391,7 +435,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           fetchDocuments(),
           fetchNotifications(),
           fetchBoletos(),
-          fetchBoletoUploads()
+          fetchBoletoUploads(),
+          fetchAlbums(),
+          fetchGalleryMedia()
         ]);
       } catch (err) {
         console.error("Erro ao carregar dados protegidos:", err);
@@ -419,11 +465,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const chBoletoUploads = supabase.channel("rt-boleto-uploads").on("postgres_changes", { event: "*", schema: "public", table: "boleto_uploads" }, fetchBoletoUploads).subscribe();
       const chNotif = supabase.channel("rt-notifications").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, fetchNotificationsDebounced).subscribe();
       const chNotifReads = supabase.channel("rt-notif-reads").on("postgres_changes", { event: "*", schema: "public", table: "notification_reads" }, fetchNotificationsDebounced).subscribe();
+      const chAlbums = supabase.channel("rt-gallery-albums").on("postgres_changes", { event: "*", schema: "public", table: "gallery_albums" }, fetchAlbums).subscribe();
+      const chMedia = supabase.channel("rt-gallery-media").on("postgres_changes", { event: "*", schema: "public", table: "gallery_media" }, fetchGalleryMedia).subscribe();
 
       activeChannels = [
         chUsers, chRequests, chLikes, chComments, chCommentLikes,
         chRes, chOcc, chVotings, chVotes, chNotices, chReactions,
-        chDocs, chBoletos, chBoletoUploads, chNotif, chNotifReads
+        chDocs, chBoletos, chBoletoUploads, chNotif, chNotifReads,
+        chAlbums, chMedia
       ];
     };
 
@@ -440,6 +489,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setBoletos([]);
       setBoletoUploads([]);
       setNotifications([]);
+      setAlbums([]);
+      setGalleryMedia([]);
       setLoading(false);
     };
 
@@ -469,7 +520,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       subscription.unsubscribe();
       unsubscribeAll();
     };
-  }, [fetchUsers, fetchRequests, fetchReservations, fetchOccurrences, fetchVotings, fetchNotices, fetchDocuments, fetchNotifications, fetchBoletos, fetchBoletoUploads]);
+  }, [fetchUsers, fetchRequests, fetchReservations, fetchOccurrences, fetchVotings, fetchNotices, fetchDocuments, fetchNotifications, fetchBoletos, fetchBoletoUploads, fetchAlbums, fetchGalleryMedia]);
 
   const findUserByCpf = (cpf: string) => users.find((u) => u.cpf === cpf);
 
@@ -1777,6 +1828,89 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const addAlbum = async (albumData: Omit<GalleryAlbum, 'id' | 'createdAt'>) => {
+    const tempId = `temp-${Date.now()}`;
+    const newAlbum: GalleryAlbum = {
+      id: tempId,
+      title: albumData.title,
+      description: albumData.description || "",
+      createdAt: new Date().toISOString(),
+      createdBy: albumData.createdBy
+    };
+
+    setAlbums(prev => [newAlbum, ...prev]);
+
+    const { data, error } = await supabase.from("gallery_albums").insert({
+      title: albumData.title,
+      description: albumData.description || "",
+      created_by: albumData.createdBy
+    }).select().single();
+
+    if (!error && data) {
+      setAlbums(prev => prev.map(a => a.id === tempId ? { ...a, id: data.id, createdAt: data.created_at } : a));
+      addToast('Álbum criado com sucesso!', 'success');
+    } else {
+      addToast('Erro ao criar álbum.', 'error');
+      setAlbums(prev => prev.filter(a => a.id !== tempId));
+    }
+  };
+
+  const deleteAlbum = async (id: string) => {
+    const previousAlbums = [...albums];
+
+    setAlbums(prev => prev.filter(a => a.id !== id));
+
+    const { error } = await supabase.from("gallery_albums").delete().eq("id", id);
+    if (!error) {
+      addToast('Álbum excluído.', 'info');
+    } else {
+      addToast('Erro ao excluir álbum.', 'error');
+      setAlbums(previousAlbums);
+    }
+  };
+
+  const addGalleryMedia = async (mediaData: Omit<GalleryMedia, 'id' | 'createdAt'>) => {
+    const tempId = `temp-${Date.now()}`;
+    const newMedia: GalleryMedia = {
+      id: tempId,
+      albumId: mediaData.albumId,
+      url: mediaData.url,
+      type: mediaData.type,
+      createdAt: new Date().toISOString(),
+      createdBy: mediaData.createdBy
+    };
+
+    setGalleryMedia(prev => [...prev, newMedia]);
+
+    const { data, error } = await supabase.from("gallery_media").insert({
+      album_id: mediaData.albumId,
+      url: mediaData.url,
+      type: mediaData.type,
+      created_by: mediaData.createdBy
+    }).select().single();
+
+    if (!error && data) {
+      setGalleryMedia(prev => prev.map(m => m.id === tempId ? { ...m, id: data.id, createdAt: data.created_at } : m));
+    } else {
+      addToast('Erro ao adicionar arquivo à galeria.', 'error');
+      setGalleryMedia(prev => prev.filter(m => m.id !== tempId));
+    }
+  };
+
+  const deleteGalleryMedia = async (id: string) => {
+    const previousMedia = [...galleryMedia];
+
+    setGalleryMedia(prev => prev.filter(m => m.id !== id));
+
+    const { error } = await supabase.from("gallery_media").delete().eq("id", id);
+    if (!error) {
+      addToast('Arquivo removido da galeria.', 'info');
+    } else {
+      addToast('Erro ao remover arquivo da galeria.', 'error');
+      setGalleryMedia(previousMedia);
+    }
+  };
+
   const clearLegacyData = async () => {
     try {
       await supabase.from("requests").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -1840,6 +1974,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getBoletoSignedUrl,
     boletoUploads,
     addBoletoUpload,
+    albums,
+    addAlbum,
+    deleteAlbum,
+    galleryMedia,
+    addGalleryMedia,
+    deleteGalleryMedia,
   }), [
     users,
     requests,
@@ -1852,7 +1992,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     notices,
     documents,
     boletos,
-    boletoUploads
+    boletoUploads,
+    albums,
+    galleryMedia
   ]);
 
   return (

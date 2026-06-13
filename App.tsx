@@ -25,6 +25,7 @@ const VotingModule = React.lazy(() => import("./components/VotingModule"));
 const Documents = React.lazy(() => import("./components/Documents"));
 const Home = React.lazy(() => import("./components/Home"));
 const Boletos = React.lazy(() => import("./components/Boletos").then(m => ({ default: m.Boletos })));
+const Gallery = React.lazy(() => import("./components/Gallery"));
 
 import Toast from "./components/Toast";
 import NotificationPrompt from "./components/NotificationPrompt";
@@ -273,6 +274,8 @@ const App: React.FC = () => {
               return <Documents setView={handleViewChange} />;
             case "boletos":
               return <Boletos setView={handleViewChange} />;
+            case "gallery":
+              return <Gallery setView={handleViewChange} />;
             default:
               return <Dashboard setView={handleViewChange} />;
           }

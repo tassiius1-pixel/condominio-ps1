@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
 import ConfirmModal from './ConfirmModal';
-import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, FileIcon, LightbulbIcon, BoletoIcon, BellIcon } from './Icons';
+import { LogOutIcon, UsersIcon, BarChartIcon, LayoutDashboardIcon, UploadIcon, CalendarIcon, BookIcon, CheckSquareIcon, FileIcon, LightbulbIcon, BoletoIcon, BellIcon, ImageIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
-import { Role } from '../types';
+import { Role, View } from '../types';
 import { useData } from '../hooks/useData';
 import { fileToBase64 } from '../utils/fileUtils';
 import NotificationsDropdown from './NotificationsDropdown';
 
 interface SidebarProps {
   currentView: string;
-  setView: (view: 'home' | 'dashboard' | 'users' | 'reports' | 'reservations' | 'occurrences' | 'voting' | 'documents' | 'boletos') => void;
+  setView: (view: View) => void;
   condoLogo: string | null;
   setCondoLogo: (logo: string | null) => void;
 }
@@ -51,6 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
     { id: "documents", label: "Documentos", icon: FileIcon },
     { id: "boletos", label: "Boletos", icon: BoletoIcon },
+    { id: "gallery", label: "Galeria", icon: ImageIcon },
     { id: "users", label: "Usuários", icon: UsersIcon, adminOnly: true },
     { id: "reports", label: "Relatórios", icon: BarChartIcon, adminOnly: true },
   ];

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Role } from '../types';
-import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, UsersIcon, BarChartIcon, CheckCircleIcon } from './Icons';
+import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, UsersIcon, BarChartIcon, CheckCircleIcon, ImageIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 
 interface QuickActionsProps {
@@ -102,6 +102,14 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
                     onClick={onNewSuggestion}
                 />
             )}
+
+            <ActionCard
+                title="Galeria"
+                subtitle="Fotos e Vídeos de Eventos"
+                icon={<ImageIcon className="h-6 w-6 text-white" />}
+                gradient="from-pink-500 to-rose-600"
+                onClick={() => handleNavigation('gallery')}
+            />
         </div>
     );
 };

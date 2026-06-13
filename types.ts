@@ -215,4 +215,21 @@ export interface BoletoUpload {
   matchedFiles: number;
 }
 
-export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents" | "boletos";
+export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents" | "boletos" | "gallery";
+
+export interface GalleryAlbum {
+  id: string;
+  title: string;
+  description?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface GalleryMedia {
+  id: string;
+  albumId: string;
+  url: string;
+  type: 'image' | 'video';
+  createdAt: string;
+  createdBy: string;
+}
