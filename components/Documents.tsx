@@ -266,8 +266,8 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-10 w-24 rounded-full shrink-0" />)}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}
+                <div className="flex flex-col gap-3">
+                    {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
                 </div>
             </div>
         );
@@ -360,93 +360,51 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                     <p className="text-gray-500 text-sm mt-1">Tente mudar a categoria ou o termo de busca.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-3">
                     {filteredDocuments.map((doc) => (
                         <div
                             key={doc.id}
-                            className={`group bg-white p-5 rounded-3xl border shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between ${doc.isPinned ? 'ring-2 ring-amber-400 border-amber-200' : 'border-gray-100'}`}
+                            className={`group bg-white p-4 sm:p-5 rounded-2xl border shadow-sm hover:shadow-md hover:border-indigo-100 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${doc.isPinned ? 'ring-2 ring-amber-400 border-amber-200' : 'border-gray-100'}`}
                         >
-                            <div className="flex gap-4">
-                                <div className="shrink-0 w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 group-active:scale-95 transition-all duration-300">
+                            {/* Icon + Title & Desc */}
+                            <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
+                                <div className="shrink-0 w-11 h-11 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-105 transition-transform duration-300">
                                     {CATEGORY_ICONS[doc.category] || CATEGORY_ICONS['default']}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            {doc.isPinned && (
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-white bg-amber-500 px-2 py-0.5 rounded-md inline-flex items-center gap-1.5">
-                                                    <PinIcon className="w-3 h-3" fill="currentColor" />
-                                                    Fixado
-                                                </span>
-                                            )}
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50/50 px-2 py-0.5 rounded-md inline-block">
-                                                {doc.category}
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <h3 className="font-black text-sm text-gray-900 group-hover:text-indigo-600 transition-colors truncate max-w-[200px] xs:max-w-[300px] sm:max-w-[400px]">
+                                            {doc.title}
+                                        </h3>
+                                        {doc.isPinned && (
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white bg-amber-500 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                                                <PinIcon className="w-2.5 h-2.5" fill="currentColor" />
+                                                Fixado
                                             </span>
-                                            {new Date(doc.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-white bg-green-500 px-1.5 py-0.5 rounded-md animate-pulse">
-                                                    Novo
-                                                </span>
-                                            )}
-                                        </div>
-                                        {canManage && (
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => toggleDocumentPin(doc.id)}
-                                                    className={`p-1 transition-colors ${doc.isPinned ? 'text-amber-500' : 'text-gray-300 hover:text-amber-500'}`}
-                                                    title={doc.isPinned ? "Desafixar" : "Fixar no topo"}
-                                                >
-                                                    <PinIcon className="w-4 h-4" fill={doc.isPinned ? "currentColor" : "none"} />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingDocId(doc.id);
-                                                        setIsEditMode(true);
-                                                        setNewDoc({
-                                                            title: doc.title,
-                                                            description: doc.description || '',
-                                                            category: doc.category,
-                                                            fileUrl: doc.fileUrl,
-                                                            fileName: doc.fileName,
-                                                            isPinned: doc.isPinned
-                                                        });
-                                                        setSelectedFile(null);
-                                                        setIsAddModalOpen(true);
-                                                    }}
-                                                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 duration-200"
-                                                    title="Editar"
-                                                >
-                                                    <EditIcon className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setModalConfig({
-                                                            isOpen: true,
-                                                            title: "Excluir Documento?",
-                                                            message: `Você tem certeza que deseja excluir o documento "${doc.title}"?`,
-                                                            type: 'danger',
-                                                            alertOnly: false,
-                                                            onConfirm: () => deleteDocument(doc.id)
-                                                        });
-                                                    }}
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200"
-                                                >
-                                                    <TrashIcon className="w-4 h-4" />
-                                                </button>
-                                            </div>
+                                        )}
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50/50 px-1.5 py-0.5 rounded">
+                                            {doc.category}
+                                        </span>
+                                        {new Date(doc.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white bg-green-500 px-1.5 py-0.5 rounded animate-pulse">
+                                                Novo
+                                            </span>
                                         )}
                                     </div>
-                                    <h3 className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{doc.title}</h3>
-                                    <p className="text-gray-500 text-xs mt-1 line-clamp-2 leading-relaxed">
+                                    <p className="text-gray-500 text-xs line-clamp-1 leading-relaxed">
                                         {doc.description || 'Sem descrição.'}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
+                            {/* Metadata & Actions */}
+                            <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-gray-50 sm:border-none pt-3 sm:pt-0 shrink-0">
+                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
                                     {formatFileSize(doc.fileSize)} • PDF
                                 </div>
-                                <div className="flex items-center gap-2">
+                                
+                                <div className="flex items-center gap-1">
+                                    {/* Preview */}
                                     <button
                                         onClick={() => openPreview(doc)}
                                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 duration-200"
@@ -454,6 +412,8 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                     >
                                         <EyeIcon className="w-4 h-4" />
                                     </button>
+                                    
+                                    {/* Copy Link */}
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(doc.fileUrl);
@@ -464,15 +424,66 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                     >
                                         <LinkIcon className="w-4 h-4" />
                                     </button>
+                                    
+                                    {/* Download */}
                                     <a
                                         href={doc.fileUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-indigo-600 hover:text-white text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 duration-200"
+                                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 duration-200"
+                                        title="Download"
                                     >
-                                        <DownloadIcon className="w-3.5 h-3.5" />
-                                        Download
+                                        <DownloadIcon className="w-4 h-4" />
                                     </a>
+
+                                    {/* Admin controls */}
+                                    {canManage && (
+                                        <div className="flex items-center gap-0.5 border-l border-gray-150 pl-2 ml-2">
+                                            <button
+                                                onClick={() => toggleDocumentPin(doc.id)}
+                                                className={`p-1.5 transition-colors rounded-xl hover:bg-amber-50 ${doc.isPinned ? 'text-amber-500' : 'text-gray-300 hover:text-amber-500'}`}
+                                                title={doc.isPinned ? "Desafixar" : "Fixar no topo"}
+                                            >
+                                                <PinIcon className="w-4 h-4" fill={doc.isPinned ? "currentColor" : "none"} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingDocId(doc.id);
+                                                    setIsEditMode(true);
+                                                    setNewDoc({
+                                                        title: doc.title,
+                                                        description: doc.description || '',
+                                                        category: doc.category,
+                                                        fileUrl: doc.fileUrl,
+                                                        fileName: doc.fileName,
+                                                        isPinned: doc.isPinned
+                                                    });
+                                                    setSelectedFile(null);
+                                                    setIsAddModalOpen(true);
+                                                }}
+                                                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 duration-200"
+                                                title="Editar"
+                                            >
+                                                <EditIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setModalConfig({
+                                                        isOpen: true,
+                                                        title: "Excluir Documento?",
+                                                        message: `Você tem certeza que deseja excluir o documento "${doc.title}"?`,
+                                                        type: 'danger',
+                                                        alertOnly: false,
+                                                        onConfirm: () => deleteDocument(doc.id)
+                                                    });
+                                                }}
+                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200"
+                                                title="Excluir"
+                                            >
+                                                <TrashIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
