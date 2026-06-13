@@ -13,7 +13,7 @@ interface Props {
 }
 
 const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) => {
-  const { notifications, deleteNotification, markAllNotificationsAsRead, addToast } =
+  const { notifications, deleteNotification, deleteNotifications, markAllNotificationsAsRead, addToast } =
     useData();
   const { currentUser } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,17 +56,14 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
     (n) => n.userId === "all" || n.userId === userId
   );
 
-  // 🔥 EXCLUIR TODAS – sem vários toasts!
+  // 🔥 EXCLUIR TODAS – atualiza de forma otimista pelo Context!
   const handleDeleteAll = async () => {
     try {
       const idsToDelete = filtered.map((n) => n.id);
-      const { error } = await supabase
-        .from("notifications")
-        .delete()
-        .in("id", idsToDelete);
+      if (idsToDelete.length === 0) return;
 
-      if (error) throw error;
-
+      // Executa exclusão otimista e no banco de dados via DataContext
+      await deleteNotifications(idsToDelete);
       addToast("Todas as notificações foram removidas.", "info");
     } catch (err) {
       console.error("Erro ao excluir todas:", err);

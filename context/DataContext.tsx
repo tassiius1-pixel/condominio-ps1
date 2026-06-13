@@ -16,7 +16,10 @@ import {
   Notice,
   Document as DocumentType,
   Boleto,
-  BoletoUpload
+  BoletoUpload,
+  Sector,
+  RequestType,
+  Priority
 } from "../types";
 
 interface DataContextType {
@@ -47,6 +50,7 @@ interface DataContextType {
   updateComment: (requestId: string, commentId: string, newText: string) => void;
   markAllNotificationsAsRead: (userId: string) => void;
   deleteNotification: (notificationId: string, showToast?: boolean) => void;
+  deleteNotifications: (ids: string[]) => Promise<void>;
   addToast: (message: string, type: "success" | "error" | "info") => void;
 
   reservations: Reservation[];
@@ -91,6 +95,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [requests, setRequests] = useState<Request[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const fetchNotificationsTimeout = React.useRef<any>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
   const [votings, setVotings] = useState<Voting[]>([]);
@@ -344,6 +349,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const fetchNotificationsDebounced = useCallback(() => {
+    if (fetchNotificationsTimeout.current) {
+      clearTimeout(fetchNotificationsTimeout.current);
+    }
+    fetchNotificationsTimeout.current = setTimeout(() => {
+      fetchNotifications();
+    }, 300); // 300ms debounce
+  }, [fetchNotifications]);
+
   // Gerenciamento unificado de carregamento de dados e conexões Realtime de acordo com a sessão
   useEffect(() => {
     let activeChannels: any[] = [];
@@ -403,8 +417,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const chDocs = supabase.channel("rt-docs").on("postgres_changes", { event: "*", schema: "public", table: "documents" }, fetchDocuments).subscribe();
       const chBoletos = supabase.channel("rt-boletos").on("postgres_changes", { event: "*", schema: "public", table: "boletos" }, fetchBoletos).subscribe();
       const chBoletoUploads = supabase.channel("rt-boleto-uploads").on("postgres_changes", { event: "*", schema: "public", table: "boleto_uploads" }, fetchBoletoUploads).subscribe();
-      const chNotif = supabase.channel("rt-notifications").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, fetchNotifications).subscribe();
-      const chNotifReads = supabase.channel("rt-notif-reads").on("postgres_changes", { event: "*", schema: "public", table: "notification_reads" }, fetchNotifications).subscribe();
+      const chNotif = supabase.channel("rt-notifications").on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, fetchNotificationsDebounced).subscribe();
+      const chNotifReads = supabase.channel("rt-notif-reads").on("postgres_changes", { event: "*", schema: "public", table: "notification_reads" }, fetchNotificationsDebounced).subscribe();
 
       activeChannels = [
         chUsers, chRequests, chLikes, chComments, chCommentLikes,
@@ -471,9 +485,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteNotification = async (notificationId: string, showToast = true) => {
+    // Atualização otimista local imediata
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+
     const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
-    if (error && showToast) {
-      addToast("Erro ao remover notificação.", "error");
+    if (error) {
+      if (showToast) addToast("Erro ao remover notificação.", "error");
+      fetchNotificationsDebounced(); // Restaura em caso de erro
+    }
+  };
+
+  const deleteNotifications = async (ids: string[]) => {
+    if (ids.length === 0) return;
+
+    // Atualização otimista local imediata
+    setNotifications(prev => prev.filter(n => !ids.includes(n.id)));
+
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .in("id", ids);
+
+    if (error) {
+      addToast("Erro ao remover notificações.", "error");
+      fetchNotificationsDebounced(); // Restaura em caso de erro
     }
   };
 
@@ -588,15 +623,39 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       "id" | "authorName" | "createdAt" | "comments" | "status"
     >
   ) => {
-    const { error } = await supabase.from("requests").insert({
+    const tempId = `temp-${Date.now()}`;
+    const author = users.find((u) => u.id === requestData.authorId);
+    const authorName = author?.name || "Morador";
+    const newRequest: Request = {
+      id: tempId,
+      title: requestData.title,
+      description: requestData.description,
+      sector: requestData.sector || Sector.OUTROS,
+      type: requestData.type || RequestType.SUGESTOES,
+      status: Status.PENDENTE,
+      priority: requestData.priority || Priority.MEDIA,
+      photos: requestData.photos || [],
+      authorId: requestData.authorId,
+      authorName,
+      createdAt: new Date().toISOString(),
+      likes: [],
+      adminResponse: "",
+      statusUpdatedAt: "",
+      comments: []
+    };
+
+    // Atualização otimista
+    setRequests(prev => [newRequest, ...prev]);
+
+    const { data, error } = await supabase.from("requests").insert({
       title: requestData.title,
       description: requestData.description,
       author_id: requestData.authorId
-    });
+    }).select().single();
 
-    if (!error) {
-      const author = users.find((u) => u.id === requestData.authorId);
-      const authorName = author?.name || "Morador";
+    if (!error && data) {
+      // Atualiza o ID temporário para o ID real do banco
+      setRequests(prev => prev.map(r => r.id === tempId ? { ...r, id: data.id, createdAt: data.created_at } : r));
 
       await addNotification({
         message: `Nova sugestão criada por ${authorName}`,
@@ -613,10 +672,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast("Sugestão registrada.", "success");
     } else {
       addToast("Erro ao registrar sugestão.", "error");
+      // Reverte em caso de erro
+      setRequests(prev => prev.filter(r => r.id !== tempId));
     }
   };
 
   const updateRequest = async (updatedRequest: Request) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
+
     const { error } = await supabase
       .from("requests")
       .update({
@@ -629,15 +695,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast("Sugestão atualizada.", "success");
     } else {
       addToast("Erro ao atualizar sugestão.", "error");
+      setRequests(previousRequests);
     }
   };
 
   const deleteRequest = async (requestId: string) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.filter(r => r.id !== requestId));
+
     const { error } = await supabase.from("requests").delete().eq("id", requestId);
     if (!error) {
       addToast("Sugestão excluída.", "success");
     } else {
       addToast("Erro ao excluir sugestão.", "error");
+      setRequests(previousRequests);
     }
   };
 
@@ -647,6 +720,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     adminResponse?: string,
     userId?: string
   ) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          status: newStatus,
+          adminResponse: adminResponse || req.adminResponse,
+          statusUpdatedAt: new Date().toISOString()
+        };
+      }
+      return req;
+    }));
+
     let status = 'PENDENTE';
     const s = newStatus.toUpperCase();
     if (s.includes('PENDENTE')) status = 'PENDENTE';
@@ -675,7 +763,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
       }
 
-      const request = requests.find(r => r.id === requestId);
+      const request = previousRequests.find(r => r.id === requestId);
       if (request) {
         await addNotification({
           message: `Status da sugestão "${request.title}" alterado para ${newStatus}`,
@@ -692,10 +780,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast("Status atualizado.", "info");
     } else {
       addToast("Erro ao atualizar status.", "error");
+      setRequests(previousRequests);
     }
   };
 
   const toggleRequestLike = async (requestId: string, userId: string) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        const hasLiked = req.likes.includes(userId);
+        return {
+          ...req,
+          likes: hasLiked ? req.likes.filter(id => id !== userId) : [...req.likes, userId]
+        };
+      }
+      return req;
+    }));
+
     const { data } = await supabase
       .from("request_likes")
       .select("*")
@@ -703,23 +806,67 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (data) {
-      await supabase.from("request_likes").delete().eq("request_id", requestId).eq("user_id", userId);
-    } else {
-      await supabase.from("request_likes").insert({ request_id: requestId, user_id: userId });
+    try {
+      if (data) {
+        const { error } = await supabase.from("request_likes").delete().eq("request_id", requestId).eq("user_id", userId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("request_likes").insert({ request_id: requestId, user_id: userId });
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Erro ao curtir:", err);
+      setRequests(previousRequests);
     }
   };
 
   const addComment = async (requestId: string, commentData: Omit<Comment, "id" | "createdAt">) => {
-    const { error } = await supabase.from("comments").insert({
+    const tempId = `temp-${Date.now()}`;
+    const previousRequests = [...requests];
+
+    const newComment: Comment = {
+      id: tempId,
+      authorId: commentData.authorId,
+      authorName: commentData.authorName,
+      houseNumber: commentData.houseNumber,
+      text: commentData.text,
+      createdAt: new Date().toISOString(),
+      type: commentData.type || 'regular',
+      newStatus: commentData.newStatus || null,
+      likes: []
+    };
+
+    // Atualização otimista
+    setRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          comments: [...req.comments, newComment]
+        };
+      }
+      return req;
+    }));
+
+    const { data, error } = await supabase.from("comments").insert({
       request_id: requestId,
       author_id: commentData.authorId,
       text: commentData.text,
-      type: commentData.type || 'common'
-    });
+      type: commentData.type || 'regular'
+    }).select().single();
 
-    if (!error) {
-      const request = requests.find((r) => r.id === requestId);
+    if (!error && data) {
+      // Atualiza o ID temporário do comentário para o ID real do banco
+      setRequests(prev => prev.map(req => {
+        if (req.id === requestId) {
+          return {
+            ...req,
+            comments: req.comments.map(c => c.id === tempId ? { ...c, id: data.id, createdAt: data.created_at } : c)
+          };
+        }
+        return req;
+      }));
+
+      const request = previousRequests.find((r) => r.id === requestId);
       if (request) {
         await addNotification({
           message: `${commentData.authorName} comentou em: "${request.title}"`,
@@ -730,32 +877,83 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast("Comentário adicionado.", "success");
     } else {
       addToast("Erro ao adicionar comentário.", "error");
+      setRequests(previousRequests);
     }
   };
 
   const deleteComment = async (requestId: string, commentId: string) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          comments: req.comments.filter(c => c.id !== commentId)
+        };
+      }
+      return req;
+    }));
+
     const { error } = await supabase.from("comments").delete().eq("id", commentId);
-    if (!error) {
-      addToast("Comentário excluído.", "success");
-    } else {
+    if (error) {
       addToast("Erro ao excluir comentário.", "error");
+      setRequests(previousRequests);
+    } else {
+      addToast("Comentário excluído.", "success");
     }
   };
 
   const updateComment = async (requestId: string, commentId: string, newText: string) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          comments: req.comments.map(c => c.id === commentId ? { ...c, text: newText } : c)
+        };
+      }
+      return req;
+    }));
+
     const { error } = await supabase
       .from("comments")
       .update({ text: newText })
       .eq("id", commentId);
 
-    if (!error) {
-      addToast("Comentário atualizado.", "success");
-    } else {
+    if (error) {
       addToast("Erro ao atualizar comentário.", "error");
+      setRequests(previousRequests);
+    } else {
+      addToast("Comentário atualizado.", "success");
     }
   };
 
   const toggleCommentLike = async (requestId: string, commentId: string, userId: string) => {
+    const previousRequests = [...requests];
+
+    // Atualização otimista
+    setRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          comments: req.comments.map(c => {
+            if (c.id === commentId) {
+              const hasLiked = c.likes.includes(userId);
+              return {
+                ...c,
+                likes: hasLiked ? c.likes.filter(id => id !== userId) : [...c.likes, userId]
+              };
+            }
+            return c;
+          })
+        };
+      }
+      return req;
+    }));
+
     const { data } = await supabase
       .from("comment_likes")
       .select("*")
@@ -763,10 +961,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (data) {
-      await supabase.from("comment_likes").delete().eq("comment_id", commentId).eq("user_id", userId);
-    } else {
-      await supabase.from("comment_likes").insert({ comment_id: commentId, user_id: userId });
+    try {
+      if (data) {
+        const { error } = await supabase.from("comment_likes").delete().eq("comment_id", commentId).eq("user_id", userId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("comment_likes").insert({ comment_id: commentId, user_id: userId });
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Erro ao curtir comentário:", err);
+      setRequests(previousRequests);
     }
   };
 
@@ -774,51 +979,111 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unread = notifications.filter((n) => !n.readBy?.includes(userId));
     if (unread.length === 0) return;
 
-    try {
-      for (const n of unread) {
-        await supabase.from("notification_reads").insert({
-          notification_id: n.id,
-          user_id: userId
-        });
+    // Atualização otimista local imediata
+    setNotifications(prev => prev.map(n => {
+      if (!n.readBy.includes(userId)) {
+        return { ...n, readBy: [...n.readBy, userId] };
       }
+      return n;
+    }));
+
+    try {
+      const inserts = unread.map(n => ({
+        notification_id: n.id,
+        user_id: userId
+      }));
+
+      const { error } = await supabase.from("notification_reads").insert(inserts);
+      if (error) throw error;
     } catch (err) {
       console.error("Erro ao marcar como lidas:", err);
+      fetchNotificationsDebounced(); // Restaura em caso de erro
     }
   };
 
   const addReservation = async (reservation: Omit<Reservation, "id" | "createdAt">) => {
-    const { error } = await supabase.from("reservations").insert({
+    const tempId = `temp-${Date.now()}`;
+    const user = users.find(u => u.id === reservation.userId);
+    const newRes: Reservation = {
+      id: tempId,
+      userId: reservation.userId,
+      userName: user?.name || "Desconhecido",
+      houseNumber: Number(user?.houseNumber || 0),
+      area: reservation.area,
+      date: reservation.date,
+      createdAt: new Date().toISOString()
+    };
+
+    // Atualização otimista local imediata
+    setReservations(prev => [...prev, newRes]);
+
+    const { data, error } = await supabase.from("reservations").insert({
       user_id: reservation.userId,
       area: reservation.area,
       date: reservation.date
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && data) {
+      // Atualiza o ID temporário para o ID real do banco
+      setReservations(prev => prev.map(r => r.id === tempId ? {
+        ...r,
+        id: data.id,
+        createdAt: data.created_at
+      } : r));
       addToast("Reserva realizada com sucesso!", "success");
     } else {
       addToast("Área ocupada ou erro na reserva.", "error");
+      // Reverte em caso de erro
+      setReservations(prev => prev.filter(r => r.id !== tempId));
     }
   };
 
   const cancelReservation = async (reservationId: string) => {
+    const previousReservations = [...reservations];
+
+    // Atualização otimista local imediata
+    setReservations(prev => prev.filter(r => r.id !== reservationId));
+
     const { error } = await supabase.from("reservations").delete().eq("id", reservationId);
     if (!error) {
       addToast("Reserva cancelada.", "info");
     } else {
       addToast("Erro ao cancelar reserva.", "error");
+      // Reverte em caso de erro
+      setReservations(previousReservations);
     }
   };
 
   const addOccurrence = async (data: Omit<Occurrence, 'id' | 'createdAt' | 'status'>) => {
-    const { error } = await supabase.from("occurrences").insert({
+    const tempId = `temp-${Date.now()}`;
+    const newOcc: Occurrence = {
+      id: tempId,
+      authorId: data.authorId,
+      authorName: data.authorName,
+      houseNumber: data.houseNumber,
+      phone: data.phone || "",
+      subject: data.subject,
+      description: data.description,
+      createdAt: new Date().toISOString(),
+      photos: data.photos || [],
+      status: 'Aberto',
+      adminResponse: ""
+    };
+
+    // Atualização otimista local imediata
+    setOccurrences(prev => [newOcc, ...prev]);
+
+    const { data: dbData, error } = await supabase.from("occurrences").insert({
       author_id: data.authorId,
       subject: data.subject,
       description: data.description,
       image_url: data.photos && data.photos.length > 0 ? data.photos[0] : null,
       status: 'Aberto'
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && dbData) {
+      // Atualiza o ID temporário para o ID real do banco
+      setOccurrences(prev => prev.map(o => o.id === tempId ? { ...o, id: dbData.id, createdAt: dbData.created_at } : o));
       addToast("Ocorrência registrada.", "success");
 
       const admins = users.filter(u => [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(u.role));
@@ -836,10 +1101,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     } else {
       addToast("Erro ao registrar ocorrência.", "error");
+      // Reverte em caso de erro
+      setOccurrences(prev => prev.filter(o => o.id !== tempId));
     }
   };
 
   const updateOccurrence = async (id: string, data: Partial<Occurrence>) => {
+    const previousOccurrences = [...occurrences];
+
+    // Atualização otimista local imediata
+    setOccurrences(prev => prev.map(o => {
+      if (o.id === id) {
+        return {
+          ...o,
+          status: data.status !== undefined ? data.status : o.status,
+          adminResponse: data.adminResponse !== undefined ? data.adminResponse : o.adminResponse
+        };
+      }
+      return o;
+    }));
+
     const updateData: any = {};
     if (data.status) updateData.status = data.status;
     if (data.adminResponse !== undefined) updateData.admin_response = data.adminResponse;
@@ -848,7 +1129,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (!error) {
       if (data.adminResponse) {
-        const occurrence = occurrences.find(o => o.id === id);
+        const occurrence = previousOccurrences.find(o => o.id === id);
         if (occurrence) {
           await addNotification({
             message: `Sua ocorrência "${occurrence.subject}" foi respondida pela gestão.`,
@@ -866,20 +1147,46 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast("Ocorrência atualizada.", "success");
     } else {
       addToast("Erro ao atualizar ocorrência.", "error");
+      // Reverte em caso de erro
+      setOccurrences(previousOccurrences);
     }
   };
 
   const deleteOccurrence = async (id: string) => {
+    const previousOccurrences = [...occurrences];
+
+    // Atualização otimista local imediata
+    setOccurrences(prev => prev.filter(o => o.id !== id));
+
     const { error } = await supabase.from("occurrences").delete().eq("id", id);
     if (!error) {
       addToast("Ocorrência excluída.", "info");
     } else {
       addToast("Erro ao excluir ocorrência.", "error");
+      // Reverte em caso de erro
+      setOccurrences(previousOccurrences);
     }
   };
 
   const addVoting = async (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => {
-    const { error } = await supabase.from("votings").insert({
+    const tempId = `temp-${Date.now()}`;
+    const newVoting: Voting = {
+      id: tempId,
+      title: voting.title,
+      description: voting.description,
+      options: voting.options,
+      startDate: voting.startDate,
+      endDate: voting.endDate,
+      allowMultipleChoices: voting.allowMultipleChoices,
+      createdBy: voting.createdBy,
+      createdAt: new Date().toISOString(),
+      votes: []
+    };
+
+    // Atualização otimista local imediata
+    setVotings(prev => [newVoting, ...prev]);
+
+    const { data, error } = await supabase.from("votings").insert({
       title: voting.title,
       description: voting.description,
       options: voting.options,
@@ -887,9 +1194,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       end_date: voting.endDate,
       allow_multiple_choices: voting.allowMultipleChoices,
       created_by: voting.createdBy
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && data) {
+      // Atualiza o ID temporário para o ID real do banco
+      setVotings(prev => prev.map(v => v.id === tempId ? { ...v, id: data.id, createdAt: data.created_at } : v));
+
       await addNotification({
         message: `Nova votação disponível: ${voting.title}`,
         userId: "all",
@@ -905,20 +1215,50 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast('Votação criada com sucesso!', 'success');
     } else {
       addToast('Erro ao criar votação.', 'error');
+      // Reverte em caso de erro
+      setVotings(prev => prev.filter(v => v.id !== tempId));
     }
   };
 
   const deleteVoting = async (id: string) => {
+    const previousVotings = [...votings];
+
+    // Atualização otimista local imediata
+    setVotings(prev => prev.filter(v => v.id !== id));
+
     const { error } = await supabase.from("votings").delete().eq("id", id);
     if (!error) {
       addToast('Votação excluída.', 'info');
     } else {
       addToast('Erro ao excluir votação.', 'error');
+      // Reverte em caso de erro
+      setVotings(previousVotings);
     }
   };
 
   const castVote = async (votingId: string, optionIds: string[], currentUser: User) => {
     if (!currentUser) return;
+
+    const previousVotings = [...votings];
+
+    // Atualização otimista local imediata do voto
+    setVotings(prev => prev.map(v => {
+      if (v.id === votingId) {
+        const filteredVotes = v.votes.filter(vt => vt.userId !== currentUser.id);
+        const newVote = {
+          userId: currentUser.id,
+          userName: currentUser.name,
+          houseNumber: currentUser.houseNumber,
+          optionIds,
+          timestamp: new Date().toISOString()
+        };
+        return {
+          ...v,
+          votes: [...filteredVotes, newVote]
+        };
+      }
+      return v;
+    }));
 
     const { error } = await supabase.from("votes").insert({
       voting_id: votingId,
@@ -929,6 +1269,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!error) {
       addToast('Voto registrado com sucesso!', 'success');
     } else {
+      // Reverte em caso de erro
+      setVotings(previousVotings);
       if (error.message?.includes("votes_voting_id_user_id_key") || error.code === "23505") {
         addToast('Sua unidade já registrou um voto nesta votação.', 'error');
       } else {
@@ -938,12 +1280,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addNotice = async (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => {
-    const { error } = await supabase.from("notices").insert({
+    const tempId = `temp-${Date.now()}`;
+    const newNotice: Notice = {
+      id: tempId,
+      title: notice.title,
+      content: notice.content,
+      createdAt: new Date().toISOString(),
+      likes: [],
+      dislikes: [],
+      authorId: "admin",
+      authorName: "Administração",
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString()
+    };
+
+    // Atualização otimista local imediata
+    setNotices(prev => [newNotice, ...prev]);
+
+    const { data, error } = await supabase.from("notices").insert({
       title: notice.title,
       content: notice.content
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && data) {
+      // Atualiza o ID temporário para o ID real do banco
+      setNotices(prev => prev.map(n => n.id === tempId ? {
+        ...n,
+        id: data.id,
+        createdAt: data.created_at,
+        startDate: data.created_at,
+        endDate: data.created_at
+      } : n));
+
       await addNotification({
         message: `Novo aviso publicado: ${notice.title}`,
         userId: "all",
@@ -959,19 +1327,68 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast('Aviso publicado com sucesso!', 'success');
     } else {
       addToast('Erro ao publicar aviso.', 'error');
+      // Reverte em caso de erro
+      setNotices(prev => prev.filter(n => n.id !== tempId));
     }
   };
 
   const deleteNotice = async (noticeId: string) => {
+    const previousNotices = [...notices];
+
+    // Atualização otimista local imediata
+    setNotices(prev => prev.filter(n => n.id !== noticeId));
+
     const { error } = await supabase.from("notices").delete().eq("id", noticeId);
     if (!error) {
       addToast('Aviso removido.', 'info');
     } else {
       addToast('Erro ao remover aviso.', 'error');
+      // Reverte em caso de erro
+      setNotices(previousNotices);
     }
   };
 
   const toggleNoticeReaction = async (noticeId: string, userId: string, type: 'like' | 'dislike') => {
+    const previousNotices = [...notices];
+
+    // Atualização otimista local imediata das reações do aviso
+    setNotices(prev => prev.map(n => {
+      if (n.id === noticeId) {
+        const hasLike = n.likes.includes(userId);
+        const hasDislike = n.dislikes.includes(userId);
+        
+        let newLikes = [...n.likes];
+        let newDislikes = [...n.dislikes];
+
+        if (type === 'like') {
+          if (hasLike) {
+            newLikes = newLikes.filter(id => id !== userId);
+          } else {
+            newLikes.push(userId);
+            if (hasDislike) {
+              newDislikes = newDislikes.filter(id => id !== userId);
+            }
+          }
+        } else {
+          if (hasDislike) {
+            newDislikes = newDislikes.filter(id => id !== userId);
+          } else {
+            newDislikes.push(userId);
+            if (hasLike) {
+              newLikes = newLikes.filter(id => id !== userId);
+            }
+          }
+        }
+
+        return {
+          ...n,
+          likes: newLikes,
+          dislikes: newDislikes
+        };
+      }
+      return n;
+    }));
+
     const { data } = await supabase
       .from("notice_reactions")
       .select("*")
@@ -979,19 +1396,46 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (data) {
-      if (data.type === type) {
-        await supabase.from("notice_reactions").delete().eq("notice_id", noticeId).eq("user_id", userId);
+    try {
+      if (data) {
+        if (data.type === type) {
+          const { error } = await supabase.from("notice_reactions").delete().eq("notice_id", noticeId).eq("user_id", userId);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("notice_reactions").update({ type }).eq("notice_id", noticeId).eq("user_id", userId);
+          if (error) throw error;
+        }
       } else {
-        await supabase.from("notice_reactions").update({ type }).eq("notice_id", noticeId).eq("user_id", userId);
+        const { error } = await supabase.from("notice_reactions").insert({ notice_id: noticeId, user_id: userId, type });
+        if (error) throw error;
       }
-    } else {
-      await supabase.from("notice_reactions").insert({ notice_id: noticeId, user_id: userId, type });
+    } catch (err) {
+      console.error("Erro ao reagir ao aviso:", err);
+      // Reverte em caso de erro
+      setNotices(previousNotices);
     }
   };
 
   const addDocument = async (docData: Omit<DocumentType, 'id' | 'createdAt'>) => {
-    const { error } = await supabase.from("documents").insert({
+    const tempId = `temp-${Date.now()}`;
+    const newDoc: DocumentType = {
+      id: tempId,
+      title: docData.title,
+      description: docData.description || "",
+      category: docData.category,
+      fileUrl: docData.fileUrl,
+      fileName: docData.fileName,
+      fileType: docData.fileType,
+      fileSize: docData.fileSize,
+      uploadedBy: docData.uploadedBy,
+      createdAt: new Date().toISOString(),
+      isPinned: !!docData.isPinned
+    };
+
+    // Atualização otimista local imediata
+    setDocuments(prev => [newDoc, ...prev]);
+
+    const { data, error } = await supabase.from("documents").insert({
       title: docData.title,
       description: docData.description || "",
       category: docData.category,
@@ -1001,9 +1445,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       file_size: docData.fileSize,
       uploaded_by: docData.uploadedBy,
       is_pinned: !!docData.isPinned
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && data) {
+      // Atualiza o ID temporário para o ID real do banco
+      setDocuments(prev => prev.map(d => d.id === tempId ? { ...d, id: data.id, createdAt: data.created_at } : d));
+
       await addNotification({
         message: `Novo documento disponível: ${docData.title}`,
         userId: "all",
@@ -1019,10 +1466,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast('Documento adicionado com sucesso!', 'success');
     } else {
       addToast('Erro ao adicionar documento.', 'error');
+      // Reverte em caso de erro
+      setDocuments(prev => prev.filter(d => d.id !== tempId));
     }
   };
 
   const updateDocument = async (id: string, data: Partial<DocumentType>) => {
+    const previousDocuments = [...documents];
+
+    // Atualização otimista local imediata
+    setDocuments(prev => prev.map(d => {
+      if (d.id === id) {
+        return {
+          ...d,
+          title: data.title !== undefined ? data.title : d.title,
+          description: data.description !== undefined ? data.description : d.description,
+          category: data.category !== undefined ? data.category : d.category,
+          isPinned: data.isPinned !== undefined ? data.isPinned : d.isPinned
+        };
+      }
+      return d;
+    }));
+
     const updateData: any = {};
     if (data.title) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
@@ -1034,21 +1499,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addToast('Documento atualizado com sucesso!', 'success');
     } else {
       addToast('Erro ao atualizar documento.', 'error');
+      // Reverte em caso de erro
+      setDocuments(previousDocuments);
     }
   };
 
   const deleteDocument = async (id: string) => {
+    const previousDocuments = [...documents];
+
+    // Atualização otimista local imediata
+    setDocuments(prev => prev.filter(d => d.id !== id));
+
     const { error } = await supabase.from("documents").delete().eq("id", id);
     if (!error) {
       addToast('Documento removido.', 'info');
     } else {
       addToast('Erro ao remover documento.', 'error');
+      // Reverte em caso de erro
+      setDocuments(previousDocuments);
     }
   };
 
   const toggleDocumentPin = async (id: string) => {
     const document = documents.find(d => d.id === id);
     if (!document) return;
+
+    const previousDocuments = [...documents];
+
+    // Atualização otimista local imediata
+    setDocuments(prev => prev.map(d => {
+      if (d.id === id) {
+        return { ...d, isPinned: !d.isPinned };
+      }
+      return d;
+    }));
 
     const { error } = await supabase
       .from("documents")
@@ -1057,6 +1541,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (!error) {
       addToast(!document.isPinned ? 'Documento fixado no topo!' : 'Documento desfixado.', 'success');
+    } else {
+      addToast('Erro ao alterar destaque.', 'error');
+      // Reverte em caso de erro
+      setDocuments(previousDocuments);
     }
   };
 
@@ -1174,6 +1662,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteBoletosByMonth = async (month: string) => {
+    const previousBoletos = [...boletos];
+
+    // Atualização otimista local imediata
+    setBoletos(prev => prev.filter(b => b.referenceMonth !== month));
+
     // 1. Buscar boletos do mês para obter os file_urls (caminhos no storage)
     const { data: list, error: fetchError } = await supabase
       .from("boletos")
@@ -1183,6 +1676,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (fetchError) {
       console.error("Erro ao buscar boletos para deleção:", fetchError);
       addToast("Erro ao buscar boletos antigos.", "error");
+      setBoletos(previousBoletos);
       return;
     }
 
@@ -1208,6 +1702,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (dbError) {
       console.error("Erro ao remover registros de boletos do banco:", dbError);
       addToast("Erro ao remover boletos antigos do banco.", "error");
+      setBoletos(previousBoletos);
       throw dbError;
     }
 
@@ -1273,6 +1768,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateComment,
     markAllNotificationsAsRead,
     deleteNotification,
+    deleteNotifications,
     addToast,
     reservations,
     occurrences,
