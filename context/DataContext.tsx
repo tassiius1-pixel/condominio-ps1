@@ -629,6 +629,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq("id", userId);
 
     if (!error) {
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
       addToast("Perfil atualizado.", "success");
     } else {
       addToast("Erro ao atualizar perfil.", "error");
@@ -661,6 +662,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error(resData.error || "Erro ao excluir no Supabase.");
       }
 
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
       addToast("Usuário excluído completamente!", "success");
     } catch (error: any) {
       console.error("Erro ao excluir usuário:", error);
