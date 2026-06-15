@@ -29,6 +29,33 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
     const [responseText, setResponseText] = useState('');
     const [activeTab, setActiveTab] = useState<'open' | 'resolved'>('open');
 
+    const [translateY, setTranslateY] = useState(0);
+    const [isSwiping, setIsSwiping] = useState(false);
+    const touchStart = React.useRef<number>(0);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStart.current = e.touches[0].clientY;
+        setIsSwiping(true);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - touchStart.current;
+        if (diff > 0) {
+            setTranslateY(diff);
+        }
+    };
+
+    const handleTouchEnd = () => {
+        setIsSwiping(false);
+        if (translateY > 150) {
+            setIsFormOpen(false);
+            setTranslateY(0);
+        } else {
+            setTranslateY(0);
+        }
+    };
+
     const canManageOccurrences = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -414,9 +441,26 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
             {/* Modal Overlay Form */}
             {isFormOpen && (
-                <div className="fixed inset-0 z-[110] flex items-start sm:items-center justify-center p-4 pt-12 sm:pt-4 bg-black/40 backdrop-blur-md animate-fade-in text-left overflow-y-auto">
-                    <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 max-h-[90vh] flex flex-col my-auto">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-transparent flex-shrink-0">
+                <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center">
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"
+                        onClick={() => setIsFormOpen(false)}
+                    />
+                    <div
+                        className={`bg-white/95 backdrop-blur-xl shadow-2xl w-full h-[85vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl rounded-t-[2.5rem] sm:rounded-[2rem] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'} sm:animate-scale-in border border-white/50`}
+                        style={{ transform: `translateY(${translateY}px)` }}
+                    >
+                        {/* Visual Drag Handle for Mobile */}
+                        <div
+                            className="sm:hidden w-full h-8 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                        >
+                            <div className="w-12 h-1.5 bg-gray-200 rounded-full" />
+                        </div>
+
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-transparent flex-shrink-0 pt-[env(safe-area-inset-top,1rem)] sm:pt-4">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 tracking-tight">
                                     {editingOccurrence ? 'Editar Ocorrência' : 'Nova Ocorrência'}
