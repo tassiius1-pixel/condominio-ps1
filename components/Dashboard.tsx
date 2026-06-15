@@ -52,27 +52,34 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header Section */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg sm:text-2xl font-black text-gray-900 flex items-center gap-2 sm:gap-3 leading-tight">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {setView && (
             <button
               onClick={() => setView('home')}
-              className="p-1.5 hover:bg-gray-100 rounded-xl transition-colors -ml-1.5"
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+              title="Voltar para o Início"
             >
-              <ChevronLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ChevronLeftIcon className="w-6 h-6" />
             </button>
-            <CheckSquareIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0" />
-            <span className="truncate">Sugestões/Manutenções</span>
-          </h2>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+              Sugestões e Manutenções
+            </h1>
+            <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
+              Envie sugestões de melhorias ou relate itens que precisam de manutenção no condomínio.
+            </p>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-bold rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all active:scale-95 flex-shrink-0 whitespace-nowrap"
+          className="inline-flex items-center px-4 py-2.5 border border-transparent text-xs sm:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all active:scale-95 flex-shrink-0 whitespace-nowrap self-start md:self-auto"
         >
-          <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
-          <span>Demanda</span>
+          <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+          <span>Nova Demanda</span>
         </button>
       </div>
 

@@ -257,7 +257,7 @@ const App: React.FC = () => {
               return <VotingModule setView={handleViewChange} />;
             case "users":
               return currentUser.role === Role.ADMIN ? (
-                <UserManagement />
+                <UserManagement setView={handleViewChange} />
               ) : (
                 <Dashboard setView={handleViewChange} />
               );
@@ -265,7 +265,7 @@ const App: React.FC = () => {
               return [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(
                 currentUser.role
               ) ? (
-                <Reports />
+                <Reports setView={handleViewChange} />
               ) : (
                 <Dashboard setView={handleViewChange} />
               );

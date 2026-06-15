@@ -15,7 +15,8 @@ import {
     LightbulbIcon,
     DownloadIcon,
     FileIcon,
-    TrashIcon
+    TrashIcon,
+    ChevronLeftIcon
 } from './Icons';
 import ConfirmModal from './ConfirmModal';
 
@@ -98,7 +99,11 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
 
 type ReportTab = 'sugestoes' | 'reservas' | 'ocorrencias' | 'votacoes';
 
-const Reports: React.FC = () => {
+interface ReportsProps {
+    setView?: (view: any) => void;
+}
+
+const Reports: React.FC<ReportsProps> = ({ setView }) => {
     const { requests, users, reservations, occurrences, votings, clearLegacyData } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('sugestoes');
@@ -331,20 +336,24 @@ const Reports: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in pb-20 sm:pb-8">
             {/* HEADER PRÉMIUM */}
-            <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-gray-100">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-                    <div className="flex items-center gap-5">
-                        <div className="p-4 bg-indigo-600 rounded-[1.5rem] text-white shadow-xl shadow-indigo-100 shrink-0">
-                            <BarChartIcon className="w-7 h-7" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight leading-none font-outfit">Relatórios</h2>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 flex items-center gap-2 leading-none">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Dashboard em tempo real
-                            </p>
-                        </div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {setView && (
+                        <button
+                            onClick={() => setView('home')}
+                            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                            title="Voltar para o Início"
+                        >
+                            <ChevronLeftIcon className="w-6 h-6" />
+                        </button>
+                    )}
+                    <div className="min-w-0">
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Relatórios e Métricas</h1>
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
+                            Consulte estatísticas de sugestões, ocorrências e uso das áreas comuns.
+                        </p>
                     </div>
+                </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full lg:w-auto">
                         <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100/80 shadow-inner">
@@ -398,7 +407,6 @@ const Reports: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
             </div>
 
             {/* TABS (PILL STYLE) */}

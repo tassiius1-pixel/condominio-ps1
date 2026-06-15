@@ -2,12 +2,16 @@ import React from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, User } from '../types';
-import { TrashIcon } from './Icons';
+import { TrashIcon, ChevronLeftIcon } from './Icons';
 import { formatCPF, formatName } from '../utils/formatters';
 import ConfirmModal from './ConfirmModal';
 import { loadJsPDF } from '../utils/scriptLoader';
 
-const UserManagement: React.FC = () => {
+interface UserManagementProps {
+  setView?: (view: any) => void;
+}
+
+const UserManagement: React.FC<UserManagementProps> = ({ setView }) => {
   const { users, updateUserRole, deleteUser } = useData();
   const { currentUser } = useAuth();
   const [modalConfig, setModalConfig] = React.useState<{
@@ -122,15 +126,32 @@ const UserManagement: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 animate-fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Gerenciamento de Usuários</h2>
-          <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
-            {users.length} Usuários
+    <div className="space-y-6 animate-fade-in pb-10">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {setView && (
+            <button
+              onClick={() => setView('home')}
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+              title="Voltar para o Início"
+            >
+              <ChevronLeftIcon className="w-6 h-6" />
+            </button>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+              Gerenciamento de Usuários
+              <span className="bg-indigo-50 text-indigo-700 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider border border-indigo-100 shadow-sm shrink-0">
+                {users.length} Moradores
+              </span>
+            </h1>
+            <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
+              Gerencie os perfis de acesso, casas e permissões de todos os usuários do aplicativo.
+            </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 self-start md:self-auto">
           <button onClick={handleExportPDF} className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-sm transition-all active:scale-95">
             PDF
           </button>
@@ -139,103 +160,106 @@ const UserManagement: React.FC = () => {
           </button>
         </div>
       </div>
-      {/* Visualização Mobile: Cards empilhados */}
-      <div className="md:hidden space-y-4">
-        {users.map(user => (
-          <div
-            key={user.id}
-            className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col gap-4 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="text-base font-black text-gray-900">
-                  {formatName(user.name)}
+
+      <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-gray-100">
+        {/* Visualização Mobile: Cards empilhados */}
+        <div className="md:hidden space-y-4">
+          {users.map(user => (
+            <div
+              key={user.id}
+              className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col gap-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-base font-black text-gray-900">
+                    {formatName(user.name)}
+                  </div>
+                  <div className="flex gap-3 text-xs text-gray-500 mt-1 font-medium">
+                    <span>Casa: <strong className="text-gray-900">{user.houseNumber}</strong></span>
+                    <span className="text-gray-300">|</span>
+                    <span className="font-mono">{formatCPF(user.cpf)}</span>
+                  </div>
                 </div>
-                <div className="flex gap-3 text-xs text-gray-500 mt-1 font-medium">
-                  <span>Casa: <strong className="text-gray-900">{user.houseNumber}</strong></span>
-                  <span className="text-gray-300">|</span>
-                  <span className="font-mono">{formatCPF(user.cpf)}</span>
-                </div>
+                <button
+                  onClick={() => handleDeleteUser(user)}
+                  disabled={user.role === Role.ADMIN}
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 disabled:text-gray-200 disabled:bg-transparent disabled:cursor-not-allowed shrink-0"
+                  title="Excluir Usuário"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => handleDeleteUser(user)}
-                disabled={user.role === Role.ADMIN}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 disabled:text-gray-200 disabled:bg-transparent disabled:cursor-not-allowed shrink-0"
-                title="Excluir Usuário"
-              >
-                <TrashIcon className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-100">
-              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                Perfil de Acesso
-              </label>
-              <select
-                value={user.role}
-                onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
-                disabled={user.role === Role.ADMIN}
-                className="block w-full px-3.5 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
-              >
-                <option value={Role.PROPRIETARIO}>Proprietário</option>
-                <option value={Role.INQUILINO}>Inquilino</option>
-                <option value={Role.GESTAO}>Gestão</option>
-                <option value={Role.SINDICO}>Síndico</option>
-                <option value={Role.SUBSINDICO}>Subsíndico</option>
-              </select>
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-100">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                  Perfil de Acesso
+                </label>
+                <select
+                  value={user.role}
+                  onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                  disabled={user.role === Role.ADMIN}
+                  className="block w-full px-3.5 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
+                >
+                  <option value={Role.PROPRIETARIO}>Proprietário</option>
+                  <option value={Role.INQUILINO}>Inquilino</option>
+                  <option value={Role.GESTAO}>Gestão</option>
+                  <option value={Role.SINDICO}>Síndico</option>
+                  <option value={Role.SUBSINDICO}>Subsíndico</option>
+                </select>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Visualização Desktop: Tabela clássica completa */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-100">
-        <table className="min-w-full divide-y divide-gray-100">
-          <thead className="bg-gray-50/50">
-            <tr>
-              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Nome</th>
-              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">CPF</th>
-              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Casa</th>
-              <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Perfil</th>
-              <th scope="col" className="relative px-6 py-4">
-                <span className="sr-only">Ações</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-50">
-            {users.map(user => (
-              <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{formatName(user.name)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium tabular-nums">{formatCPF(user.cpf)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">{user.houseNumber}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
-                    disabled={user.role === Role.ADMIN}
-                    className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
-                  >
-                    <option value={Role.PROPRIETARIO}>Proprietário</option>
-                    <option value={Role.INQUILINO}>Inquilino</option>
-                    <option value={Role.GESTAO}>Gestão</option>
-                    <option value={Role.SINDICO}>Síndico</option>
-                    <option value={Role.SUBSINDICO}>Subsíndico</option>
-                  </select>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleDeleteUser(user)}
-                    disabled={user.role === Role.ADMIN}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200 disabled:text-gray-200 disabled:bg-transparent disabled:cursor-not-allowed"
-                    title="Excluir Usuário"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                </td>
+        {/* Visualização Desktop: Tabela clássica completa */}
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-100">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-gray-50/50">
+              <tr>
+                <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Nome</th>
+                <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">CPF</th>
+                <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Casa</th>
+                <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Perfil</th>
+                <th scope="col" className="relative px-6 py-4">
+                  <span className="sr-only">Ações</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-50">
+              {users.map(user => (
+                <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{formatName(user.name)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium tabular-nums">{formatCPF(user.cpf)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">{user.houseNumber}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                      disabled={user.role === Role.ADMIN}
+                      className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
+                    >
+                      <option value={Role.PROPRIETARIO}>Proprietário</option>
+                      <option value={Role.INQUILINO}>Inquilino</option>
+                      <option value={Role.GESTAO}>Gestão</option>
+                      <option value={Role.SINDICO}>Síndico</option>
+                      <option value={Role.SUBSINDICO}>Subsíndico</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleDeleteUser(user)}
+                      disabled={user.role === Role.ADMIN}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200 disabled:text-gray-200 disabled:bg-transparent disabled:cursor-not-allowed"
+                      title="Excluir Usuário"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <ConfirmModal

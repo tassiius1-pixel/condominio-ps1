@@ -283,18 +283,24 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header & Search */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => setView('home')} className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition touch-active">
-                        <ChevronLeftIcon className="w-6 h-6" />
-                    </button>
-                    <div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {setView && (
+                        <button
+                            onClick={() => setView('home')}
+                            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                            title="Voltar para o Início"
+                        >
+                            <ChevronLeftIcon className="w-6 h-6" />
+                        </button>
+                    )}
+                    <div className="min-w-0">
                         <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Central de Documentos</h1>
-                        <p className="text-gray-500 text-[10px] md:text-sm mt-0.5 font-medium leading-tight">Documentos oficiais e informativos do condomínio.</p>
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">Documentos oficiais e informativos do condomínio.</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-1 md:w-72 group">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                         <input

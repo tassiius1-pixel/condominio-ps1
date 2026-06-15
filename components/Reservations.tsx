@@ -175,14 +175,25 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Reservas</h1>
-                    <p className="text-gray-500 text-[10px] md:text-sm mt-0.5 font-medium leading-tight">Gerencie e visualize a disponibilidade das áreas comuns.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {setView && (
+                        <button
+                            onClick={() => setView('home')}
+                            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                            title="Voltar para o Início"
+                        >
+                            <ChevronLeftIcon className="w-6 h-6" />
+                        </button>
+                    )}
+                    <div className="min-w-0">
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Reservas</h1>
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">Gerencie e visualize a disponibilidade das áreas comuns.</p>
+                    </div>
                 </div>
 
                 {/* Month Navigation */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start md:self-auto">
                     <button
                         onClick={() => {
                             setDirection(null);

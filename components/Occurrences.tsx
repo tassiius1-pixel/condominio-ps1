@@ -337,12 +337,21 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setView && setView('home')} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition">
-                        <ChevronLeftIcon className="w-6 h-6" />
-                    </button>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Livro de Ocorrências</h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {setView && (
+                        <button
+                            onClick={() => setView('home')}
+                            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                            title="Voltar para o Início"
+                        >
+                            <ChevronLeftIcon className="w-6 h-6" />
+                        </button>
+                    )}
+                    <div className="min-w-0">
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Livro de Ocorrências</h1>
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">Registre ocorrências ou denúncias de forma segura e privada.</p>
+                    </div>
                 </div>
 
                 {!isFormOpen && (
@@ -355,7 +364,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                             setPhotos([]);
                             setIsFormOpen(true);
                         }}
-                        className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 w-full md:w-auto justify-center font-black text-xs uppercase tracking-widest active:scale-95 touch-active"
+                        className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 w-full md:w-auto justify-center font-black text-xs uppercase tracking-widest active:scale-95 touch-active self-start md:self-auto"
                     >
                         <PlusIcon className="w-5 h-5" />
                         <span>Nova Ocorrência</span>
@@ -369,7 +378,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                 </div>
                 <div className="flex-1">
                     <h4 className="text-sm font-black text-indigo-900 flex items-center gap-2 uppercase tracking-tight">
-                        Demanda Confidencial 🔒
+                        Demanda Confidencial
                     </h4>
                     <p className="text-xs font-semibold text-indigo-700/80 mt-0.5">
                         Apenas o síndico terá acesso ao que você escrever aqui. Fique tranquilo para relatar problemas confidenciais.

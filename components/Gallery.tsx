@@ -269,25 +269,36 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
+    <div className="space-y-6 animate-fade-in pb-20">
       {/* 1. ALBUM LIST VIEW */}
       {!activeAlbumId ? (
         <>
-          <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">Galeria de Eventos</h1>
-              <p className="text-gray-500 font-medium mt-1">Fotos e vídeos dos momentos marcantes do nosso condomínio.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {setView && (
+                <button
+                  onClick={() => setView('home')}
+                  className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                  title="Voltar para o Início"
+                >
+                  <ChevronLeftIcon className="w-6 h-6" />
+                </button>
+              )}
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Galeria de Eventos</h1>
+                <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">Fotos e vídeos dos momentos marcantes do nosso condomínio.</p>
+              </div>
             </div>
             {isManager && (
               <button
                 onClick={() => setShowAddAlbumModal(true)}
-                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-indigo-100/50 hover:shadow-indigo-100 transition-all active:scale-95 self-start sm:self-auto"
+                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest px-5 py-3 rounded-2xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all active:scale-95 self-start md:self-auto"
               >
                 <PlusIcon className="w-5 h-5" />
                 <span>Novo Álbum</span>
               </button>
             )}
-          </header>
+          </div>
 
           {albums.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-200 shadow-sm flex flex-col items-center justify-center">
@@ -410,41 +421,41 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
       ) : (
         /* 2. ALBUM DETAIL VIEW */
         <>
-          <div className="space-y-6">
-            <button
-              onClick={() => setActiveAlbumId(null)}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-black text-xs uppercase tracking-wider transition-colors active:scale-95"
-            >
-              <ArrowLeftIcon className="w-4 h-4" />
-              <span>Voltar para Álbuns</span>
-            </button>
-
-            {activeAlbum && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-black text-gray-900 tracking-tight">{activeAlbum.title}</h1>
-                  {activeAlbum.description && (
-                    <p className="text-gray-500 font-medium mt-1">{activeAlbum.description}</p>
-                  )}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <button
+                onClick={() => setActiveAlbumId(null)}
+                className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                title="Voltar para Álbuns"
+              >
+                <ChevronLeftIcon className="w-6 h-6" />
+              </button>
+              {activeAlbum && (
+                <div className="min-w-0">
+                  <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{activeAlbum.title}</h1>
+                  <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
+                    {activeAlbum.description || "Fotos e vídeos deste álbum."}
+                  </p>
                 </div>
-                {isManager && (
-                  <div className="flex gap-3 self-start sm:self-auto">
-                    <button
-                      onClick={() => setShowAddMediaModal(true)}
-                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-indigo-100/50 hover:shadow-indigo-100 transition-all active:scale-95"
-                    >
-                      <UploadIcon className="w-5 h-5" />
-                      <span>Adicionar Mídias</span>
-                    </button>
-                    <button
-                      onClick={() => setAlbumToDelete(activeAlbum.id)}
-                      className="flex items-center justify-center p-3.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl transition-all active:scale-95"
-                      title="Excluir Álbum"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
+              )}
+            </div>
+
+            {isManager && activeAlbum && (
+              <div className="flex gap-3 self-start md:self-auto">
+                <button
+                  onClick={() => setShowAddMediaModal(true)}
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest px-5 py-3 rounded-2xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all active:scale-95"
+                >
+                  <UploadIcon className="w-5 h-5" />
+                  <span>Adicionar Mídias</span>
+                </button>
+                <button
+                  onClick={() => setAlbumToDelete(activeAlbum.id)}
+                  className="flex items-center justify-center p-3.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl transition-all active:scale-95"
+                  title="Excluir Álbum"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
               </div>
             )}
           </div>

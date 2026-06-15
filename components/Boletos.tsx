@@ -933,26 +933,34 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
   };
 
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6 transition-colors duration-200">
+    <div className="space-y-6 animate-fade-in pb-20">
       
       {/* Título Principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-gray-200 dark:border-gray-800 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <BoletoIcon className="text-blue-500 w-8 h-8" />
-            Boletos Mensais
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {isManagement
-              ? 'Área da Gestão: Faça upload do lote ZIP para distribuição automática de boletos.'
-              : 'Acesse de forma rápida e segura o boleto mensal de taxa condominial da sua unidade.'}
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {setView && (
+            <button
+              onClick={() => setView('home')}
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+              title="Voltar para o Início"
+            >
+              <ChevronLeftIcon className="w-6 h-6" />
+            </button>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Boletos Mensais</h1>
+            <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
+              {isManagement
+                ? 'Área da Gestão: Faça upload do lote ZIP para distribuição automática de boletos.'
+                : 'Acesse de forma rápida e segura o boleto mensal de taxa condominial da sua unidade.'}
+            </p>
+          </div>
         </div>
 
         {isManagement && (
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all"
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all self-start md:self-auto"
           >
             <PlusIcon className="w-5 h-5" />
             Enviar Boletos (ZIP)

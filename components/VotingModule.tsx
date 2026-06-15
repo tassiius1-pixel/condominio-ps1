@@ -370,9 +370,8 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Unified Header & Actions */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-3">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                     <button
                         onClick={() => {
                             if (activeTab === 'create') {
@@ -381,15 +380,16 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                                 setView && setView('home');
                             }
                         }}
-                        className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition touch-active"
+                        className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 touch-active shrink-0"
+                        title="Voltar"
                     >
                         <ChevronLeftIcon className="w-6 h-6" />
                     </button>
-                    <div>
+                    <div className="min-w-0">
                         <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
                             {activeTab === 'create' ? 'Nova Votação' : 'Votações e Enquetes'}
                         </h1>
-                        <p className="text-gray-500 text-[10px] md:text-sm mt-0.5 font-medium leading-tight">
+                        <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
                             {activeTab === 'create' ? 'Crie uma nova pauta para os moradores decidirem.' : 'Decisões importantes para o futuro do nosso condomínio.'}
                         </p>
                     </div>
@@ -398,7 +398,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                 {canManageVotings && activeTab !== 'create' && (
                     <button
                         onClick={() => setActiveTab('create')}
-                        className={`flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all active:scale-95 touch-active`}
+                        className={`flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all active:scale-95 touch-active self-start md:self-auto`}
                     >
                         <PlusIcon className="w-5 h-5" />
                         <span>Nova Votação</span>

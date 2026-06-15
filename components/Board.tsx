@@ -3,6 +3,7 @@ import { useData } from '../hooks/useData';
 import { RequestType, Status, View } from '../types';
 import Card from './Card';
 import Skeleton from './Skeleton';
+import { CheckSquareIcon } from './Icons';
 
 interface BoardProps {
   setView?: (view: View) => void;
@@ -75,7 +76,7 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
                 : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}
             `}
           >
-            🔥 Ativas
+            Ativas
             <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === 'active' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
               {activeSuggestions.length}
             </span>
@@ -89,7 +90,7 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
                 : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}
             `}
           >
-            📦 Arquivadas
+            Arquivadas
             <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === 'archived' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
               {archivedSuggestions.length}
             </span>
@@ -100,7 +101,7 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
       {displayedSuggestions.length === 0 ? (
         <div className="text-center py-20 glass rounded-3xl border-2 border-dashed border-gray-200 shadow-inner">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">✨</span>
+            <CheckSquareIcon className="w-10 h-10 text-gray-400" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">
             {activeTab === 'active' ? 'Nenhuma demanda ativa' : 'Nenhuma demanda arquivada'}
