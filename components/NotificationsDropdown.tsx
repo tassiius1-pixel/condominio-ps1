@@ -10,9 +10,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   triggerRef?: React.RefObject<HTMLElement>;
+  className?: string;
 }
 
-const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) => {
+const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef, className }) => {
   const { notifications, deleteNotification, deleteNotifications, markAllNotificationsAsRead, addToast } =
     useData();
   const { currentUser } = useAuth();
@@ -74,7 +75,9 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef }) =
   return (
     <div
       ref={dropdownRef}
-      className="fixed inset-x-4 top-20 z-50 md:absolute md:inset-auto md:top-full md:right-0 md:mt-4 md:w-80 bg-white rounded-xl shadow-xl overflow-hidden animate-fade-in border border-gray-100"
+      className={`fixed z-50 bg-white rounded-xl shadow-xl overflow-hidden animate-fade-in border border-gray-100 ${
+        className || 'inset-x-4 top-20 md:absolute md:inset-auto md:top-full md:right-0 md:mt-4 md:w-80'
+      }`}
     >
       {/* Título + botão excluir todas */}
       <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50">

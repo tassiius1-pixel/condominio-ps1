@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Role } from '../types';
-import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, UsersIcon, BarChartIcon, CheckCircleIcon, ImageIcon } from './Icons';
+import { CalendarIcon, AlertTriangleIcon, LightbulbIcon, PlusIcon, BarChartIcon, CheckCircleIcon, ImageIcon } from './Icons';
 import { useAuth } from '../hooks/useAuth';
 
 interface QuickActionsProps {
@@ -73,15 +73,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
                 />
             )}
 
-            {isAdminProfile && currentUser?.role === Role.ADMIN && (
-                <ActionCard
-                    title="Usuários"
-                    subtitle="Gerenciar perfis"
-                    icon={<UsersIcon className="h-6 w-6 text-white" />}
-                    gradient="from-blue-600 to-indigo-900"
-                    onClick={() => handleNavigation('users')}
-                />
-            )}
+
 
             {isAdminProfile && (
                 <ActionCard

@@ -1066,7 +1066,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+                  <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                       <thead className="bg-gray-50 dark:bg-gray-800/50">
                         <tr>

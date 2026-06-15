@@ -231,6 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               open={showNotifications}
               onClose={() => setShowNotifications(false)}
               triggerRef={bellRef}
+              className="inset-x-4 top-20 md:absolute md:inset-auto md:bottom-full md:left-0 md:mb-4 md:w-80"
             />
           </div>
 
