@@ -124,14 +124,16 @@ const Header: React.FC<HeaderProps> = ({
   const getRoleLabel = (role: string) => {
     const roles: Record<string, string> = {
       ADMIN: "Admin",
-      PROPRIETARIO: "Morador",
+      PROPRIETARIO: "Proprietário",
+      INQUILINO: "Inquilino",
       SINDICO: "Síndico",
       SUBSINDICO: "Subsíndico",
       GESTAO: "Gestão",
       MORADOR: "Morador"
     };
     const key = role.toUpperCase();
-    return roles[key] || role;
+    if (roles[key]) return roles[key];
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
   };
 
   // Upload da logo
@@ -459,7 +461,7 @@ const Header: React.FC<HeaderProps> = ({
                 <p className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
                   {formatName(currentUser.name)}
                 </p>
-                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-1 leading-none">
+                <p className="text-[9.5px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide mt-1 leading-none">
                   {getRoleLabel(currentUser.role)} • Unidade {currentUser.houseNumber}
                 </p>
               </div>
