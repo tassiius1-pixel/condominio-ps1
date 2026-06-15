@@ -115,6 +115,25 @@ const Header: React.FC<HeaderProps> = ({
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
+  const formatName = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length <= 2) return name;
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  };
+
+  const getRoleLabel = (role: string) => {
+    const roles: Record<string, string> = {
+      ADMIN: "Admin",
+      PROPRIETARIO: "Morador",
+      SINDICO: "Síndico",
+      SUBSINDICO: "Subsíndico",
+      GESTAO: "Gestão",
+      MORADOR: "Morador"
+    };
+    const key = role.toUpperCase();
+    return roles[key] || role;
+  };
+
   // Upload da logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -437,9 +456,11 @@ const Header: React.FC<HeaderProps> = ({
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1 text-left">
-                <p className="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight whitespace-normal break-words leading-tight">{currentUser.name}</p>
-                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest truncate mt-0.5">
-                  {currentUser.role} • Unidade {currentUser.houseNumber}
+                <p className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
+                  {formatName(currentUser.name)}
+                </p>
+                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-1 leading-none">
+                  {getRoleLabel(currentUser.role)} • Unidade {currentUser.houseNumber}
                 </p>
               </div>
             </div>
