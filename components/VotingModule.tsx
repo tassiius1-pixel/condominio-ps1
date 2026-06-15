@@ -223,7 +223,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
         const results = calculateResults(voting);
         const isAdmin = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser?.role || Role.PROPRIETARIO);
         const canDelete = currentUser?.role === Role.ADMIN;
-        const showResults = hasVoted || status === 'closed' || isAdmin;
+        const showResults = hasVoted || status === 'closed' || isAdmin || currentUser?.role === Role.INQUILINO;
         const canVote = currentUser?.role !== Role.INQUILINO;
 
         return (
