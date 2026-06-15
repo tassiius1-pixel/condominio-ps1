@@ -464,146 +464,162 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
             )}
 
             {activeTab === 'create' && (
-                <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="bg-gray-50 border-b border-gray-100 px-8 py-6">
-                        <h2 className="text-xl font-bold text-gray-900">Nova Votação</h2>
-                        <p className="text-sm text-gray-500 mt-1">Crie uma nova pauta para os moradores decidirem.</p>
-                    </div>
-
-                    <form onSubmit={handleCreateVoting} className="p-8 space-y-6">
-                        <div className="space-y-4">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in text-left">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 max-h-[90vh] flex flex-col">
+                        
+                        {/* Modal Header */}
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-transparent flex-shrink-0">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Título da Pauta</label>
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={e => setTitle(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                                    placeholder="Ex: Aprovação da Reforma da Fachada"
-                                    required
-                                />
+                                <h3 className="text-xl font-bold text-gray-900 tracking-tight">Nova Votação</h3>
+                                <p className="text-xs font-medium text-gray-500 mt-0.5">Crie uma nova pauta para os moradores decidirem.</p>
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Detalhada</label>
-                                <textarea
-                                    value={description}
-                                    onChange={e => setDescription(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
-                                    rows={4}
-                                    placeholder="Explique os detalhes, custos e impactos..."
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Data de Início</label>
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={e => setStartDate(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Data de Término</label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={e => setEndDate(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <input
-                                    type="checkbox"
-                                    id="allowMultiple"
-                                    checked={allowMultiple}
-                                    onChange={e => setAllowMultiple(e.target.checked)}
-                                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                                />
-                                <label htmlFor="allowMultiple" className="text-sm font-medium text-gray-800 cursor-pointer select-none">
-                                    Permitir que moradores escolham múltiplas opções
-                                </label>
-                            </div>
+                            <button
+                                onClick={() => setActiveTab('active')}
+                                className="text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50"
+                            >
+                                <XIcon className="w-6 h-6" />
+                            </button>
                         </div>
-
-                        <div className="space-y-4 pt-4 border-t border-gray-100">
-                            <label className="block text-sm font-bold text-gray-900">Opções de Resposta</label>
-                            {options.map((opt, index) => (
-                                <div key={index} className="flex gap-3 items-start animate-fade-in">
-                                    <div className="flex-1 space-y-2">
+ 
+                        {/* Modal Body */}
+                        <div className="overflow-y-auto p-5 custom-scrollbar flex-1 bg-transparent">
+                            <form onSubmit={handleCreateVoting} className="space-y-3 text-sm">
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1 pl-1">Título da Pauta</label>
                                         <input
                                             type="text"
-                                            value={opt.text}
-                                            onChange={e => handleOptionChange(index, e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                            placeholder={`Opção ${index + 1}`}
+                                            value={title}
+                                            onChange={e => setTitle(e.target.value)}
+                                            className="w-full px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-800 placeholder-gray-400 text-sm"
+                                            placeholder="Ex: Aprovação da Reforma da Fachada"
                                             required
                                         />
-                                        {/* Image Upload Compact */}
-                                        <div className="flex items-center gap-2">
-                                            {opt.imageUrl ? (
-                                                <div className="flex items-center gap-2 bg-green-50 px-2 py-1 rounded text-xs text-green-700 border border-green-200">
-                                                    <CheckIcon className="w-3 h-3" /> Imagem anexada
-                                                    <button type="button" onClick={() => handleRemoveOptionImage(index)} className="hover:text-red-600 ml-1">
-                                                        <XIcon className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <label className="cursor-pointer text-xs text-indigo-600 hover:underline flex items-center gap-1">
-                                                    <UploadIcon className="w-3 h-3" /> Adicionar imagem
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={e => handleOptionImageUpload(index, e)}
-                                                        className="hidden"
-                                                    />
-                                                </label>
-                                            )}
+                                    </div>
+ 
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1 pl-1">Descrição Detalhada</label>
+                                        <textarea
+                                            value={description}
+                                            onChange={e => setDescription(e.target.value)}
+                                            className="w-full px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-800 placeholder-gray-400 resize-none text-sm"
+                                            rows={3}
+                                            placeholder="Explique os detalhes, custos e impactos..."
+                                        />
+                                    </div>
+ 
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1 pl-1">Data de Início</label>
+                                            <input
+                                                type="date"
+                                                value={startDate}
+                                                onChange={e => setStartDate(e.target.value)}
+                                                className="w-full px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-800 text-sm"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1 pl-1">Data de Término</label>
+                                            <input
+                                                type="date"
+                                                value={endDate}
+                                                onChange={e => setEndDate(e.target.value)}
+                                                className="w-full px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-800 text-sm"
+                                                required
+                                            />
                                         </div>
                                     </div>
-                                    {options.length > 2 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveOption(index)}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200 mt-0.5"
-                                            title="Remover opção"
-                                        >
-                                            <TrashIcon className="w-5 h-5" />
-                                        </button>
-                                    )}
+ 
+                                    <div className="flex items-center gap-2.5 p-2.5 bg-transparent rounded-xl border-2 border-gray-200">
+                                        <input
+                                            type="checkbox"
+                                            id="allowMultiple"
+                                            checked={allowMultiple}
+                                            onChange={e => setAllowMultiple(e.target.checked)}
+                                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                        />
+                                        <label htmlFor="allowMultiple" className="text-xs font-bold text-gray-800 cursor-pointer select-none">
+                                            Permitir que moradores escolham múltiplas opções
+                                        </label>
+                                    </div>
                                 </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={handleAddOption}
-                                className="flex items-center gap-1.5 text-sm text-indigo-600 font-bold hover:text-indigo-700 px-2 py-1 rounded hover:bg-indigo-50 w-fit transition"
-                            >
-                                <PlusIcon className="w-4 h-4" /> Adicionar Outra Opção
-                            </button>
+ 
+                                <div className="space-y-2.5 pt-2 border-t border-gray-100">
+                                    <label className="block text-xs font-bold text-gray-900">Opções de Resposta</label>
+                                    {options.map((opt, index) => (
+                                        <div key={index} className="flex gap-2.5 items-start animate-fade-in">
+                                            <div className="flex-1 space-y-1">
+                                                <input
+                                                    type="text"
+                                                    value={opt.text}
+                                                    onChange={e => handleOptionChange(index, e.target.value)}
+                                                    className="w-full px-4 py-2 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-800 placeholder-gray-400 text-sm"
+                                                    placeholder={`Opção ${index + 1}`}
+                                                    required
+                                                />
+                                                {/* Image Upload Compact */}
+                                                <div className="flex items-center gap-2">
+                                                    {opt.imageUrl ? (
+                                                        <div className="flex items-center gap-2 bg-green-50 px-2 py-0.5 rounded text-xs text-green-700 border border-green-200">
+                                                            <CheckIcon className="w-3 h-3" /> Imagem anexada
+                                                            <button type="button" onClick={() => handleRemoveOptionImage(index)} className="hover:text-red-600 ml-1">
+                                                                <XIcon className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <label className="cursor-pointer text-xs text-indigo-600 hover:underline flex items-center gap-1">
+                                                            <UploadIcon className="w-3 h-3" /> Adicionar imagem
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={e => handleOptionImageUpload(index, e)}
+                                                                className="hidden"
+                                                            />
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {options.length > 2 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveOption(index)}
+                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 duration-200 mt-0.5"
+                                                    title="Remover opção"
+                                                >
+                                                    <TrashIcon className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={handleAddOption}
+                                        className="flex items-center gap-1.5 text-xs text-indigo-600 font-bold hover:text-indigo-700 px-2 py-1 rounded hover:bg-indigo-50 w-fit transition"
+                                    >
+                                        <PlusIcon className="w-4 h-4" /> Adicionar Outra Opção
+                                    </button>
+                                </div>
+ 
+                                <div className="pt-3 flex gap-3 border-t border-gray-100">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('active')}
+                                        className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95"
+                                    >
+                                        <CheckIcon className="w-4 h-4" />
+                                        Publicar Votação
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
-                        <div className="pt-6 flex gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('active')}
-                                className="flex-1 px-4 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                className="flex-1 px-4 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-md hover:shadow-lg transition transform active:scale-95"
-                            >
-                                Publicar Votação
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             )}
 

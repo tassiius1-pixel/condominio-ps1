@@ -11,7 +11,8 @@ import {
   PlusIcon,
   TrashIcon,
   UploadIcon,
-  LoaderCircleIcon
+  LoaderCircleIcon,
+  CheckCircleIcon
 } from './Icons';
 
 // Inline premium SVGs for icons not present in Icons.tsx
@@ -649,20 +650,21 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
       {/* 4. MODAL: ADICIONAR ÁLBUM */}
       {showAddAlbumModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] w-full max-w-md p-6 border border-slate-100 shadow-2xl relative animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] w-full max-w-2xl p-5 border border-white/50 shadow-2xl relative animate-fade-in text-left">
             <button
               onClick={() => setShowAddAlbumModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50"
+              aria-label="Fechar"
             >
               <XIcon className="w-6 h-6" />
             </button>
 
-            <h2 className="text-xl font-black text-slate-800 mb-2">Criar Novo Álbum</h2>
-            <p className="text-xs font-medium text-slate-500 mb-6">Agrupe fotos e vídeos de eventos em uma pasta específica.</p>
+            <h2 className="text-lg font-black text-slate-800 mb-1">Criar Novo Álbum</h2>
+            <p className="text-xs font-medium text-slate-500 mb-4">Agrupe fotos e vídeos de eventos em uma pasta específica.</p>
 
-            <form onSubmit={handleCreateAlbum} className="space-y-4">
+            <form onSubmit={handleCreateAlbum} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">
                   Título do Álbum <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -671,36 +673,40 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
                   placeholder="Ex: Festa Junina 2026"
                   value={albumTitle}
                   onChange={(e) => setAlbumTitle(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold"
+                  className="w-full bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-4 py-2.5 text-sm outline-none transition-all font-bold text-gray-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">
                   Descrição (Opcional)
                 </label>
                 <textarea
-                  placeholder="Ex: Fotos e vídeos do arraiá realizado no dia 12 de Junho na área comum."
+                  placeholder="Ex: Fotos e vídeos do arraiá..."
                   value={albumDesc}
                   onChange={(e) => setAlbumDesc(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium h-24 resize-none"
+                  className="w-full bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-4 py-2.5 text-sm outline-none transition-all font-medium h-16 resize-none text-gray-700"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+              <div className="flex gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddAlbumModal(false)}
-                  className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingAlbum || !albumTitle.trim()}
-                  className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold px-6 py-3 rounded-2xl text-xs shadow-md shadow-indigo-100/50 hover:shadow-indigo-100 transition-all"
+                  className="flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95"
                 >
-                  {isCreatingAlbum && <LoaderCircleIcon className="w-4 h-4" />}
+                  {isCreatingAlbum ? (
+                    <LoaderCircleIcon className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircleIcon className="w-4 h-4" />
+                  )}
                   <span>Criar Álbum</span>
                 </button>
               </div>
@@ -712,10 +718,11 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
       {/* 5. MODAL: UPLOAD DE MÍDIAS (PROGRESS BAR) */}
       {showAddMediaModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] w-full max-w-lg p-6 border border-slate-100 shadow-2xl relative animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] w-full max-w-2xl p-6 border border-white/50 shadow-2xl relative animate-fade-in text-left">
             <button
               onClick={() => !isUploading && setShowAddMediaModal(false)}
-              className={`absolute top-4 right-4 text-slate-400 hover:text-slate-600 ${isUploading ? 'pointer-events-none opacity-30' : ''}`}
+              className={`absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50 ${isUploading ? 'pointer-events-none opacity-30' : ''}`}
+              aria-label="Fechar"
             >
               <XIcon className="w-6 h-6" />
             </button>
@@ -730,7 +737,7 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
               {!isUploading && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200/80 hover:border-indigo-500 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-indigo-50/10 transition-all group"
+                  className="border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer bg-white/50 hover:bg-indigo-50/20 transition-all group shadow-sm"
                 >
                   <UploadIcon className="w-10 h-10 text-slate-400 group-hover:text-indigo-500 mb-3 transition-colors" />
                   <span className="text-sm font-black text-slate-700">Clique para selecionar arquivos</span>
@@ -764,9 +771,9 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
                           {item.status === 'uploading' && (
                             <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
                               <div
-                                className="bg-indigo-500 h-1.5 rounded-full transition-all duration-150"
-                                style={{ width: `${item.progress}%` }}
-                              />
+                                  className="bg-indigo-500 h-1.5 rounded-full transition-all duration-150"
+                                  style={{ width: `${item.progress}%` }}
+                                />
                             </div>
                           )}
                         </div>
@@ -796,7 +803,7 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
               )}
 
               {/* Botões do modal */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   disabled={isUploading}
@@ -804,16 +811,17 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
                     setUploadQueue([]);
                     setShowAddMediaModal(false);
                   }}
-                  className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-30"
+                  className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center"
                 >
-                  Fechar
+                  Cancelar
                 </button>
                 {uploadQueue.length > 0 && !isUploading && (
                   <button
                     type="button"
                     onClick={handleStartUpload}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl text-xs shadow-md transition-all active:scale-95"
+                    className="flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95"
                   >
+                    <CheckCircleIcon className="w-4 h-4" />
                     Iniciar Upload
                   </button>
                 )}

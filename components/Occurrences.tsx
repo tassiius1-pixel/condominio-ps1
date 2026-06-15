@@ -416,7 +416,7 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
             {isFormOpen && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in text-left">
                     <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 max-h-[90vh] flex flex-col">
-                        <div className="px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50/50 to-white/0 flex-shrink-0">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-transparent flex-shrink-0">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 tracking-tight">
                                     {editingOccurrence ? 'Editar Ocorrência' : 'Nova Ocorrência'}
@@ -430,106 +430,107 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
                                 <XIcon className="w-6 h-6" />
                             </button>
                         </div>
-
-                        <div className="overflow-y-auto p-8 custom-scrollbar">
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+ 
+                        <div className="overflow-y-auto p-5 custom-scrollbar flex-1 bg-transparent">
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="group">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">Nome</label>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Nome</label>
                                         <input
                                             type="text"
                                             value={currentUser?.name}
                                             disabled
-                                            className="w-full px-4 py-3 bg-gray-100/50 border border-gray-200 rounded-xl text-gray-500 font-medium"
+                                            className="w-full px-4 py-2.5 bg-gray-150 border-2 border-gray-300 rounded-xl text-gray-500 font-medium text-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">Casa</label>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Casa</label>
                                         <input
                                             type="text"
                                             value={currentUser?.houseNumber}
                                             disabled
-                                            className="w-full px-4 py-3 bg-gray-100/50 border border-gray-200 rounded-xl text-gray-500 font-medium"
+                                            className="w-full px-4 py-2.5 bg-gray-150 border-2 border-gray-300 rounded-xl text-gray-500 font-medium text-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Telefone de Contato <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="tel"
+                                            required
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            placeholder="(00) 00000-0000"
+                                            className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-900 placeholder-gray-400 text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Assunto <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={subject}
+                                            onChange={(e) => setSubject(e.target.value)}
+                                            placeholder="Ex: Barulho..."
+                                            className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-900 placeholder-gray-400 text-sm"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">Telefone de Contato <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="tel"
-                                        required
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        placeholder="(00) 00000-0000"
-                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 rounded-xl outline-none transition-all font-medium text-gray-900 placeholder-gray-400"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">Assunto <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={subject}
-                                        onChange={(e) => setSubject(e.target.value)}
-                                        placeholder="Ex: Barulho excessivo, desrespeito às normas..."
-                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 rounded-xl outline-none transition-all font-medium text-gray-900 placeholder-gray-400"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 pl-1">Descrição Detalhada <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Descrição Detalhada <span className="text-red-500">*</span></label>
                                     <textarea
                                         required
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        rows={4}
-                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 rounded-xl outline-none transition-all font-medium text-gray-900 placeholder-gray-400 resize-none"
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-900 placeholder-gray-400 resize-none text-sm"
                                         placeholder="Descreva o que aconteceu..."
                                     ></textarea>
                                 </div>
 
                                 {/* Photos Upload */}
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-3 pl-1">Anexos (Fotos)</label>
-                                    <div className="flex flex-wrap gap-3">
+                                    <label className="block text-xs font-bold text-gray-700 mb-2 pl-1">Anexos (Fotos)</label>
+                                    <div className="flex flex-wrap gap-2.5">
                                         {photos.map((photo, idx) => (
-                                            <div key={idx} className="relative w-24 h-24 group">
+                                            <div key={idx} className="relative w-20 h-20 group">
                                                 <img src={photo} alt="Preview" className="w-full h-full object-cover rounded-xl shadow-sm border border-gray-100" />
                                                 <button
                                                     type="button"
                                                     onClick={() => removePhoto(idx)}
-                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition-transform hover:scale-110"
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-transform hover:scale-110"
                                                 >
-                                                    <XIcon className="w-3.5 h-3.5" />
+                                                    <XIcon className="w-3 h-3" />
                                                 </button>
                                             </div>
                                         ))}
-                                        <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
-                                            <div className="bg-indigo-100 p-2 rounded-full mb-1 group-hover:bg-white transition-colors">
-                                                <UploadIcon className="w-5 h-5 text-indigo-600" />
+                                        <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
+                                            <div className="bg-indigo-100 p-1.5 rounded-full mb-0.5 group-hover:bg-white transition-colors">
+                                                <UploadIcon className="w-4 h-4 text-indigo-600" />
                                             </div>
-                                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Adicionar</span>
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide">Adicionar</span>
                                             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                                         </label>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 pt-6 border-t border-gray-100">
+                                <div className="flex gap-3 pt-4 border-t border-gray-100">
                                     <button
                                         type="button"
                                         onClick={() => setIsFormOpen(false)}
-                                        className="flex-1 px-4 py-3.5 text-sm font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors shadow-sm"
+                                        className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting || isUploading}
-                                        className={`flex-[2] px-6 py-3.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 font-bold flex justify-center items-center gap-2 ${(isSubmitting || isUploading) ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs ${(isSubmitting || isUploading) ? 'opacity-70 cursor-not-allowed' : ''}`}
                                     >
-                                        {isSubmitting ? <span className="animate-pulse">Salvando...</span> : (isUploading ? <span className="animate-pulse">Enviando foto...</span> : <><CheckCircleIcon className="w-5 h-5" /> Salvar Ocorrência</>)}
+                                        {isSubmitting ? <span className="animate-pulse">Salvando...</span> : (isUploading ? <span className="animate-pulse">Enviando foto...</span> : <><CheckCircleIcon className="w-4 h-4" /> Salvar Ocorrência</>)}
                                     </button>
                                 </div>
                             </form>

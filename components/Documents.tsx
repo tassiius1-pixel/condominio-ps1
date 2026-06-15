@@ -16,7 +16,8 @@ import {
     EyeIcon,
     EditIcon,
     LinkIcon,
-    PinIcon
+    PinIcon,
+    CheckCircleIcon
 } from './Icons';
 import Skeleton from './Skeleton';
 import { uploadFile } from '../services/storage';
@@ -608,60 +609,61 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
             )}
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg sm:rounded-3xl rounded-t-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 duration-500 flex flex-col max-h-[95dvh]">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 pt-[calc(env(safe-area-inset-top,0rem)+1.5rem)] sm:pt-6">
-                            <h3 className="text-xl font-black text-gray-900">{isEditMode ? 'Editar Documento' : 'Novo Documento'}</h3>
+                    <div className="bg-white/95 backdrop-blur-xl w-full max-w-2xl sm:rounded-[2rem] rounded-t-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 duration-500 flex flex-col max-h-[95dvh] border border-white/50">
+                        <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-transparent pt-[calc(env(safe-area-inset-top,0rem)+1rem)]">
+                            <h3 className="text-lg font-black text-gray-900">{isEditMode ? 'Editar Documento' : 'Novo Documento'}</h3>
                             <button
                                 onClick={() => {
                                     setIsAddModalOpen(false);
                                     setIsEditMode(false);
                                     setEditingDocId(null);
                                 }}
-                                className="p-2 hover:bg-gray-200 rounded-xl transition-colors"
+                                className="text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50"
                                 type="button"
+                                aria-label="Fechar"
                             >
-                                <XIcon className="w-5 h-5" />
+                                <XIcon className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSaveDocument} className="p-6 space-y-4 overflow-y-auto flex-1 pb-[calc(env(safe-area-inset-bottom,0rem)+2rem)]">
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Título</label>
+                        <form onSubmit={handleSaveDocument} className="p-5 space-y-3.5 overflow-y-auto flex-1 pb-[calc(env(safe-area-inset-bottom,0rem)+1.5rem)] text-sm bg-transparent">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Título</label>
                                 <input
                                     required
                                     type="text"
                                     value={newDoc.title}
                                     onChange={e => setNewDoc({ ...newDoc, title: e.target.value })}
-                                    className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
+                                    className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm outline-none transition-all font-semibold text-gray-800"
                                     placeholder="Ex: Regimento Interno 2024"
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Descrição (Opcional)</label>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Descrição (Opcional)</label>
                                 <textarea
                                     value={newDoc.description}
                                     onChange={e => setNewDoc({ ...newDoc, description: e.target.value })}
-                                    className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all h-24 resize-none"
+                                    className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm outline-none transition-all h-16 resize-none font-semibold text-gray-700"
                                     placeholder="Informações adicionais sobre o documento..."
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Categoria</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Categoria</label>
                                     <select
                                         value={newDoc.category}
                                         onChange={e => setNewDoc({ ...newDoc, category: e.target.value })}
-                                        className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                                        className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm outline-none transition-all font-semibold text-gray-800"
                                     >
                                         {CATEGORIES.filter(c => c !== 'Todos').map(c => (
                                             <option key={c} value={c}>{c}</option>
                                         ))}
                                     </select>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Arquivo (PDF)</label>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Arquivo (PDF)</label>
                                     {!isEditMode ? (
                                         <>
                                             <input
@@ -685,23 +687,23 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                             />
                                             <label
                                                 htmlFor="file-upload"
-                                                className="flex items-center justify-center gap-3 p-4 bg-indigo-50 border-2 border-dashed border-indigo-200 rounded-2xl cursor-pointer hover:bg-indigo-100 transition-all text-indigo-600 font-bold h-[52px]"
+                                                className="flex items-center justify-center gap-2 px-3 bg-white border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl cursor-pointer hover:bg-indigo-50/20 transition-all text-indigo-600 font-bold h-[42px] text-xs shadow-sm active:scale-95"
                                             >
-                                                <PlusIcon className="w-5 h-5 flex-shrink-0" />
+                                                <PlusIcon className="w-4.5 h-4.5 flex-shrink-0" />
                                                 <span className="truncate">{selectedFile ? selectedFile.name : 'Selecionar'}</span>
                                             </label>
                                         </>
                                     ) : (
-                                        <div className="flex items-center gap-3 p-4 bg-gray-100 border border-gray-200 rounded-2xl text-gray-500 font-bold h-[52px] opacity-60 cursor-not-allowed">
-                                            <FileIcon className="w-5 h-5 flex-shrink-0" />
-                                            <span className="truncate text-sm font-medium">{newDoc.fileName}</span>
+                                        <div className="flex items-center gap-2 px-3 bg-gray-50 border-2 border-gray-300 rounded-xl text-gray-400 font-bold h-[42px] opacity-60 cursor-not-allowed text-xs">
+                                            <FileIcon className="w-4 h-4 flex-shrink-0" />
+                                            <span className="truncate font-medium">{newDoc.fileName}</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-2">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 ml-1 flex items-center gap-2 select-none cursor-pointer">
                                     <input
                                         type="checkbox"
                                         checked={newDoc.isPinned}
@@ -712,27 +714,34 @@ const Documents: React.FC<DocumentsProps> = ({ setView }) => {
                                 </label>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex gap-3 pt-3">
                                 <button
                                     type="button"
                                     disabled={isUploading}
-                                    onClick={() => setIsAddModalOpen(false)}
-                                    className="flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all disabled:opacity-50"
+                                    onClick={() => {
+                                        setIsAddModalOpen(false);
+                                        setIsEditMode(false);
+                                        setEditingDocId(null);
+                                    }}
+                                    className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isUploading}
-                                    className="flex-2 py-4 px-8 text-[11px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95"
                                 >
                                     {isUploading ? (
                                         <>
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                                             Enviando...
                                         </>
                                     ) : (
-                                        'Salvar Documento'
+                                        <>
+                                            <CheckCircleIcon className="w-4 h-4" />
+                                            Salvar Documento
+                                        </>
                                     )}
                                 </button>
                             </div>

@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { SECTORS, STATUSES } from '../constants';
 import { uploadPhoto } from '../services/storage';
-import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon, WrenchScrewdriverIcon, BarChartIcon, SendIcon } from './Icons';
+import { EditIcon, TrashIcon, XIcon, PlusIcon, LoaderCircleIcon, CheckCircleIcon, LightbulbIcon, InfoIcon, HeartIcon, WrenchScrewdriverIcon, BarChartIcon, SendIcon, UploadIcon } from './Icons';
 import ImageLightbox from './ImageLightbox';
 import { getStatusStyle } from '../utils/statusUtils';
 import ConfirmModal from './ConfirmModal';
@@ -368,7 +368,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
           onClick={onClose}
         />
         <div
-          className={`bg-white shadow-2xl w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-[2rem] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'} sm:animate-scale-in border border-gray-100/50`}
+          className={`bg-white/95 backdrop-blur-xl shadow-2xl w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-[2rem] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'} sm:animate-scale-in border border-white/50`}
           style={{ transform: `translateY(${translateY}px)` }}
         >
           {/* Visual Drag Handle for Mobile */}
@@ -383,35 +383,26 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
           {/* Header Barra Superior */}
           <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 bg-white border-b border-gray-100 z-10 shrink-0 pt-[env(safe-area-inset-top,0.5rem)] sm:pt-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onClose}
-                className="flex items-center gap-1.5 p-2 -ml-2 hover:bg-gray-50 text-gray-500 hover:text-gray-800 rounded-xl transition-colors group"
-                aria-label="Voltar"
-              >
-                <XIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-                <span className="hidden sm:inline text-xs font-black uppercase tracking-widest opacity-85 group-hover:opacity-100">Voltar</span>
-              </button>
-
-              <div className="flex items-center gap-3 sm:gap-4 pl-1 sm:pl-2 border-l border-gray-150">
-                <div className={`p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shadow-inner hidden xs:flex`}>
-                  {request ? (request.type === RequestType.SUGESTOES ? <LightbulbIcon className="w-5 h-5" /> : <InfoIcon className="w-5 h-5" />) : <PlusIcon className="w-5 h-5" />}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-sm sm:text-base font-black text-gray-900 tracking-tight leading-none uppercase truncate">
-                    {request ? 'Detalhes' : 'Nova Demanda'}
-                  </h2>
-                  {request && (
-                    <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
-                      <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${style.bg} ${style.text} border ${style.border} whitespace-nowrap`}>
-                        {request.status}
-                      </span>
-                      <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
-                        • {formattedDate}
-                      </span>
-                    </div>
-                  )}
-                </div>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shadow-inner hidden xs:flex shrink-0`}>
+                {request ? (request.type === RequestType.SUGESTOES ? <LightbulbIcon className="w-5 h-5" /> : <InfoIcon className="w-5 h-5" />) : <PlusIcon className="w-5 h-5" />}
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+                  {request ? 'Detalhes da Demanda' : 'Nova Demanda'}
+                </h3>
+                {request ? (
+                  <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
+                    <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${style.bg} ${style.text} border ${style.border} whitespace-nowrap`}>
+                      {request.status}
+                    </span>
+                    <span className="text-[10px] uppercase font-black text-gray-400 mt-0.5 tracking-widest whitespace-nowrap truncate" title={fullFormattedDate}>
+                      • {formattedDate}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs font-medium text-gray-500 mt-0.5">Preencha os detalhes abaixo</p>
+                )}
               </div>
             </div>
 
@@ -419,7 +410,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
               {request && (isAuthor || canManage) && !isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-2.5 sm:p-3 hover:bg-gray-50 text-gray-500 hover:text-indigo-600 rounded-xl transition-all active:scale-90"
+                  className="p-2 sm:p-2.5 hover:bg-gray-50 text-gray-500 hover:text-indigo-600 rounded-xl transition-all active:scale-90"
                   title="Editar"
                 >
                   <EditIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -428,48 +419,58 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
               {request && (isAuthor || canManage) && (
                 <button
                   onClick={handleDelete}
-                  className="p-2.5 sm:p-3 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl transition-all active:scale-95 group"
+                  className="p-2 sm:p-2.5 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl transition-all active:scale-95 group"
                   title="Excluir"
                 >
                   <TrashIcon className="w-5 h-5 sm:w-6 sm:h-6 opacity-90 group-hover:opacity-100" />
                 </button>
               )}
+              <div className="w-px h-6 bg-gray-200 mx-1 sm:mx-2"></div>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50"
+                aria-label="Fechar"
+              >
+                <XIcon className="w-6 h-6" />
+              </button>
             </div>
           </div>
 
           {/* Modal Body - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto bg-white scrolling-touch pb-10 sm:pb-20">
-            <div className="max-w-4xl mx-auto w-full p-6 sm:p-10">
+          <div className="flex-1 overflow-y-auto bg-transparent scrolling-touch pb-2">
+            <div className="max-w-4xl mx-auto w-full p-4 sm:p-5">
 
               {/* 1. SEÇÃO DE CONTEÚDO (Título e Descrição) */}
               <section className="space-y-6">
                 {isEditing ? (
-                  <div className="space-y-4 animate-fade-in">
-                    <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl mb-4">
+                  <div className="space-y-3.5 animate-fade-in">
+                    <div className="bg-amber-50 border border-amber-150 p-2.5 rounded-xl mb-2.5">
                       <p className="text-[11px] font-bold text-amber-800 leading-tight">
                         📢 Esta seção é pública. Todos os moradores poderão ver sua sugestão ou pedido de manutenção para acompanhar o progresso.
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block px-1">Título</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Título <span className="text-red-500">*</span></label>
                       <input
                         value={title}
                         onChange={e => setTitle(e.target.value)}
                         placeholder="Ex: Melhoria no parquinho..."
-                        className="w-full bg-white border-2 border-gray-100 rounded-2xl px-4 py-3.5 focus:border-indigo-500 focus:ring-0 transition-all font-bold text-gray-800"
+                        className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-900 placeholder-gray-400 text-sm"
+                        required
                       />
-                      {errors.title && <p className="mt-1.5 px-2 text-[11px] font-bold text-red-500">{errors.title}</p>}
+                      {errors.title && <p className="mt-1 px-2 text-[11px] font-bold text-red-500">{errors.title}</p>}
                     </div>
                     <div>
-                      <label className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1.5 block px-1">Descrição Detalhada</label>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Descrição Detalhada <span className="text-red-500">*</span></label>
                       <textarea
                         value={description}
                         onChange={e => setDescription(e.target.value)}
-                        rows={5}
+                        rows={3}
                         placeholder="Conte mais sobre sua idéia ou necessidade..."
-                        className="w-full bg-white border-2 border-gray-100 rounded-2xl px-4 py-3.5 focus:border-indigo-500 focus:ring-0 transition-all font-medium text-gray-700 leading-relaxed"
+                        className="w-full px-4 py-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl outline-none transition-all font-semibold text-gray-900 placeholder-gray-400 resize-none text-sm"
+                        required
                       />
-                      {errors.description && <p className="mt-1.5 px-2 text-[11px] font-bold text-red-500">{errors.description}</p>}
+                      {errors.description && <p className="mt-1 px-2 text-[11px] font-bold text-red-500">{errors.description}</p>}
                     </div>
                   </div>
                 ) : (
@@ -611,7 +612,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                         onChange={e => setActionJustification(e.target.value)}
                         rows={3}
                         placeholder="Escreva a resposta oficial da gestão para o morador aqui..."
-                        className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                        className="w-full bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-2xl px-4 py-3 outline-none transition-all text-sm font-semibold text-gray-800"
                         autoFocus
                       />
 
@@ -633,11 +634,11 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
               {/* 3. GALERIA DE FOTOS */}
               {(photos.length > 0 || isEditing) && (
-                <section className="space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Fotos anexadas ({photos.length}/{MAX_PHOTOS})</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <section className="space-y-2.5">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-gray-405">Fotos anexadas ({photos.length}/{MAX_PHOTOS})</h3>
+                  <div className="flex flex-wrap gap-3">
                     {photos.map((photo, index) => (
-                      <div key={index} className="relative aspect-square group overflow-hidden rounded-[1.5rem] shadow-sm">
+                      <div key={index} className="relative w-20 h-20 group overflow-hidden rounded-xl shadow-sm border border-gray-200">
                         <img
                           src={photo}
                           className="w-full h-full object-cover cursor-zoom-in transition-transform group-hover:scale-110"
@@ -647,17 +648,19 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                           <button
                             type="button"
                             onClick={() => removePhoto(index)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 shadow-lg hover:scale-110 transition active:scale-95"
+                            className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:scale-115 transition active:scale-90"
                           >
-                            <XIcon className="w-3.5 h-3.5" />
+                            <XIcon className="w-3 h-3" />
                           </button>
                         )}
                       </div>
                     ))}
                     {isEditing && photos.length < MAX_PHOTOS && (
-                      <label className="aspect-square flex flex-col justify-center items-center border-3 border-dashed border-gray-200 rounded-[1.5rem] cursor-pointer bg-white hover:bg-indigo-50 hover:border-indigo-200 transition-all text-gray-400 hover:text-indigo-500">
-                        <PlusIcon className="w-10 h-10 mb-1" />
-                        <span className="text-[10px] font-black uppercase">Adicionar</span>
+                      <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
+                        <div className="bg-indigo-100 p-1.5 rounded-full mb-0.5 group-hover:bg-white transition-colors">
+                          <UploadIcon className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide">Adicionar</span>
                         <input type="file" multiple onChange={handlePhotoUpload} className="hidden" />
                       </label>
                     )}
@@ -735,7 +738,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                                         <input
                                           value={editingCommentText}
                                           onChange={e => setEditingCommentText(e.target.value)}
-                                          className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition-all shadow-sm"
+                                          className="w-full bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-sm outline-none transition-all shadow-sm"
                                           autoFocus
                                           onKeyDown={e => {
                                             if (e.key === 'Enter') handleSaveEditedComment(comment.id);
@@ -822,14 +825,22 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
           </div>
 
           {/* Modal Footer / Comment Input Area */}
-          <div className="bg-white border-t border-gray-100 shrink-0 z-10">
+          <div className="bg-transparent border-t border-gray-100 shrink-0 z-10">
             <div className="max-w-5xl mx-auto w-full p-4">
               {isEditing ? (
-                <div className="flex justify-end gap-3 p-2">
-                  <button type="button" onClick={onClose} className="px-6 py-3 font-black uppercase tracking-widest text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                <div className="flex gap-3 pt-2 w-full">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center"
+                  >
                     Cancelar
                   </button>
-                  <button onClick={handleSubmit} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95 transition-all">
+                  <button
+                    onClick={handleSubmit}
+                    className="flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95"
+                  >
+                    <CheckCircleIcon className="w-4 h-4" />
                     Publicar Demanda
                   </button>
                 </div>
@@ -853,22 +864,22 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                       ))}
                     </div>
                   )}
-                  <div className="flex gap-3 bg-slate-50 p-2 rounded-3xl border border-gray-100 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+                  <div className="flex gap-3 bg-white p-1.5 rounded-3xl border-2 border-gray-300 hover:border-gray-400 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
                     <input
                       type="text"
                       placeholder="Diga sua opinião..."
                       value={newComment}
                       onChange={e => handleInputChange(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-                      className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-4 text-gray-700 placeholder:text-gray-400"
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-semibold px-4 text-gray-800 placeholder:text-gray-450"
                     />
                     <button
                       type="button"
                       onClick={handleAddComment}
                       disabled={!newComment.trim()}
-                      className="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-90"
+                      className="bg-indigo-600 text-white p-2.5 rounded-2xl shadow-lg shadow-indigo-100 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-90"
                     >
-                      <SendIcon className="w-5 h-5 ml-0.5" />
+                      <SendIcon className="w-4 h-4 ml-0.5" />
                     </button>
                   </div>
                 </div>

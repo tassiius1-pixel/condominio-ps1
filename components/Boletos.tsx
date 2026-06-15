@@ -12,6 +12,7 @@ import {
   ChevronLeftIcon,
   FileIcon,
   InfoIcon,
+  CheckCircleIcon,
 } from './Icons';
 import JSZip from 'jszip';
 import { supabase } from '../services/supabase';
@@ -1490,12 +1491,12 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
       {/* ======================================================= */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 w-full max-w-2xl rounded-2xl shadow-xl flex flex-col my-8 animate-fade-in overflow-hidden">
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-250 dark:border-gray-800 w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col my-4 animate-fade-in overflow-hidden border-white/50">
             
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/40">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-transparent">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <BoletoIcon className="text-blue-500 w-6 h-6" />
+                <BoletoIcon className="text-indigo-600 w-6 h-6" />
                 Upload do Lote de Boletos
               </h3>
               <button
@@ -1506,83 +1507,83 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                 <XIcon className="w-5 h-5" />
               </button>
             </div>
-
+ 
             {/* Conteúdo dinâmico dependendo da etapa */}
-            <div className="flex-1 p-6 overflow-y-auto max-h-[70vh]">
+            <div className="flex-1 p-6 overflow-y-auto max-h-[85vh] bg-transparent">
               
               {/* ETAPA 1: SELECIONAR ZIP E MÊS */}
               {currentStep === 'upload' && (
-                <div className="space-y-6">
-                  {/* Seletor do Mês de Referência */}
-                  <div className="grid gap-2">
-                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                      Mês de Referência dos Boletos
-                    </label>
-                    <input
-                      type="month"
-                      value={refMonth}
-                      onChange={(e) => setRefMonth(e.target.value)}
-                      className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
-                      Boletos serão vinculados a este período.
-                    </p>
-                  </div>
-
-                  {/* Campo de Upload (Input ZIP) */}
-                  <div className="grid gap-2">
-                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                      Arquivo ZIP da Contabilidade
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-800/20 transition-all flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-3 text-blue-500">
-                        <FileIcon className="w-6 h-6" />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Left Column: Month selector and instructions */}
+                    <div className="space-y-4">
+                      <div className="grid gap-2">
+                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider pl-1">
+                          Mês de Referência
+                        </label>
+                        <input
+                          type="month"
+                          value={refMonth}
+                          onChange={(e) => setRefMonth(e.target.value)}
+                          className="w-full px-4 py-2.5 border-2 border-gray-200 hover:border-gray-300 dark:border-gray-750 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-semibold"
+                        />
                       </div>
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        {selectedFile ? selectedFile.name : 'Selecione o arquivo ZIP de boletos'}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 mb-4">
-                        Apenas arquivos no formato .zip
-                      </p>
-                      
-                      <input
-                        type="file"
-                        accept=".zip"
-                        id="zipFileInput"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          setSelectedFile(file);
-                        }}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="zipFileInput"
-                        className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg cursor-pointer shadow-sm active:scale-95 transition-all"
-                      >
-                        Procurar Arquivo
+
+                      {/* Informações de Formato Recomendado */}
+                      <div className="p-3.5 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-xl text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed space-y-1.5 shadow-sm">
+                        <p className="font-bold flex items-center gap-1">
+                          <InfoIcon className="w-3.5 h-3.5 shrink-0" />
+                          Instruções importantes:
+                        </p>
+                        <ul className="list-disc pl-4 space-y-1">
+                          <li>Boletos: nomeados com o número da casa no início (ex: <code className="bg-amber-100/60 dark:bg-amber-900/40 px-1 rounded font-bold">CASA 03 NOME.pdf</code>).</li>
+                          <li>Relatório financeiro geral: deve conter a palavra <code className="bg-amber-100/60 dark:bg-amber-900/40 px-1 rounded font-bold">BALANCETE</code> no nome.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Right Column: File selection container */}
+                    <div className="flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2 pl-1">
+                        Arquivo ZIP da Contabilidade
                       </label>
+                      <div className="flex-1 border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-xl p-5 text-center bg-white/50 dark:bg-gray-800/20 transition-all flex flex-col items-center justify-center min-h-[140px]">
+                        <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-2 text-indigo-500 shadow-inner">
+                          <FileIcon className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-black text-gray-700 dark:text-gray-300 max-w-[200px] truncate">
+                          {selectedFile ? selectedFile.name : 'Selecione o ZIP de boletos'}
+                        </p>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 mb-3">
+                          Apenas arquivos no formato .zip
+                        </p>
+                        
+                        <input
+                          type="file"
+                          accept=".zip"
+                          id="zipFileInput"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setSelectedFile(file);
+                          }}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="zipFileInput"
+                          className="px-4 py-2 text-xs font-bold text-gray-750 dark:text-gray-205 bg-white dark:bg-gray-800 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 text-center"
+                        >
+                          Procurar Arquivo
+                        </label>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Informações de Formato Recomendado */}
-                  <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl text-amber-800 dark:text-amber-300 text-xs leading-relaxed space-y-2">
-                    <p className="font-bold flex items-center gap-1">
-                      <InfoIcon className="w-4 h-4 shrink-0" />
-                      Instruções importantes sobre o padrão de nomes:
-                    </p>
-                    <ul className="list-disc pl-4 space-y-1">
-                      <li>Os boletos devem estar nomeados com o número da casa no início, no padrão: <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">CASA XX [NOME].pdf</code> (ex: <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">CASA 03 SAMARA SILVESTRE.pdf</code>).</li>
-                      <li>O arquivo contendo as contas/financeiro geral deve conter a palavra <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">BALANCETE</code> no nome (ex: <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">BALANCETE 052026.pdf</code>). Esse arquivo será enviado automaticamente para Documentos &gt; Financeiro.</li>
-                      <li>Demais arquivos que não sigam os padrões acima serão listados como ignorados.</li>
-                    </ul>
-                  </div>
-
+ 
                   {/* Ação */}
-                  <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-800 w-full">
                     <button
                       onClick={handleProcessZip}
                       disabled={isProcessing || !selectedFile}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm flex items-center gap-2 active:scale-95 transition-all shadow"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95 disabled:opacity-50"
                     >
                       {isProcessing ? (
                         <>
@@ -1590,7 +1591,10 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                           Processando ZIP...
                         </>
                       ) : (
-                        'Processar Arquivo ZIP'
+                        <>
+                          <CheckCircleIcon className="w-4 h-4" />
+                          Processar Arquivo ZIP
+                        </>
                       )}
                     </button>
                   </div>
@@ -1628,7 +1632,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                   )}
 
                   {/* Listagem de Arquivos Detectados */}
-                  <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden max-h-[350px] overflow-y-auto divide-y divide-gray-200 dark:divide-gray-800">
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden max-h-[220px] overflow-y-auto divide-y divide-gray-200 dark:divide-gray-800">
                     {processedFiles.map((file, idx) => {
                       if (file.type === 'boleto') {
                         const hasUser = !!file.matchedUser;
@@ -1739,20 +1743,20 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                       </div>
                     </div>
                   </div>
-
+ 
                   {/* Botões de Ação */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
                     <button
                       disabled={isUploading}
                       onClick={handleCloseModal}
-                      className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 hover:border-gray-400 rounded-xl transition-colors active:scale-95 shadow-sm text-center disabled:opacity-50"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={handleConfirmAndUpload}
                       disabled={isUploading || processedFiles.filter(f => f.type === 'boleto').length === 0}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-semibold rounded-lg text-sm flex items-center gap-2 transition-all shadow"
+                      className="flex-[2] px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex justify-center items-center gap-2 text-xs active:scale-95"
                     >
                       {isUploading ? (
                         <>
@@ -1760,7 +1764,10 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                           Enviando ({uploadProgress}%)
                         </>
                       ) : (
-                        'Confirmar e Enviar Lote'
+                        <>
+                          <CheckCircleIcon className="w-4 h-4" />
+                          Confirmar e Enviar Lote
+                        </>
                       )}
                     </button>
                   </div>
@@ -1881,20 +1888,21 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                       </div>
                     )}
                   </div>
-
+ 
                   {/* Ações Relatório */}
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800 gap-3">
                     <button
                       onClick={handleExportReport}
-                      className="px-4 py-2 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/20 text-blue-600 dark:text-blue-400 font-semibold rounded-lg text-sm flex items-center gap-1.5 transition-colors"
+                      className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
                     >
                       <DownloadIcon className="w-4 h-4" />
                       Imprimir Relatório (PDF)
                     </button>
                     <button
                       onClick={handleCloseModal}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition-colors"
+                      className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 font-bold flex items-center justify-center gap-2 text-xs active:scale-95"
                     >
+                      <CheckCircleIcon className="w-4 h-4" />
                       Fechar
                     </button>
                   </div>
@@ -1910,13 +1918,13 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
                     {uploadStatusText}
                   </span>
-                  <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400">
+                  <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
                     {uploadProgress}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                   <div
-                    className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                    className="bg-indigo-600 h-full rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
