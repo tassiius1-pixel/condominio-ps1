@@ -115,6 +115,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
   const [galleryMedia, setGalleryMedia] = useState<GalleryMedia[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadedUserIdRef = React.useRef<string | null>(null);
 
   const addToast = useCallback((message: string, type: "success" | "error" | "info") => {
     setToasts((prev) => [
@@ -421,6 +422,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const loadDataAndSubscribe = async (userId: string) => {
+      if (loadedUserIdRef.current === userId) {
+        console.log(`ℹ️ [DataContext] Sessão já carregada para ${userId}. Ignorando recarregamento redundante.`);
+        return;
+      }
+      loadedUserIdRef.current = userId;
       setLoading(true);
       console.log(`🔑 [DataContext] Sessão ativa para ${userId}. Carregando dados e ativando Realtime...`);
       
@@ -479,6 +485,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const clearAllData = () => {
       console.log("🧹 [DataContext] Usuário deslogado. Limpando dados da memória e desativando Realtime...");
       unsubscribeAll();
+      loadedUserIdRef.current = null;
       setUsers([]);
       setRequests([]);
       setReservations([]);

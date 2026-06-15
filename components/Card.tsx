@@ -19,10 +19,10 @@ interface CardProps {
 }
 
 const priorityAccent: Record<Priority, string> = {
-  [Priority.URGENTE]: 'from-red-500 to-rose-400',
-  [Priority.ALTA]:    'from-orange-500 to-amber-400',
-  [Priority.MEDIA]:   'from-yellow-400 to-yellow-300',
-  [Priority.BAIXA]:   'from-blue-400 to-indigo-400',
+  [Priority.URGENTE]: 'from-red-500 to-rose-500',
+  [Priority.ALTA]:    'from-orange-500 to-orange-400',
+  [Priority.MEDIA]:   'from-amber-500 to-amber-400',
+  [Priority.BAIXA]:   'from-slate-400 to-slate-300',
 };
 
 const typeIcons: Record<RequestType, React.ReactNode> = {
@@ -126,9 +126,6 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
         aria-label={`Abrir detalhes: ${request.title}`}
         className={`relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${canManage ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} group`}
       >
-        {/* Priority Accent Top Bar */}
-        <div className={`h-1 w-full bg-gradient-to-r ${accent}`} />
-
         <div className="p-5">
           {/* Header Row */}
           <div className="flex items-start justify-between gap-3 mb-3">
@@ -138,7 +135,8 @@ const Card: React.FC<CardProps> = ({ request, onDragStart, onCreateVoting }) => 
                 {typeIcons[request.type]}
               </div>
               <div className="min-w-0">
-                <h4 className="font-black text-gray-900 text-sm leading-tight tracking-tight line-clamp-1 group-hover:text-indigo-700 transition-colors duration-200">
+                <h4 className="font-black text-gray-900 text-sm leading-tight tracking-tight line-clamp-1 group-hover:text-indigo-700 transition-colors duration-200 flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full bg-gradient-to-r ${accent} shrink-0`} title={`Prioridade: ${request.priority}`} />
                   {request.title}
                 </h4>
                 <p className="text-[10px] font-semibold text-gray-400 mt-0.5 tracking-wide truncate">

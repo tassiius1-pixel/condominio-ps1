@@ -63,7 +63,7 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
   };
 
   return (
-    <div className="w-full space-y-8 pb-12 animate-fade-in">
+    <div className="w-full space-y-8 pb-12">
       {/* Tabs System */}
       <div className="flex items-center justify-between">
         <div className="flex p-1 bg-gray-200/50 rounded-2xl backdrop-blur-sm border border-gray-200/50">
@@ -112,8 +112,8 @@ const Board: React.FC<BoardProps> = ({ setView }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {displayedSuggestions.map((request, idx) => (
-            <div key={request.id} className="animate-slideFadeIn" style={{ animationDelay: `${idx * 0.05}s` }}>
+          {displayedSuggestions.map((request) => (
+            <div key={request.id}>
               <Card
                 request={request}
                 onDragStart={() => { }}
