@@ -398,7 +398,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                 {canManageVotings && activeTab !== 'create' && (
                     <button
                         onClick={() => setActiveTab('create')}
-                        className={`flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all active:scale-95 touch-active self-start md:self-auto`}
+                        className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 w-full md:w-auto justify-center font-black text-xs uppercase tracking-widest active:scale-95 touch-active self-start md:self-auto"
                     >
                         <PlusIcon className="w-5 h-5" />
                         <span>Nova Votação</span>
@@ -508,7 +508,7 @@ const VotingModule: React.FC<VotingModuleProps> = ({ setView }) => {
                                         />
                                     </div>
  
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-700 mb-1 pl-1">Data de Início</label>
                                             <input
