@@ -139,7 +139,57 @@ const UserManagement: React.FC = () => {
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-gray-100">
+      {/* Visualização Mobile: Cards empilhados */}
+      <div className="md:hidden space-y-4">
+        {users.map(user => (
+          <div
+            key={user.id}
+            className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col gap-4 hover:shadow-md transition-shadow"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-base font-black text-gray-900">
+                  {formatName(user.name)}
+                </div>
+                <div className="flex gap-3 text-xs text-gray-500 mt-1 font-medium">
+                  <span>Casa: <strong className="text-gray-900">{user.houseNumber}</strong></span>
+                  <span className="text-gray-300">|</span>
+                  <span className="font-mono">{formatCPF(user.cpf)}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => handleDeleteUser(user)}
+                disabled={user.role === Role.ADMIN}
+                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 disabled:text-gray-200 disabled:bg-transparent disabled:cursor-not-allowed shrink-0"
+                title="Excluir Usuário"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-100">
+              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                Perfil de Acesso
+              </label>
+              <select
+                value={user.role}
+                onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                disabled={user.role === Role.ADMIN}
+                className="block w-full px-3.5 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 font-bold transition-all shadow-sm"
+              >
+                <option value={Role.PROPRIETARIO}>Proprietário</option>
+                <option value={Role.INQUILINO}>Inquilino</option>
+                <option value={Role.GESTAO}>Gestão</option>
+                <option value={Role.SINDICO}>Síndico</option>
+                <option value={Role.SUBSINDICO}>Subsíndico</option>
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Visualização Desktop: Tabela clássica completa */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-100">
         <table className="min-w-full divide-y divide-gray-100">
           <thead className="bg-gray-50/50">
             <tr>
@@ -170,7 +220,6 @@ const UserManagement: React.FC = () => {
                     <option value={Role.GESTAO}>Gestão</option>
                     <option value={Role.SINDICO}>Síndico</option>
                     <option value={Role.SUBSINDICO}>Subsíndico</option>
-                    {/* ADMIN removed to prevent promotion */}
                   </select>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

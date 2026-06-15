@@ -843,17 +843,17 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
               /* ======================================================= */
               /* PAINEL DE GERENCIAMENTO INDIVIDUAL DE BOLETOS POR UNIDADE*/
               /* ======================================================= */
-              <div className="bg-white dark:bg-gray-850 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-6">
                 
                 {/* Cabeçalho do Painel */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-150 dark:border-gray-800 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
                         setActiveManagementMonth(null);
                         setHouseSearchQuery('');
                       }}
-                      className="p-1.5 text-gray-500 hover:text-gray-850 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
+                      className="p-1.5 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
                       title="Voltar para histórico de meses"
                     >
                       <ChevronLeftIcon className="w-6 h-6" />
@@ -875,7 +875,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                       placeholder="Buscar por número da casa..."
                       value={houseSearchQuery}
                       onChange={(e) => setHouseSearchQuery(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-850 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors"
                     />
                   </div>
                 </div>
@@ -914,7 +914,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                                   Boleto Enviado
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-750 rounded-full">
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-full">
                                   Sem Boleto
                                 </span>
                               )}
@@ -942,7 +942,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
                             {/* Detalhes Boleto se existir */}
                             {boleto && (
-                              <div className="p-2.5 bg-white dark:bg-gray-850 rounded-lg border border-gray-150 dark:border-gray-800 text-xs mb-4 space-y-1">
+                              <div className="p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-800 text-xs mb-4 space-y-1">
                                 <p className="font-bold text-gray-700 dark:text-gray-300 truncate" title={boleto.fileName}>
                                   📄 {boleto.fileName}
                                 </p>
@@ -954,7 +954,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                           </div>
 
                           {/* Ações */}
-                          <div className="border-t border-gray-150 dark:border-gray-800 pt-3 flex flex-wrap items-center gap-2">
+                          <div className="border-t border-gray-200 dark:border-gray-800 pt-3 flex flex-wrap items-center gap-2">
                             {isThisHouseUploading ? (
                               <div className="w-full flex items-center justify-center gap-2 py-1.5 text-xs text-blue-600 font-semibold">
                                 <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-blue-600"></div>
@@ -1044,7 +1044,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-850 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">
                   Histórico de Envio por Mês
                 </h2>
@@ -1065,84 +1065,163 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                       Faça o upload do primeiro arquivo ZIP de boletos da contabilidade para iniciar a distribuição.
                     </p>
                   </div>
-                ) : (
-                  <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-                      <thead className="bg-gray-50 dark:bg-gray-800/50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Mês de Referência
-                          </th>
-                          <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Envio e Arquivo
-                          </th>
-                          <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Status de Distribuição
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Ações
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-850 divide-y divide-gray-200 dark:divide-gray-800">
-                        {boletoUploads.map((upload) => {
-                          const isActive = boletos.some(b => b.referenceMonth === upload.referenceMonth);
-                          return (
-                            <tr key={upload.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-bold text-gray-800 dark:text-white">
+                                ) : (
+                  <>
+                    {/* Visualização Mobile: Cards empilhados */}
+                    <div className="md:hidden space-y-4">
+                      {boletoUploads.map((upload) => {
+                        const isActive = boletos.some(b => b.referenceMonth === upload.referenceMonth);
+                        return (
+                          <div
+                            key={upload.id}
+                            className="p-5 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 hover:shadow-md transition-all flex flex-col gap-4"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="text-base font-black text-gray-900 dark:text-white">
                                   {formatMonthName(upload.referenceMonth)}
                                 </div>
-                                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                                   Enviado em: {new Date(upload.uploadedAt).toLocaleString('pt-BR')}
                                 </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-center">
-                                <div className="text-sm font-semibold text-gray-750 dark:text-gray-300">
-                                  {upload.totalFiles} boletos
-                                </div>
-                                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-[200px] mx-auto" title={upload.fileName}>
-                                  {upload.fileName} ({Math.round(upload.fileSize / 1024)} KB)
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                              </div>
+                              <div>
                                 {isActive ? (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/40">
-                                    Ativo (No Storage)
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900/30">
+                                    Ativo
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-850 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-750">
-                                    Arquivado (Excluído)
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-250 dark:border-gray-700">
+                                    Arquivado
                                   </span>
                                 )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button
-                                  onClick={() => isActive && setActiveManagementMonth(upload.referenceMonth)}
-                                  disabled={!isActive}
-                                  className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 disabled:opacity-30 disabled:hover:text-blue-500 p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors mr-2"
-                                  title={isActive ? "Gerenciar boletos individuais deste mês" : "Lote arquivado. Não é possível gerenciar."}
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => isActive && setDeletingMonth(upload.referenceMonth)}
-                                  disabled={!isActive}
-                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                                  title={isActive ? "Remover lote completo deste mês" : "Lote arquivado. Já removido fisicamente."}
-                                >
-                                  <TrashIcon className="w-5 h-5" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                              </div>
+                            </div>
+
+                            <div className="border-t border-b border-gray-100 dark:border-gray-800 py-3 space-y-2.5 text-xs">
+                              <div className="flex justify-between text-gray-600 dark:text-gray-300">
+                                <span className="font-semibold text-gray-500 dark:text-gray-400">Total de boletos:</span>
+                                <span className="font-black text-gray-800 dark:text-white">{upload.totalFiles} boletos</span>
+                              </div>
+                              <div className="flex justify-between items-center gap-4 text-gray-600 dark:text-gray-300">
+                                <span className="font-semibold text-gray-500 dark:text-gray-400 shrink-0">Arquivo ZIP:</span>
+                                <span className="font-mono text-right truncate max-w-[200px] text-gray-700 dark:text-gray-300" title={upload.fileName}>
+                                  {upload.fileName}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-gray-600 dark:text-gray-300">
+                                <span className="font-semibold text-gray-500 dark:text-gray-400">Tamanho:</span>
+                                <span className="font-medium">{Math.round(upload.fileSize / 1024)} KB</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => isActive && setActiveManagementMonth(upload.referenceMonth)}
+                                disabled={!isActive}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-blue-50 hover:bg-blue-100 disabled:opacity-40 disabled:hover:bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                                title={isActive ? "Gerenciar boletos individuais deste mês" : "Lote arquivado"}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+                                </svg>
+                                Gerenciar
+                              </button>
+                              <button
+                                onClick={() => isActive && setDeletingMonth(upload.referenceMonth)}
+                                disabled={!isActive}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:hover:bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                                title={isActive ? "Remover lote completo deste mês" : "Lote arquivado"}
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                                Excluir
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Visualização Desktop: Tabela clássica completa */}
+                    <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                        <thead className="bg-gray-50 dark:bg-gray-800/50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Mês de Referência
+                            </th>
+                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Envio e Arquivo
+                            </th>
+                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Status de Distribuição
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Ações
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-800">
+                          {boletoUploads.map((upload) => {
+                            const isActive = boletos.some(b => b.referenceMonth === upload.referenceMonth);
+                            return (
+                              <tr key={upload.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm font-bold text-gray-800 dark:text-white">
+                                    {formatMonthName(upload.referenceMonth)}
+                                  </div>
+                                  <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                    Enviado em: {new Date(upload.uploadedAt).toLocaleString('pt-BR')}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    {upload.totalFiles} boletos
+                                  </div>
+                                  <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-[200px] mx-auto" title={upload.fileName}>
+                                    {upload.fileName} ({Math.round(upload.fileSize / 1024)} KB)
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                  {isActive ? (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+                                      Ativo (No Storage)
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                                      Arquivado (Excluído)
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <button
+                                    onClick={() => isActive && setActiveManagementMonth(upload.referenceMonth)}
+                                    disabled={!isActive}
+                                    className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 disabled:opacity-30 disabled:hover:text-blue-500 p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors mr-2"
+                                    title={isActive ? "Gerenciar boletos individuais deste mês" : "Lote arquivado. Não é possível gerenciar."}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                      <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => isActive && setDeletingMonth(upload.referenceMonth)}
+                                    disabled={!isActive}
+                                    className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                                    title={isActive ? "Remover lote completo deste mês" : "Lote arquivado. Já removido fisicamente."}
+                                  >
+                                    <TrashIcon className="w-5 h-5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -1151,7 +1230,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
           /* ======================================================= */
           /* VISÃO DO MORADOR: LISTA DE BOLETOS DA SUA UNIDADE       */
           /* ======================================================= */
-          <div className="bg-white dark:bg-gray-850 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
               <h2 className="text-lg font-bold text-gray-800 dark:text-white">
                 Boletos Recebidos da Unidade {currentUser ? String(currentUser.houseNumber).padStart(2, '0') : ''}
@@ -1230,7 +1309,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
       {/* ======================================================= */}
       {deletingMonth && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-800 w-full max-w-md rounded-xl p-6 shadow-xl animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 w-full max-w-md rounded-xl p-6 shadow-xl animate-fade-in">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
               Remover Lote de Boletos?
             </h3>
@@ -1275,7 +1354,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
       {/* ======================================================= */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-800 w-full max-w-2xl rounded-2xl shadow-xl flex flex-col my-8 animate-fade-in overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 w-full max-w-2xl rounded-2xl shadow-xl flex flex-col my-8 animate-fade-in overflow-hidden">
             
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/40">
@@ -1468,7 +1547,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                         return (
                           <div key={idx} className="p-3.5 flex items-start sm:items-center justify-between gap-3 text-sm opacity-60 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                             <div className="flex items-center gap-3">
-                              <span className="w-8 h-8 bg-gray-100 dark:bg-gray-850 text-gray-500 rounded-full flex items-center justify-center shrink-0">
+                              <span className="w-8 h-8 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-full flex items-center justify-center shrink-0">
                                 <XIcon className="w-4 h-4" />
                               </span>
                               <div>
@@ -1490,7 +1569,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                   </div>
 
                   {/* Resumo Estatístico */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-150 dark:border-gray-800/80 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-200 dark:border-gray-800/80 text-center">
                     <div>
                       <div className="text-xl font-extrabold text-gray-800 dark:text-white">
                         {processedFiles.length}
@@ -1572,7 +1651,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
                   {/* Resumo */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-150 dark:border-gray-800/80 text-center">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-200 dark:border-gray-800/80 text-center">
                       <div className="text-2xl font-extrabold text-green-600 dark:text-green-400">
                         {reportData.delivered}
                       </div>
@@ -1580,7 +1659,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                         Entregues & Notificados
                       </div>
                     </div>
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-150 dark:border-gray-800/80 text-center">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-200 dark:border-gray-800/80 text-center">
                       <div className="text-2xl font-extrabold text-yellow-600 dark:text-yellow-400">
                         {reportData.stored}
                       </div>
@@ -1610,9 +1689,9 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                         <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
                           Entregues (Moradores cadastrados que receberam push)
                         </div>
-                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-150 dark:divide-gray-800/60 max-h-[160px] overflow-y-auto">
+                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-200 dark:divide-gray-800/60 max-h-[160px] overflow-y-auto">
                           {reportData.deliveredList.map((item, idx) => (
-                            <div key={idx} className="p-2 px-3 text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-850/50">
+                            <div key={idx} className="p-2 px-3 text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-gray-700 dark:text-gray-300">
                                   Casa {String(item.house).padStart(2, '0')}
@@ -1641,9 +1720,9 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                         <div className="text-xs font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-wider">
                           Armazenados no Banco (Sem morador cadastrado no app)
                         </div>
-                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-150 dark:divide-gray-800/60 max-h-[160px] overflow-y-auto">
+                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-gray-200 dark:divide-gray-800/60 max-h-[160px] overflow-y-auto">
                           {reportData.storedList.map((item, idx) => (
-                            <div key={idx} className="p-2 px-3 text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-850/50">
+                            <div key={idx} className="p-2 px-3 text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-gray-700 dark:text-gray-300">
                                   Casa {String(item.house).padStart(2, '0')}
@@ -1690,7 +1769,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
             {/* Status do progresso persistido na base do modal se estiver enviando */}
             {isUploading && (
-              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-150 dark:border-gray-800">
+              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-200 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
                     {uploadStatusText}
