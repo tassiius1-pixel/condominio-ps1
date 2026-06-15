@@ -52,3 +52,16 @@ export const loadJsPDF = async (): Promise<void> => {
   // Em seguida carrega o plugin autoTable que depende do jsPDF
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js');
 };
+
+/**
+ * Carrega a biblioteca PDF.js (pdfjs-dist) dinamicamente.
+ */
+export const loadPdfJS = async (): Promise<any> => {
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  const pdfjsLib = (window as any).pdfjsLib;
+  if (pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  return pdfjsLib;
+};
+

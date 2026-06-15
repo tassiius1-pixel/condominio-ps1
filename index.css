@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
+  color-scheme: light;
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);

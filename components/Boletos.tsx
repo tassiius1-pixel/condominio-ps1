@@ -16,6 +16,7 @@ import {
 import JSZip from 'jszip';
 import { supabase } from '../services/supabase';
 import { sendPushNotification } from '../services/pushNotifications';
+import { loadPdfJS } from '../utils/scriptLoader';
 
 interface BoletosProps {
   setView: (view: View) => void;
@@ -25,10 +26,15 @@ interface ProcessedFile {
   name: string;
   type: 'boleto' | 'balancete' | 'ignored';
   houseNumber?: number;
+  originalHouseNumber?: number;
   matchedUser?: User;
   blob: Blob;
   size: number;
+  recognizedCpf?: string;
+  confidence: 'high' | 'medium' | 'none';
+  error?: string;
 }
+
 
 export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
   const {
@@ -105,6 +111,36 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
 
 
+  // Associação manual de boleto a uma casa no Preview de Confirmação
+  const handleManualHouseAssociation = (idx: number, value: string) => {
+    setProcessedFiles(prev => {
+      const next = [...prev];
+      const target = { ...next[idx] };
+      
+      if (value === 'ignore') {
+        target.type = 'ignored';
+        target.houseNumber = undefined;
+        target.matchedUser = undefined;
+        target.confidence = 'none';
+      } else if (value === '') {
+        target.type = 'boleto';
+        target.houseNumber = undefined;
+        target.matchedUser = undefined;
+        target.confidence = 'none';
+      } else {
+        const houseNum = parseInt(value, 10);
+        target.type = 'boleto';
+        target.houseNumber = houseNum;
+        // Procurar o morador associado correspondente no banco
+        target.matchedUser = users.find(u => u.houseNumber === houseNum);
+        target.confidence = 'medium'; // Atribuído manualmente assume média confiança
+      }
+      
+      next[idx] = target;
+      return next;
+    });
+  };
+
   // Processar o arquivo ZIP selecionado
   const handleProcessZip = async () => {
     if (!selectedFile) {
@@ -117,6 +153,14 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
       const zip = new JSZip();
       const loadedZip = await zip.loadAsync(selectedFile);
       const tempProcessed: ProcessedFile[] = [];
+
+      // Carrega o PDF.js dinamicamente antes do processamento
+      let pdfjsLib: any = null;
+      try {
+        pdfjsLib = await loadPdfJS();
+      } catch (pdfjsErr) {
+        console.error('Erro ao carregar o PDF.js. Fallback para nomes de arquivos ativo.', pdfjsErr);
+      }
 
       // Loop assíncrono sobre cada arquivo no zip
       const promises: Promise<void>[] = [];
@@ -134,33 +178,117 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
               name: fileName,
               type: 'balancete',
               blob: contentBlob,
-              size: fileSize
+              size: fileSize,
+              confidence: 'none'
             });
             return;
           }
 
-          // Verificar se segue o padrão CASA XX
-          const houseMatch = fileName.match(/^CASA\s+0*(\d+)/i);
-          if (houseMatch) {
-            const houseNumber = parseInt(houseMatch[1], 10);
-            const matchedUser = users.find(u => u.houseNumber === houseNumber);
-            console.log(`[ZIP Process] Arquivo: ${fileName} -> Casa: ${houseNumber}. Match encontrado:`, matchedUser ? matchedUser.name : 'Nenhum');
+          let extractedText = '';
+          let textLoadSuccess = false;
 
+          // Extração de texto usando PDF.js se carregado
+          if (pdfjsLib) {
+            try {
+              const arrayBuffer = await contentBlob.arrayBuffer();
+              const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+              const pdfDoc = await loadingTask.promise;
+              
+              if (pdfDoc.numPages > 0) {
+                const page = await pdfDoc.getPage(1);
+                const textContent = await page.getTextContent();
+                extractedText = textContent.items.map((item: any) => item.str).join(' ');
+                textLoadSuccess = true;
+              }
+            } catch (pdfReadErr) {
+              console.error(`Erro ao extrair texto do PDF ${fileName}:`, pdfReadErr);
+            }
+          }
+
+          // Variáveis de identificação
+          let matchedUser: User | undefined = undefined;
+          let confidence: 'high' | 'medium' | 'none' = 'none';
+          let recognizedCpf = '';
+          let houseNumber: number | undefined = undefined;
+
+          // Se extraiu texto do PDF, tenta casar por CPF e Casa no texto
+          if (textLoadSuccess && extractedText) {
+            const cleanCPF = (cpf: string) => cpf.replace(/\D/g, '');
+            const textCleanedForCpf = extractedText.replace(/\D/g, '');
+
+            // 1. Match por CPF (Alta Confiança)
+            for (const u of users) {
+              if (u.cpf) {
+                const uCpfClean = cleanCPF(u.cpf);
+                if (uCpfClean.length === 11) {
+                  const formattedCpf = u.cpf;
+                  if (textCleanedForCpf.includes(uCpfClean) || extractedText.includes(formattedCpf)) {
+                    matchedUser = u;
+                    recognizedCpf = u.cpf;
+                    houseNumber = u.houseNumber;
+                    confidence = 'high';
+                    break;
+                  }
+                }
+              }
+            }
+
+            // 2. Se não casou por CPF, busca padrão de Casa no texto do PDF
+            if (!matchedUser) {
+              const regexes = [
+                /casa\s+0*(\d+)/i,
+                /casa\s*-\s*0*(\d+)/i,
+                /unidade\s+0*(\d+)/i,
+                /casa\s+n[ºo\.]\s*0*(\d+)/i,
+                /casa\s+n[úu]mero\s*0*(\d+)/i,
+                /residente\s+na\s+casa\s+0*(\d+)/i
+              ];
+
+              for (const regex of regexes) {
+                const match = extractedText.match(regex);
+                if (match) {
+                  const num = parseInt(match[1], 10);
+                  const foundUser = users.find(u => u.houseNumber === num);
+                  houseNumber = num;
+                  matchedUser = foundUser;
+                  confidence = 'medium';
+                  break;
+                }
+              }
+            }
+          }
+
+          // 3. Fallback: Se não identificou por CPF/Texto, tenta pelo padrão de nome de arquivo
+          if (!matchedUser && houseNumber === undefined) {
+            const houseMatch = fileName.match(/^CASA\s+0*(\d+)/i);
+            if (houseMatch) {
+              const num = parseInt(houseMatch[1], 10);
+              const foundUser = users.find(u => u.houseNumber === num);
+              houseNumber = num;
+              matchedUser = foundUser;
+              confidence = 'medium';
+            }
+          }
+
+          if (houseNumber !== undefined) {
             tempProcessed.push({
               name: fileName,
               type: 'boleto',
               houseNumber,
+              originalHouseNumber: houseNumber,
               matchedUser,
               blob: contentBlob,
-              size: fileSize
+              size: fileSize,
+              recognizedCpf: recognizedCpf || undefined,
+              confidence
             });
           } else {
-            // Outros arquivos PDF que não se encaixam nas categorias
             tempProcessed.push({
               name: fileName,
               type: 'ignored',
               blob: contentBlob,
-              size: fileSize
+              size: fileSize,
+              confidence: 'none'
             });
           }
         })();
