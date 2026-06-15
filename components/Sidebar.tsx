@@ -67,38 +67,63 @@ const Sidebar: React.FC<SidebarProps> = ({
   const getRoleBadge = (role: Role) => {
     switch (role) {
       case Role.ADMIN:
-        return { label: 'Admin', classes: 'bg-purple-50 text-purple-700 border-purple-200' };
+        return { label: 'Admin', classes: 'bg-purple-100 text-purple-700 border-purple-200' };
       case Role.SINDICO:
-        return { label: 'Síndico', classes: 'bg-blue-50 text-blue-700 border-blue-200' };
+        return { label: 'Síndico', classes: 'bg-blue-100 text-blue-700 border-blue-200' };
       case Role.SUBSINDICO:
-        return { label: 'Subsíndico', classes: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+        return { label: 'Subsíndico', classes: 'bg-indigo-100 text-indigo-700 border-indigo-200' };
       case Role.GESTAO:
-        return { label: 'Gestão', classes: 'bg-teal-50 text-teal-700 border-teal-200' };
+        return { label: 'Gestão', classes: 'bg-teal-100 text-teal-700 border-teal-200' };
       case Role.PROPRIETARIO:
-        return { label: 'Proprietário', classes: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { label: 'Proprietário', classes: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
       case Role.INQUILINO:
-        return { label: 'Inquilino', classes: 'bg-amber-50 text-amber-700 border-amber-200' };
+        return { label: 'Inquilino', classes: 'bg-amber-100 text-amber-700 border-amber-200' };
       default:
-        return { label: 'Morador', classes: 'bg-gray-50 text-gray-700 border-gray-200' };
+        return { label: 'Morador', classes: 'bg-gray-100 text-gray-700 border-gray-200' };
     }
   };
 
   const badge = getRoleBadge(currentUser.role);
 
+  const NavItem = ({ item }: { item: typeof navItems[0] }) => {
+    const Icon = item.icon;
+    const isActive = currentView === item.id;
+    return (
+      <button
+        key={item.id}
+        onClick={() => setView(item.id as any)}
+        className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 group active:scale-[0.97] ${
+          isActive
+            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200/60'
+            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/80'
+        }`}
+      >
+        <Icon className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${
+          isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'
+        }`} />
+        <span className="truncate leading-none">{item.label}</span>
+        {isActive && (
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60 flex-shrink-0" />
+        )}
+      </button>
+    );
+  };
+
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 shadow-[4px_0_24px_rgba(0,0,0,0.006)] z-40">
+    <aside className="hidden lg:flex flex-col w-72 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 shadow-[4px_0_32px_rgba(0,0,0,0.04)] z-40">
+
       {/* CABEÇALHO: LOGO */}
-      <div className="px-6 py-5 border-b border-slate-200/60 flex items-center">
-        <div className="flex items-center gap-3">
-          <div className="relative group w-9 h-9 flex-shrink-0">
+      <div className="px-6 pt-7 pb-6 border-b border-slate-100">
+        <div className="flex items-center gap-3.5">
+          <div className="relative group w-11 h-11 flex-shrink-0">
             <img
               src={logoURL}
               alt="Logo do Condomínio"
-              className="w-full h-full object-contain rounded-xl bg-white shadow-sm p-1 border border-slate-100"
+              className="w-full h-full object-contain rounded-2xl bg-white shadow-md p-1.5 border border-slate-100"
             />
             {currentUser.role === Role.ADMIN && (
               <div
-                className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[1px]"
+                className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[1px]"
                 onClick={() => fileInputRef.current?.click()}
                 title="Alterar Logo"
               >
@@ -114,10 +139,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
           <div>
-            <h1 className="text-sm font-black text-slate-800 leading-none tracking-tight">
+            <h1 className="text-base font-black text-slate-800 leading-none tracking-tight">
               Porto Seguro 1
             </h1>
-            <p className="text-[9px] uppercase font-black text-blue-600 tracking-wider mt-0.5">
+            <p className="text-[10px] uppercase font-black text-indigo-500 tracking-widest mt-1">
               Condomínio Residencial
             </p>
           </div>
@@ -125,120 +150,61 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* MENU DE NAVEGAÇÃO */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 no-scrollbar flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto px-4 py-5 no-scrollbar flex flex-col gap-6">
+
         {/* GRUPO GERAL */}
-        <div className="space-y-1.5">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] px-3.5 block mb-2.5">
+        <div>
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 block mb-3">
             Geral
           </span>
-          <div className="space-y-1 pt-0.5">
-            {normalMenuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setView(item.id as any)}
-                  className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group active:scale-[0.98] ${
-                    isActive
-                      ? 'bg-indigo-50/70 text-indigo-600 shadow-sm shadow-indigo-100/30 scale-[1.01] translate-x-0.5'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/50 hover:translate-x-1'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 mr-3 flex-shrink-0 transition-transform group-hover:scale-105 ${
-                    isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-500'
-                  }`} />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              );
-            })}
+          <div className="space-y-1.5">
+            {normalMenuItems.map((item) => (
+              <NavItem key={item.id} item={item} />
+            ))}
           </div>
         </div>
 
         {/* GRUPO ADMINISTRAÇÃO */}
         {isManagement && managementMenuItems.length > 0 && (
-          <div className="space-y-1.5 mt-auto pt-4 border-t border-slate-200/60">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] px-3.5 block mb-2.5">
+          <div className="pt-5 border-t border-slate-100">
+            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 block mb-3">
               Administração
             </span>
-            <div className="space-y-1 pt-0.5">
-              {managementMenuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setView(item.id as any)}
-                    className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group active:scale-[0.98] ${
-                      isActive
-                        ? 'bg-indigo-50/70 text-indigo-600 shadow-sm shadow-indigo-100/30 scale-[1.01] translate-x-0.5'
-                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/50 hover:translate-x-1'
-                    }`}
-                  >
-                    <Icon className={`w-5 h-5 mr-3 flex-shrink-0 transition-transform group-hover:scale-105 ${
-                      isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-500'
-                    }`} />
-                    <span className="truncate">{item.label}</span>
-                  </button>
-                );
-              })}
+            <div className="space-y-1.5">
+              {managementMenuItems.map((item) => (
+                <NavItem key={item.id} item={item} />
+              ))}
             </div>
           </div>
         )}
       </div>
 
       {/* RODAPÉ: PERFIL + AÇÕES */}
-      <div className="border-t border-slate-200/60 flex-shrink-0">
-        {/* Linha do perfil: Avatar + Nome + Sino + Logout */}
-        <div className="flex items-center gap-2 px-4 py-3.5">
+      <div className="border-t border-slate-100 flex-shrink-0 px-4 py-4">
+        <div className="flex items-center gap-2.5 bg-slate-50 rounded-2xl px-3 py-2.5">
           {/* Avatar */}
-          <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white rounded-lg flex items-center justify-center font-black text-[11px] shrink-0">
+          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-indigo-200/50">
             {currentUser.name.charAt(0).toUpperCase()}
           </div>
 
           {/* Nome e badge */}
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-black text-slate-700 truncate uppercase tracking-wide leading-none">
+            <p className="text-xs font-black text-slate-700 leading-none truncate">
               {currentUser.name.split(' ')[0]} {currentUser.name.split(' ').length > 1 ? currentUser.name.split(' ')[currentUser.name.split(' ').length - 1] : ''}
             </p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`text-[8px] font-bold px-1.5 py-px rounded-full border ${badge.classes}`}>
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full border ${badge.classes} leading-none`}>
                 {badge.label}
               </span>
-              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">
                 Un. {currentUser.houseNumber}
               </span>
             </div>
           </div>
-
-          {/* Sino de Notificações */}
-          <div className="relative">
-            <button
-              ref={bellRef}
-              onClick={() => setShowNotifications(prev => !prev)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-200/50 transition-all active:scale-95"
-              title="Notificações"
-            >
-              <BellIcon className="h-4 w-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center font-black border border-white shadow-sm animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            <NotificationsDropdown
-              open={showNotifications}
-              onClose={() => setShowNotifications(false)}
-              triggerRef={bellRef}
-              className="inset-x-4 top-20 md:absolute md:inset-auto md:bottom-full md:left-0 md:mb-4 md:w-80"
-            />
-          </div>
-
           {/* Logout */}
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50/50 transition-all active:scale-95"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-95 shrink-0"
             title="Sair da Conta"
           >
             <LogOutIcon className="h-4 w-4" />

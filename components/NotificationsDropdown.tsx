@@ -72,12 +72,14 @@ const NotificationsDropdown: React.FC<Props> = ({ open, onClose, triggerRef, cla
     }
   };
 
+  const containerClass = className
+    ? `bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in ${className}`
+    : `fixed z-50 bg-white rounded-xl shadow-xl overflow-hidden animate-fade-in border border-gray-100 inset-x-4 top-20 md:absolute md:inset-auto md:top-full md:right-0 md:mt-4 md:w-80`;
+
   return (
     <div
       ref={dropdownRef}
-      className={`fixed z-50 bg-white rounded-xl shadow-xl overflow-hidden animate-fade-in border border-gray-100 ${
-        className || 'inset-x-4 top-20 md:absolute md:inset-auto md:top-full md:right-0 md:mt-4 md:w-80'
-      }`}
+      className={containerClass}
     >
       {/* Título + botão excluir todas */}
       <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50">

@@ -27,16 +27,18 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
     }> = ({ title, subtitle, icon, gradient, onClick }) => (
         <div
             onClick={onClick}
-            className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.03] active:scale-95 cursor-pointer`}
+            className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-4.5 text-white shadow-md transition-all duration-350 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer`}
         >
-            <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/20 blur-3xl transition-all group-hover:bg-white/30" />
-            <div className="relative z-10 flex items-center gap-5">
-                <div className="rounded-xl bg-white/20 p-3 backdrop-blur-md shrink-0 border border-white/20 group-hover:bg-white/30 transition-colors">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl transition-all group-hover:bg-white/20 pointer-events-none" />
+            <div className="relative z-10 flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/15 group-hover:bg-white/30 transition-all shrink-0">
                     {icon}
                 </div>
-                <div>
-                    <h3 className="text-lg font-black leading-tight tracking-tight">{title}</h3>
-                    <p className="text-xs text-white/80 mt-1 font-medium leading-snug">
+                <div className="min-w-0 flex-1">
+                    <h3 className="text-sm sm:text-[15px] font-black leading-tight tracking-tight whitespace-normal break-words">
+                        {title}
+                    </h3>
+                    <p className="text-[10px] sm:text-xs text-white/80 mt-0.5 font-medium leading-snug line-clamp-1">
                         {subtitle}
                     </p>
                 </div>
@@ -45,7 +47,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
     );
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Common Quick Actions */}
             <ActionCard
                 title="Reservar"
@@ -87,7 +89,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
 
             {!isAdminProfile && (
                 <ActionCard
-                    title="Sugestão/Manutenção"
+                    title="Sugestão / Manutenção"
                     subtitle="Ajude a melhorar"
                     icon={<LightbulbIcon className="h-6 w-6 text-white" />}
                     gradient="from-emerald-400 to-teal-600"
