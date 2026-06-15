@@ -103,7 +103,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
     return (
         <div className="space-y-8 animate-fade-in pb-20 max-w-[1400px] mx-auto">
             {/* HERO SECTION DE BOAS-VINDAS PREMIUM - COMPACTO E SUTIL */}
-            <div className="relative rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 p-5 sm:p-6 text-white shadow-md border border-slate-800">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 p-5 sm:p-6 text-white shadow-md border border-slate-800">
                 {/* Efeitos visuais discretos */}
                 <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
 

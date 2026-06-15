@@ -115,15 +115,16 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* CABEÇALHO: LOGO */}
       <div className="px-6 pt-7 pb-6 border-b border-slate-100">
         <div className="flex items-center gap-3.5">
-          <div className="relative group w-11 h-11 flex-shrink-0">
+          <div className="relative group w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden bg-white shadow-md border border-slate-100">
             <img
               src={logoURL}
               alt="Logo do Condomínio"
-              className="w-full h-full object-contain rounded-2xl bg-white shadow-md p-1.5 border border-slate-100"
+              className="w-full h-full object-contain"
+              style={{ transform: 'scale(1.2) translateX(2.2px)' }}
             />
             {currentUser.role === Role.ADMIN && (
               <div
-                className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[1px]"
+                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[1px]"
                 onClick={() => fileInputRef.current?.click()}
                 title="Alterar Logo"
               >

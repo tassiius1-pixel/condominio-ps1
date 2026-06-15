@@ -53,11 +53,12 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
       <div className="w-full max-w-md glass rounded-3xl shadow-2xl overflow-hidden relative z-10 animate-scale-in">
         <div className="p-8 sm:p-10">
           <div className="flex flex-col items-center mb-10">
-            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-6 overflow-hidden p-3 hover-lift">
+            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-6 overflow-hidden p-0 hover-lift">
               <img
                 src={logoURL}
                 alt="Condomínio Porto Seguro 1"
                 className="w-full h-full object-contain"
+                style={{ transform: 'scale(1.2) translateX(4.8px)' }}
               />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 text-center tracking-tight">Bem-vindo</h2>

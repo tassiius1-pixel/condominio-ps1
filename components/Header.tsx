@@ -159,16 +159,17 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex justify-between items-center h-16">
             {/* LOGO */}
             <div className="flex items-center gap-4">
-              <div className="relative group flex-shrink-0 w-10 h-10">
+              <div className="relative group flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md">
                 <img
                   src={logoURL}
                   alt="Logo do Condomínio"
-                  className="w-full h-full object-contain rounded-xl bg-white shadow-md p-1 hover-lift"
+                  className="w-full h-full object-contain hover-lift"
+                  style={{ transform: 'scale(1.2) translateX(2px)' }}
                 />
 
                 {currentUser.role === Role.ADMIN && (
                   <div
-                    className="absolute inset-0 bg-black/40 rounded-xl
+                    className="absolute inset-0 bg-black/40
                                  flex items-center justify-center opacity-0 
                                  group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-[2px]"
                     onClick={() => fileInputRef.current?.click()}

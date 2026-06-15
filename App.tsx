@@ -215,16 +215,15 @@ const App: React.FC = () => {
   }, [currentUser?.id]); // Depender apenas do ID do usuário garante que só rode ao trocar de usuário
 
   if (loadingAuth) {
+    const logoURL = condoLogo || "/favicon.png";
     return (
-      <div className="min-h-screen bg-slate-200 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 animate-bounce duration-1000">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-8 h-8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-            </svg>
+          <div className="w-16 h-16 bg-white rounded-[20px] flex items-center justify-center p-0 shadow-xl shadow-indigo-100/50 border border-slate-100 animate-bounce overflow-hidden">
+            <img src={logoURL} alt="Logo" className="w-full h-full object-contain" style={{ transform: 'scale(1.2) translateX(3.2px)' }} />
           </div>
-          <h2 className="text-xl font-black text-gray-900 tracking-tight">Nexora Flow</h2>
-          <p className="text-xs text-gray-500 font-bold uppercase tracking-widest animate-pulse">Carregando...</p>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>Porto Seguro 1</h2>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">Carregando...</p>
         </div>
       </div>
     );

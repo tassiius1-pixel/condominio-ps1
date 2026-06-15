@@ -907,7 +907,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         ` : ''}
 
         <div class="footer">
-          Condomínio Porto Seguro I - Nexora Flow System | Este relatório serve como comprovante eletrônico de processamento de boletos.
+          Condomínio Porto Seguro I - Sistema de Gestão | Este relatório serve como comprovante eletrônico de processamento de boletos.
         </div>
       </body>
       </html>
