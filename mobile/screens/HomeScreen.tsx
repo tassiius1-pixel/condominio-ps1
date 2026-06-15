@@ -32,7 +32,7 @@ export default function HomeScreen() {
                 {/* Placeholder for Dashboard Metrics */}
                 <View style={styles.grid}>
                     <View style={styles.gridItem}>
-                        <Text style={styles.gridLabel}>Ocorrências</Text>
+                        <Text style={styles.gridLabel}>Livro de Ocorrências</Text>
                         <Text style={styles.gridValue}>0</Text>
                     </View>
                     <View style={styles.gridItem}>

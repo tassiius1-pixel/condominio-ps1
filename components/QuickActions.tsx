@@ -65,7 +65,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
                 />
             ) : (
                 <ActionCard
-                    title="Ocorrência"
+                    title="Livro de Ocorrências"
                     subtitle="Algo errado? Avise aqui"
                     icon={<AlertTriangleIcon className="h-6 w-6 text-white" />}
                     gradient="from-amber-500 to-orange-600"

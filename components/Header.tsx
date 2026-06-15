@@ -120,7 +120,7 @@ const Header: React.FC<HeaderProps> = ({
     { id: "home", label: "Início", icon: LayoutDashboardIcon },
     { id: "dashboard", label: "Sugestões/Manutenções", icon: LightbulbIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
-    { id: "occurrences", label: "Ocorrências", icon: BookIcon },
+    { id: "occurrences", label: "Livro de Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
     { id: "documents", label: "Documentos", icon: FileIcon },
     { id: "boletos", label: "Boletos", icon: BoletoIcon },

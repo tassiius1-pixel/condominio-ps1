@@ -214,7 +214,7 @@ const Reports: React.FC = () => {
             : 'Período: Todos';
 
         doc.setFontSize(18);
-        doc.text(`Relatório de ${activeTab === 'sugestoes' ? 'Sugestões' : activeTab === 'reservas' ? 'Reservas' : 'Ocorrências'}`, 14, 22);
+        doc.text(`Relatório de ${activeTab === 'sugestoes' ? 'Sugestões' : activeTab === 'reservas' ? 'Reservas' : 'Livro de Ocorrências'}`, 14, 22);
         doc.setFontSize(11);
         doc.text(period, 14, 30);
 
@@ -406,7 +406,7 @@ const Reports: React.FC = () => {
                 {[
                     { id: 'sugestoes', label: 'Sugestões', icon: <LightbulbIcon className="w-4 h-4" /> },
                     { id: 'reservas', label: 'Reservas', icon: <CalendarIcon className="w-4 h-4" /> },
-                    { id: 'ocorrencias', label: 'Ocorrências', icon: <AlertTriangleIcon className="w-4 h-4" />, roles: [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO] },
+                    { id: 'ocorrencias', label: 'Livro de Ocorrências', icon: <AlertTriangleIcon className="w-4 h-4" />, roles: [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO] },
                     { id: 'votacoes', label: 'Votações', icon: <CheckCircleIcon className="w-4 h-4" /> },
                 ]
                     .filter(tab => !tab.roles || tab.roles.includes(currentUser?.role || Role.PROPRIETARIO))
@@ -484,7 +484,7 @@ const Reports: React.FC = () => {
             {activeTab === 'ocorrencias' && (
                 <div className="space-y-6 animate-fade-in">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <StatCard title="Total Ocorrências" value={filteredOccurrences.length} color="border-rose-500" icon={<AlertTriangleIcon className="w-5 h-5" />} />
+                        <StatCard title="Total no Livro" value={filteredOccurrences.length} color="border-rose-500" icon={<AlertTriangleIcon className="w-5 h-5" />} />
                         <StatCard title="Em Aberto" value={occurrencesByStatus['Aberto'] || 0} color="border-amber-500" icon={<ClockIcon className="w-5 h-5" />} />
                         <StatCard title="Resolvidas" value={occurrencesByStatus['Resolvido'] || 0} color="border-emerald-500" icon={<CheckCircleIcon className="w-5 h-5" />} />
                     </div>
@@ -492,12 +492,12 @@ const Reports: React.FC = () => {
                         <Chart
                             type="pie"
                             data={occurrencesByStatus}
-                            title="Status das Ocorrências"
+                            title="Status do Livro"
                             palette={['#F59E0B', '#10B981', '#6366F1', '#EC4899']}
                         />
                         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 overflow-y-auto h-80 no-scrollbar relative">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/30 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none"></div>
-                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-6 px-1 relative z-10">Últimas Ocorrências</h3>
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-6 px-1 relative z-10">Últimos Registros</h3>
                             <ul className="space-y-4 relative z-10">
                                 {filteredOccurrences.length === 0 ? (
                                     <li className="text-center py-10 text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Nenhuma ocorrência encontrada</li>
