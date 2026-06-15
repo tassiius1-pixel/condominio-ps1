@@ -1490,7 +1490,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
       {/* MODAL DE UPLOAD DE ZIP (FLUXO MULTI-ETAPAS)             */}
       {/* ======================================================= */}
       {isUploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 pt-12 sm:pt-4 overflow-y-auto">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-250 dark:border-gray-800 w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col my-4 animate-fade-in overflow-hidden border-white/50">
             
             {/* Header */}
@@ -1525,7 +1525,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                           type="month"
                           value={refMonth}
                           onChange={(e) => setRefMonth(e.target.value)}
-                          className="w-full px-4 py-2.5 border-2 border-gray-200 hover:border-gray-300 dark:border-gray-750 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-semibold"
+                          className="w-full px-4 py-1.5 h-11 border-2 border-gray-200 hover:border-gray-300 dark:border-gray-750 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-semibold"
                         />
                       </div>
 
