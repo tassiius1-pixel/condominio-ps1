@@ -75,7 +75,7 @@ interface DataContextType {
   clearLegacyData: () => Promise<void>;
 
   documents: DocumentType[];
-  addDocument: (docData: Omit<DocumentType, 'id' | 'createdAt'>) => Promise<void>;
+  addDocument: (docData: Omit<DocumentType, 'id' | 'createdAt'>, skipPush?: boolean) => Promise<void>;
   updateDocument: (id: string, data: Partial<DocumentType>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   toggleDocumentPin: (id: string) => Promise<void>;
@@ -1516,7 +1516,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const addDocument = async (docData: Omit<DocumentType, 'id' | 'createdAt'>) => {
+  const addDocument = async (docData: Omit<DocumentType, 'id' | 'createdAt'>, skipPush = false) => {
     const tempId = `temp-${Date.now()}`;
     const newDoc: DocumentType = {
       id: tempId,
@@ -1557,11 +1557,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         requestId: "",
       });
 
-      sendPushNotification(
-        "all",
-        "Novo Documento Adicionado",
-        `${docData.title} (${docData.category})`
-      );
+      if (!skipPush) {
+        sendPushNotification(
+          "all",
+          "Novo Documento Adicionado",
+          `${docData.title} (${docData.category})`
+        );
+      }
 
       addToast('Documento adicionado com sucesso!', 'success');
     } else {

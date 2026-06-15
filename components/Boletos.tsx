@@ -373,10 +373,13 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         });
 
         // Registrar moradores com match e sem match para o relatório final
-        if (pFile.matchedUser) {
-          usersToNotify.push({
-            user: pFile.matchedUser,
-            fileName: pFile.name
+        const houseUsers = users.filter(u => u.houseNumber === pFile.houseNumber);
+        if (houseUsers.length > 0) {
+          houseUsers.forEach(user => {
+            usersToNotify.push({
+              user: user,
+              fileName: pFile.name
+            });
           });
         } else {
           // Extrair o nome do morador a partir do nome do arquivo (ex: "CASA 02 JOSEANE XAVIER.pdf" -> "JOSEANE XAVIER")
@@ -433,7 +436,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
             .from('documents')
             .getPublicUrl(storagePath);
 
-          // Salvar como documento na categoria Financeiro
+          // Salvar como documento na categoria Financeiro (passando true no skipPush para evitar push redundante de documento, dando prioridade ao push do boleto)
           await addDocument({
             title: `Balancete Financeiro - ${formatMonthName(refMonth)}`,
             description: `Relatório do balancete mensal referente a ${formatMonthName(refMonth)}.`,
@@ -444,7 +447,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
             fileSize: balanceteFile.size,
             uploadedBy: currentUser?.id || '',
             isPinned: false
-          });
+          }, true);
         } else {
           console.error("Erro ao enviar balancete ao storage:", uploadError);
         }
