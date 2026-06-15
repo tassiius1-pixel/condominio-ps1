@@ -692,9 +692,18 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
   // Download ou Visualização do Boleto do Morador
   const handleOpenBoleto = async (boleto: Boleto, downloadDirectly = false) => {
+    let newWindow: Window | null = null;
+    
+    // Abre a janela em branco de forma síncrona se não for download direto
+    // para evitar que bloqueadores de pop-up impeçam a visualização após a Promise
+    if (!downloadDirectly) {
+      newWindow = window.open('', '_blank');
+    }
+
     try {
       const signedUrl = await getBoletoSignedUrl(boleto.fileUrl);
       if (!signedUrl) {
+        if (newWindow) newWindow.close();
         addToast('Não foi possível gerar o link seguro do boleto.', 'error');
         return;
       }
@@ -708,10 +717,15 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         a.click();
         document.body.removeChild(a);
       } else {
-        // Abrir em nova aba para visualização
-        window.open(signedUrl, '_blank');
+        // Direcionar a janela já aberta para a URL assinada do boleto
+        if (newWindow) {
+          newWindow.location.href = signedUrl;
+        } else {
+          window.open(signedUrl, '_blank');
+        }
       }
     } catch (error) {
+      if (newWindow) newWindow.close();
       console.error('Erro ao acessar boleto:', error);
       addToast('Erro ao acessar o boleto.', 'error');
     }
