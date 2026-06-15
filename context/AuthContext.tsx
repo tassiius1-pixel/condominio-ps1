@@ -41,6 +41,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (data) {
         console.log("🔍 [AuthContext] Perfil encontrado no banco:", data);
+        
+        // Se o usuário não estiver aprovado, fazemos o signout automático no banco
+        if (!data.is_approved) {
+          console.warn("⚠️ [AuthContext] Usuário pendente de aprovação detectado no fetchUserProfile. Deslogando...");
+          await supabase.auth.signOut();
+          setCurrentUser(null);
+          return;
+        }
+
         const formattedUser: User = {
           id: data.id,
           name: data.name,
