@@ -362,13 +362,13 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
         <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"
           onClick={onClose}
         />
         <div
-          className={`bg-white/95 backdrop-blur-xl shadow-2xl w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-[2rem] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'} sm:animate-scale-in border border-white/50`}
+          className={`bg-white/95 backdrop-blur-xl shadow-2xl w-full h-[85vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl rounded-t-[2.5rem] sm:rounded-[2rem] overflow-hidden flex flex-col transform transition-all relative z-10 ${isSwiping ? '' : 'duration-300'} sm:animate-scale-in border border-white/50`}
           style={{ transform: `translateY(${translateY}px)` }}
         >
           {/* Visual Drag Handle for Mobile */}
