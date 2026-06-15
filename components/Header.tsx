@@ -104,6 +104,17 @@ const Header: React.FC<HeaderProps> = ({
     (n) => (n.userId === "all" || n.userId === currentUser.id) && !n.readBy.includes(currentUser.id)
   ).length;
 
+  const getDisplayDate = () => {
+    const date = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    };
+    const formatted = date.toLocaleDateString('pt-BR', options);
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
   // Upload da logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -181,6 +192,12 @@ const Header: React.FC<HeaderProps> = ({
                 </h1>
                 <p className="text-[10px] uppercase font-extrabold text-blue-600 tracking-widest">Condomínio Residencial</p>
               </div>
+            </div>
+
+            {/* DATE DISPLAY IN THE MIDDLE */}
+            <div className="flex flex-col items-center justify-center text-center min-w-0 px-2 select-none shrink-0">
+              <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">Hoje é</span>
+              <span className="text-[11px] sm:text-xs font-black text-slate-800 mt-1 leading-none">{getDisplayDate()}</span>
             </div>
 
             {/* NAVIGATION & PROFILE */}

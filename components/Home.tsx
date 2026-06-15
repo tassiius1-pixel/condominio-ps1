@@ -3,7 +3,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import RequestModal from './RequestModal';
 import QuickActions from './QuickActions';
-import NotificationsDropdown from './NotificationsDropdown';
 
 const formatAreaName = (area: string) => {
     if (!area) return '';
@@ -31,8 +30,7 @@ import {
     BookIcon,
     BoletoIcon,
     InfoIcon,
-    XIcon,
-    BellIcon
+    XIcon
 } from './Icons';
 import { Request, Role, View, RequestType, Status, Notice } from '../types';
 
@@ -42,16 +40,10 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ setView }) => {
     const { currentUser } = useAuth();
-    const { votings, reservations, occurrences, requests, users, notices, boletos, notifications } = useData();
+    const { votings, reservations, occurrences, requests, users, notices, boletos } = useData();
 
-    const bellRef = useRef<HTMLButtonElement>(null);
-    const [showNotifications, setShowNotifications] = useState(false);
     const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
-
-    const unreadCount = notifications ? notifications.filter(
-        (n) => (n.userId === "all" || n.userId === currentUser?.id) && !n.readBy.includes(currentUser?.id || '')
-    ).length : 0;
 
     const isAdminProfile = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
 
@@ -106,16 +98,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
 
 
 
-    const getDisplayDate = () => {
-        const date = new Date();
-        const options: Intl.DateTimeFormatOptions = {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-        };
-        const formatted = date.toLocaleDateString('pt-BR', options);
-        return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-    };
+
 
     return (
         <div className="space-y-8 animate-fade-in pb-20 max-w-[1400px] mx-auto">
@@ -139,42 +122,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4 flex-shrink-0 self-start md:self-auto">
-                        {/* Bloco combinado de Sino + Data do Dia */}
-                        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-sm relative">
-                            {/* Sino de Notificações */}
-                            <button
-                                ref={bellRef}
-                                onClick={() => setShowNotifications(prev => !prev)}
-                                className="p-2.5 hover:bg-white/10 text-white rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center relative shrink-0"
-                                title="Notificações"
-                            >
-                                <BellIcon className="h-5 w-5" />
-                                {unreadCount > 0 && (
-                                    <span className="absolute top-1.5 right-1.5 h-4 w-4 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center font-black border border-slate-900 shadow-sm animate-pulse">
-                                        {unreadCount}
-                                    </span>
-                                )}
-                            </button>
 
-                            {/* Divisor vertical */}
-                            <div className="w-px h-8 bg-white/10 shrink-0" />
-
-                            {/* Bloco de Data */}
-                            <div className="pr-3 text-left shrink-0">
-                                <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest leading-none">Hoje é</p>
-                                <p className="text-xs font-black text-white mt-1.5 leading-none">{getDisplayDate()}</p>
-                            </div>
-
-                            {/* Dropdown de Notificações posicionado relativamente ao bloco de data/sino */}
-                            <NotificationsDropdown
-                                open={showNotifications}
-                                onClose={() => setShowNotifications(false)}
-                                triggerRef={bellRef}
-                                className="absolute right-0 top-full mt-3 w-80 z-50 shadow-2xl text-slate-800 text-left"
-                            />
-                        </div>
-                    </div>
                 </div>
             </div>
 
