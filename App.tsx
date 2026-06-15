@@ -26,6 +26,7 @@ const Documents = React.lazy(() => import("./components/Documents"));
 const Home = React.lazy(() => import("./components/Home"));
 const Boletos = React.lazy(() => import("./components/Boletos").then(m => ({ default: m.Boletos })));
 const Gallery = React.lazy(() => import("./components/Gallery"));
+const CreateNotice = React.lazy(() => import("./components/CreateNotice"));
 
 import Toast from "./components/Toast";
 import NotificationPrompt from "./components/NotificationPrompt";
@@ -78,6 +79,8 @@ const App: React.FC = () => {
       if (mainView === "users" && !isUserAdmin) {
         handleViewChange("home");
       } else if (mainView === "reports" && !isMgmt) {
+        handleViewChange("home");
+      } else if (mainView === "create-notice" && !isMgmt) {
         handleViewChange("home");
       }
     }
@@ -261,6 +264,12 @@ const App: React.FC = () => {
           switch (mainView) {
             case "home":
               return <Home setView={handleViewChange} />;
+            case "create-notice":
+              return [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role) ? (
+                <CreateNotice setView={handleViewChange} />
+              ) : (
+                <Home setView={handleViewChange} />
+              );
             case "dashboard":
               return <Dashboard setView={handleViewChange} />;
             case "reservations":

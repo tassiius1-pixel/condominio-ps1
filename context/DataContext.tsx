@@ -744,28 +744,31 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { data, error } = await supabase.from("requests").insert({
       title: requestData.title,
       description: requestData.description,
-      author_id: requestData.authorId
+      author_id: requestData.authorId,
+      type: requestData.type || RequestType.SUGESTOES,
+      sector: requestData.sector || Sector.OUTROS
     }).select().single();
 
     if (!error && data) {
       // Atualiza o ID temporário para o ID real do banco
       setRequests(prev => prev.map(r => r.id === tempId ? { ...r, id: data.id, createdAt: data.created_at } : r));
 
+      const isSuggestion = requestData.type === RequestType.SUGESTOES;
       await addNotification({
-        message: `Nova sugestão criada por ${authorName}`,
+        message: `Novo ${isSuggestion ? 'pedido de melhoria' : 'chamado de reparo'} criado por ${authorName}: ${requestData.title}`,
         userId: "all",
         requestId: "",
       });
 
       sendPushNotification(
         "all",
-        "Nova Sugestão Criada",
-        `${authorName} sugeriu: ${requestData.title}`
+        isSuggestion ? "Nova Melhoria Criada" : "Novo Reparo Solicitado",
+        `${authorName} enviou: ${requestData.title}`
       );
 
-      addToast("Sugestão registrada.", "success");
+      addToast(isSuggestion ? "Melhoria registrada com sucesso." : "Chamado de reparo registrado com sucesso.", "success");
     } else {
-      addToast("Erro ao registrar sugestão.", "error");
+      addToast("Erro ao registrar demanda.", "error");
       // Reverte em caso de erro
       setRequests(prev => prev.filter(r => r.id !== tempId));
     }
@@ -781,14 +784,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .from("requests")
       .update({
         title: updatedRequest.title,
-        description: updatedRequest.description
+        description: updatedRequest.description,
+        type: updatedRequest.type,
+        sector: updatedRequest.sector
       })
       .eq("id", updatedRequest.id);
 
     if (!error) {
-      addToast("Sugestão atualizada.", "success");
+      const isSuggestion = updatedRequest.type === RequestType.SUGESTOES;
+      addToast(isSuggestion ? "Melhoria atualizada com sucesso." : "Chamado de reparo atualizado com sucesso.", "success");
     } else {
-      addToast("Erro ao atualizar sugestão.", "error");
+      addToast("Erro ao atualizar demanda.", "error");
       setRequests(previousRequests);
     }
   };

@@ -217,7 +217,7 @@ export interface BoletoUpload {
   matchedFiles: number;
 }
 
-export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents" | "boletos" | "gallery";
+export type View = "home" | "dashboard" | "users" | "reports" | "reservations" | "occurrences" | "voting" | "documents" | "boletos" | "gallery" | "create-notice";
 
 export interface GalleryAlbum {
   id: string;

@@ -30,9 +30,11 @@ import {
     BookIcon,
     BoletoIcon,
     InfoIcon,
-    XIcon
+    XIcon,
+    WrenchScrewdriverIcon
 } from './Icons';
 import { Request, Role, View, RequestType, Status, Notice } from '../types';
+import { getStatusStyle } from '../utils/statusUtils';
 
 interface HomeProps {
     setView: (view: View) => void;
@@ -40,12 +42,29 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ setView }) => {
     const { currentUser } = useAuth();
-    const { votings, reservations, occurrences, requests, users, notices, boletos } = useData();
+    const { votings, reservations, occurrences, requests, users, notices, boletos, deleteNotice } = useData();
 
     const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
 
     const isAdminProfile = currentUser && [Role.ADMIN, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
+
+    // Próximas reservas do condomínio (Futuras ou de Hoje em diante)
+    const upcomingReservations = [...reservations]
+        .filter(r => {
+            const resDate = new Date(r.date + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return resDate >= today;
+        })
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 4);
+
+    // Chamados de manutenção recentes (reparos, sem sugestões)
+    const recentMaintenanceRequests = [...requests]
+        .filter(r => r.type !== RequestType.SUGESTOES)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 4);
 
     // Filter Pending Tasks for Management (Suggestions and Occurrences that need attention)
     const pendingRequests = requests.filter(req =>
@@ -100,6 +119,109 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
 
 
 
+    const renderNoticeBoard = (extraClass: string = "") => (
+        <div className={`bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col ${extraClass}`}>
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                    <InfoIcon className="h-5 w-5 text-indigo-600" />
+                    <h2 className="text-lg font-black text-slate-800 tracking-tight">Mural de Avisos</h2>
+                </div>
+                <span className="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-black">
+                    {notices.length}
+                </span>
+            </div>
+
+            {notices.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                        <BookIcon className="h-8 w-8 text-slate-300" />
+                    </div>
+                    <p className="text-sm text-slate-500 font-bold">Nenhum aviso ativo</p>
+                    <p className="text-xs text-slate-400 font-semibold mt-1">O mural de avisos está limpo hoje.</p>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {/* Primeiro aviso (Mais Recente) em Destaque Absoluto */}
+                    <div 
+                        onClick={() => setSelectedNotice(notices[0])}
+                        className="bg-gradient-to-br from-indigo-50/70 to-indigo-100/30 p-5 rounded-2xl border border-indigo-100/50 relative overflow-hidden cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
+                    >
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-5 -mt-5 blur-xl pointer-events-none" />
+                        <div className="flex items-center justify-between gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">
+                            <span>Aviso Recente</span>
+                            <div className="flex items-center gap-2">
+                                <span>{new Date(notices[0].createdAt).toLocaleDateString('pt-BR')}</span>
+                                {isAdminProfile && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (window.confirm("Deseja mesmo excluir este aviso?")) {
+                                                deleteNotice(notices[0].id);
+                                            }
+                                        }}
+                                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                                        title="Excluir aviso"
+                                    >
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <h3 className="text-base font-black text-indigo-950 leading-snug">
+                            {notices[0].title}
+                        </h3>
+                        <p className="text-xs text-indigo-900 mt-2 font-medium leading-relaxed line-clamp-4">
+                            {notices[0].content}
+                        </p>
+                    </div>
+
+                    {/* Lista resumida dos outros avisos */}
+                    {notices.length > 1 && (
+                        <div className="space-y-3 pt-2">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Avisos Anteriores</p>
+                            <div className="space-y-2.5 max-h-[200px] overflow-y-auto pr-1 no-scrollbar">
+                                {notices.slice(1, 4).map(notice => (
+                                    <div
+                                        key={notice.id}
+                                        onClick={() => setSelectedNotice(notice)}
+                                        className="p-3 bg-slate-50 hover:bg-slate-100/60 rounded-xl border border-slate-150 transition-all cursor-pointer hover:shadow-sm active:scale-[0.99]"
+                                    >
+                                        <div className="flex items-center justify-between gap-2 text-[9px] font-bold text-slate-400">
+                                            <span className="truncate max-w-[120px] font-extrabold">{notice.authorName}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span>{new Date(notice.createdAt).toLocaleDateString('pt-BR')}</span>
+                                                {isAdminProfile && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (window.confirm("Deseja mesmo excluir este aviso?")) {
+                                                                deleteNotice(notice.id);
+                                                            }
+                                                        }}
+                                                        className="text-red-500 hover:text-red-750 p-0.5 rounded hover:bg-red-50 transition-colors"
+                                                        title="Excluir aviso"
+                                                    >
+                                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <h4 className="text-xs font-black text-slate-700 mt-1 line-clamp-1">{notice.title}</h4>
+                                        <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 font-medium leading-normal">{notice.content}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="space-y-8 animate-fade-in pb-20 max-w-[1400px] mx-auto">
             {/* HERO SECTION DE BOAS-VINDAS PREMIUM - COMPACTO E SUTIL */}
@@ -122,27 +244,35 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                         </p>
                     </div>
 
-
+                    {isAdminProfile && (
+                        <div className="flex-shrink-0">
+                            <button
+                                onClick={() => setView('create-notice')}
+                                className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all active:scale-95 touch-active flex items-center gap-2"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                Criar Aviso
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* LAYOUT EM GRID PRINCIPAL (2 COLUNAS DE CONTEÚDO + 1 COLUNA LATERAL DE TAREFAS/AVISOS) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* COLUNA ESQUERDA + CENTRAL (2/3 de espaço) */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* SEÇÃO DE AÇÕES RÁPIDAS */}
-                    <section className="lg:hidden bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100">
-                        <div className="flex items-center gap-2 mb-6 px-1">
-                            <span className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                            <h2 className="text-xl font-black text-slate-800 tracking-tight">Ações Rápidas</h2>
-                        </div>
-                        <QuickActions setView={setView} onNewSuggestion={() => setView('dashboard')} />
-                    </section>
+            {/* LAYOUT EM GRID PRINCIPAL (Filhos diretos do grid para alinhamento de altura automática pelo CSS Grid) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+                {/* 1. SEÇÃO DE AÇÕES RÁPIDAS (Somente Mobile/Tablet) */}
+                <section className="lg:hidden bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 lg:col-span-3">
+                    <div className="flex items-center gap-2 mb-6 px-1">
+                        <span className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+                        <h2 className="text-xl font-black text-slate-800 tracking-tight">Ações Rápidas</h2>
+                    </div>
+                    <QuickActions setView={setView} onNewSuggestion={() => setView('dashboard')} />
+                </section>
 
-                    {/* SEÇÃO DINÂMICA DE STATUS (Estatísticas para Admins / Resumo da Unidade para Moradores) */}
-                    {isAdminProfile ? (
-                        /* ESTATÍSTICAS DO PAINEL ADMIN */
-                        <section className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100">
+                {/* 2. BLOCO ESQUERDA SUPERIOR (Estatísticas para Admins / Resumo da Unidade para Moradores) */}
+                {isAdminProfile ? (
+                    <section className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 lg:col-span-2 h-full flex flex-col justify-between">
+                        <div>
                             <div className="flex items-center justify-between mb-6 px-1">
                                 <div className="flex items-center gap-2">
                                     <span className="w-1.5 h-6 bg-purple-600 rounded-full" />
@@ -164,7 +294,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                             <AlertTriangleIcon className="w-5 h-5" />
                                         </div>
                                         <span className="text-2xl font-black text-slate-800 group-hover:text-red-700 transition-colors">
-                                            {pendingOccurrences.length}
+                                            {occurrences.filter(o => o.status === 'Aberto').length}
                                         </span>
                                     </div>
                                     <h3 className="text-sm font-black text-slate-700 mt-4">Livro de Ocorrências</h3>
@@ -178,7 +308,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                             <LightbulbIcon className="w-5 h-5" />
                                         </div>
                                         <span className="text-2xl font-black text-slate-800 group-hover:text-indigo-700 transition-colors">
-                                            {pendingRequests.length}
+                                            {requests.filter(r => r.type === RequestType.SUGESTOES && [Status.PENDENTE, Status.EM_ANALISE].includes(r.status)).length}
                                         </span>
                                     </div>
                                     <h3 className="text-sm font-black text-slate-700 mt-4">Sugestões Recebidas</h3>
@@ -213,10 +343,12 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                     <p className="text-xs text-slate-400 mt-1 font-medium">Contas ativas vinculadas no sistema.</p>
                                 </div>
                             </div>
-                        </section>
-                    ) : (
-                        /* RESUMO DA UNIDADE DO MORADOR (CARDS PREMIUM COM AÇÕES CLICÁVEIS) */
-                        <section className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100">
+                        </div>
+                    </section>
+                ) : (
+                    /* RESUMO DA UNIDADE DO MORADOR (CARDS PREMIUM COM AÇÕES CLICÁVEIS) */
+                    <section className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 lg:col-span-2 h-full flex flex-col justify-between">
+                        <div>
                             <div className="flex items-center gap-2 mb-6 px-1">
                                 <span className="w-1.5 h-6 bg-emerald-600 rounded-full" />
                                 <h2 className="text-xl font-black text-slate-800 tracking-tight">Sua Unidade hoje</h2>
@@ -299,15 +431,15 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                     </p>
                                 </div>
                             </div>
-                        </section>
-                    )}
-                </div>
+                        </div>
+                    </section>
+                )}
 
-                {/* COLUNA DIREITA (1/3 de espaço - Tarefas Pendentes para Admin / Mural de Avisos para Morador) */}
-                <div className="lg:col-span-1 space-y-6">
-                    {isAdminProfile ? (
-                        /* COLUNA DE TAREFAS PENDENTES PARA GESTORES */
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col h-full">
+                {/* 3. COLUNA DIREITA - SUPERIOR (Demandas Urgentes para Admin, Mural de Avisos para Morador na 1ª linha) */}
+                {isAdminProfile ? (
+                    /* COLUNA DE TAREFAS PENDENTES PARA GESTORES */
+                    <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between lg:col-span-1 h-full">
+                        <div>
                             <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
                                 <div className="flex items-center gap-2">
                                     <ClockIcon className="h-5 w-5 text-indigo-600" />
@@ -319,7 +451,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                             </div>
 
                             {pendingTasks.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
+                                <div className="flex flex-col items-center justify-center py-12 text-center flex-1">
                                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
                                         <CheckCircleIcon className="h-8 w-8 text-emerald-500" />
                                     </div>
@@ -327,7 +459,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                     <p className="text-xs text-slate-400 font-semibold mt-1">Nenhum chamado pendente no momento.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1 no-scrollbar flex-1">
+                                <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 no-scrollbar flex-1">
                                     {pendingTasks.slice(0, 5).map(task => {
                                         const isSuggestion = (task as any).taskType === 'suggestion';
                                         const isOld = (new Date().getTime() - new Date(task.createdAt).getTime()) > 2 * 24 * 60 * 60 * 1000;
@@ -388,74 +520,148 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        /* MURAL DE AVISOS DO CONDOMÍNIO PARA OS MORADORES */
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col h-full">
-                            <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
-                                <div className="flex items-center gap-2">
-                                    <InfoIcon className="h-5 w-5 text-indigo-600" />
-                                    <h2 className="text-lg font-black text-slate-800 tracking-tight">Mural de Avisos</h2>
+                    </div>
+                ) : (
+                    /* Para moradores, o Mural de Avisos fica aqui na 1ª linha */
+                    renderNoticeBoard("lg:col-span-1 h-full")
+                )}
+
+                {/* 4. COLUNA ESQUERDA - INFERIOR (Apenas para Gestores - Grid de Reservas/Manutenções) */}
+                {isAdminProfile && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:col-span-2">
+                        {/* PAINEL PRÓXIMAS RESERVAS */}
+                        <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[380px]">
+                            <div>
+                                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                                    <div className="flex items-center gap-2">
+                                        <CalendarIcon className="h-5 w-5 text-emerald-600" />
+                                        <h2 className="text-lg font-black text-slate-800 tracking-tight">Próximas Reservas</h2>
+                                    </div>
+                                    <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full text-xs font-black">
+                                        {upcomingReservations.length}
+                                    </span>
                                 </div>
-                                <span className="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-black">
-                                    {notices.length}
-                                </span>
+
+                                {upcomingReservations.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                                            <CalendarIcon className="h-6 w-6 text-slate-300" />
+                                        </div>
+                                        <p className="text-xs text-slate-500 font-bold">Nenhum agendamento futuro</p>
+                                        <p className="text-[10px] text-slate-400 font-semibold mt-1">O condomínio não possui reservas ativas para os próximos dias.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {upcomingReservations.map(res => (
+                                            <div 
+                                                key={res.id}
+                                                className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-100 rounded-2xl transition-all"
+                                            >
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                        <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/75 uppercase tracking-wider">
+                                                            {formatAreaName(res.area)}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-slate-400">
+                                                            Un. {res.houseNumber}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="text-xs font-black text-slate-700 truncate">
+                                                        {res.userName}
+                                                    </h4>
+                                                </div>
+                                                <div className="text-right ml-3 shrink-0">
+                                                    <span className="text-xs font-black text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-lg">
+                                                        {new Date(res.date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {notices.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                                        <BookIcon className="h-8 w-8 text-slate-300" />
-                                    </div>
-                                    <p className="text-sm text-slate-500 font-bold">Nenhum aviso ativo</p>
-                                    <p className="text-xs text-slate-400 font-semibold mt-1">O mural de avisos está limpo hoje.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 flex-1">
-                                    {/* Primeiro aviso (Mais Recente) em Destaque Absoluto */}
-                                    <div 
-                                        onClick={() => setSelectedNotice(notices[0])}
-                                        className="bg-gradient-to-br from-indigo-50/70 to-indigo-100/30 p-5 rounded-2xl border border-indigo-100/50 relative overflow-hidden cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
-                                    >
-                                        <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-5 -mt-5 blur-xl pointer-events-none" />
-                                        <div className="flex items-center justify-between gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">
-                                            <span>Aviso Recente</span>
-                                            <span>{new Date(notices[0].createdAt).toLocaleDateString('pt-BR')}</span>
-                                        </div>
-                                        <h3 className="text-base font-black text-indigo-950 leading-snug">
-                                            {notices[0].title}
-                                        </h3>
-                                        <p className="text-xs text-indigo-900 mt-2 font-medium leading-relaxed line-clamp-4">
-                                            {notices[0].content}
-                                        </p>
-                                    </div>
-
-                                    {/* Lista resumida dos outros avisos */}
-                                    {notices.length > 1 && (
-                                        <div className="space-y-3 pt-2">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Avisos Anteriores</p>
-                                            <div className="space-y-2.5 max-h-[200px] overflow-y-auto pr-1 no-scrollbar">
-                                                {notices.slice(1, 4).map(notice => (
-                                                    <div
-                                                        key={notice.id}
-                                                        onClick={() => setSelectedNotice(notice)}
-                                                        className="p-3 bg-slate-50 hover:bg-slate-100/60 rounded-xl border border-slate-150 transition-all cursor-pointer hover:shadow-sm active:scale-[0.99]"
-                                                    >
-                                                        <div className="flex items-center justify-between gap-2 text-[9px] font-bold text-slate-400">
-                                                            <span className="truncate max-w-[150px] font-extrabold">{notice.authorName}</span>
-                                                            <span>{new Date(notice.createdAt).toLocaleDateString('pt-BR')}</span>
-                                                        </div>
-                                                        <h4 className="text-xs font-black text-slate-700 mt-1 line-clamp-1">{notice.title}</h4>
-                                                        <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 font-medium leading-normal">{notice.content}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                            <button
+                                onClick={() => setView('reservations')}
+                                className="w-full text-center py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-150 rounded-2xl text-xs font-black text-indigo-650 uppercase tracking-widest transition-all mt-4 hover:shadow-sm"
+                            >
+                                Gerenciar Reservas →
+                            </button>
                         </div>
-                    )}
-                </div>
+
+                        {/* PAINEL CHAMADOS RECENTES */}
+                        <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col justify-between min-h-[380px]">
+                            <div>
+                                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                                    <div className="flex items-center gap-2">
+                                        <WrenchScrewdriverIcon className="h-5 w-5 text-indigo-600" />
+                                        <h2 className="text-lg font-black text-slate-800 tracking-tight">Manutenções Recentes</h2>
+                                    </div>
+                                    <span className="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-black">
+                                        {recentMaintenanceRequests.length}
+                                    </span>
+                                </div>
+
+                                {recentMaintenanceRequests.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                                            <WrenchScrewdriverIcon className="h-6 w-6 text-slate-300" />
+                                        </div>
+                                        <p className="text-xs text-slate-500 font-bold">Nenhum chamado de manutenção</p>
+                                        <p className="text-[10px] text-slate-400 font-semibold mt-1">Nenhum chamado registrado recentemente.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {recentMaintenanceRequests.map(req => {
+                                            const authorUser = users.find(u => u.id === req.authorId);
+                                            const house = authorUser ? authorUser.houseNumber : 'Portaria';
+                                            const statusStyle = getStatusStyle(req.status);
+
+                                            return (
+                                                <div 
+                                                    key={req.id}
+                                                    onClick={() => setSelectedRequest(req)}
+                                                    className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-100 rounded-2xl transition-all cursor-pointer group"
+                                                >
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[8px] font-black border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
+                                                                {statusStyle.icon} <span className="ml-1 uppercase tracking-wider">{req.status}</span>
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-slate-400">
+                                                                Un. {house}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="text-xs font-black text-slate-700 truncate group-hover:text-indigo-650 transition-colors">
+                                                            {req.title}
+                                                        </h4>
+                                                    </div>
+                                                    <div className="text-right ml-3 shrink-0">
+                                                        <span className="text-[10px] font-bold text-slate-400">
+                                                            {new Date(req.createdAt).toLocaleDateString('pt-BR')}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => setView('dashboard')}
+                                className="w-full text-center py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-150 rounded-2xl text-xs font-black text-indigo-650 uppercase tracking-widest transition-all mt-4 hover:shadow-sm"
+                            >
+                                Painel de Chamados →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* 5. COLUNA DIREITA - INFERIOR (Apenas para Gestores - Mural de Avisos na 2ª linha) */}
+                {isAdminProfile && (
+                    renderNoticeBoard("lg:col-span-1")
+                )}
             </div>
 
             {/* Modal de Detalhes da Sugestão */}

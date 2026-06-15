@@ -35,6 +35,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
   const [description, setDescription] = useState(request?.description || '');
   const [sector, setSector] = useState<Sector>(request?.sector || Sector.OUTROS);
   const [status, setStatus] = useState<Status>(request?.status || Status.PENDENTE);
+  const [type, setType] = useState<RequestType | null>(request ? request.type : null);
   const [photos, setPhotos] = useState<string[]>(request?.photos || []);
   const [justification, setJustification] = useState('');
   const [adminResponse, setAdminResponse] = useState(request?.adminResponse || '');
@@ -124,6 +125,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
     const errs: Record<string, string> = {};
     if (!title.trim()) errs.title = 'O título é obrigatório.';
     if (!description.trim()) errs.description = 'A descrição é obrigatória.';
+    if (!type) errs.type = 'A escolha entre Melhoria ou Reparo é obrigatória.';
 
     if (request && status !== request.status && !justification.trim()) {
       errs.justification = 'A justificativa é obrigatória para alteração de status.';
@@ -166,6 +168,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
         title,
         description,
         sector,
+        type: type || RequestType.SUGESTOES,
         status,
         photos,
         adminResponse: adminResponse, // Use the state directly
@@ -176,7 +179,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
         title,
         description,
         sector,
-        type: RequestType.SUGESTOES,
+        type: type || RequestType.SUGESTOES,
         priority: Priority.MEDIA,
         photos,
         authorId: currentUser.id,
@@ -448,6 +451,57 @@ const RequestModal: React.FC<RequestModalProps> = ({ request, onClose, initialSt
                       <p className="text-[11px] font-bold text-amber-800 leading-tight">
                         📢 Esta seção é pública. Todos os moradores poderão ver sua sugestão ou pedido de manutenção para acompanhar o progresso.
                       </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-2.5 pl-1">Tipo de Demanda <span className="text-red-500">*</span></label>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        {/* Botão Melhoria */}
+                        <button
+                          type="button"
+                          onClick={() => setType(RequestType.SUGESTOES)}
+                          className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 text-sm font-black transition-all duration-200 active:scale-[0.98] ${
+                            type === RequestType.SUGESTOES
+                              ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 shadow-md shadow-indigo-100/50'
+                              : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600 hover:bg-slate-50/80'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            type === RequestType.SUGESTOES ? 'border-indigo-600' : 'border-gray-300'
+                          }`}>
+                            {type === RequestType.SUGESTOES && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                            )}
+                          </div>
+                          <div className="text-left">
+                            <span className="block font-black text-xs xs:text-sm">Melhoria</span>
+                            <span className="block text-[9px] xs:text-[10px] font-semibold text-gray-400 leading-tight mt-0.5">Nova sugestão ou ideia</span>
+                          </div>
+                        </button>
+
+                        {/* Botão Reparo */}
+                        <button
+                          type="button"
+                          onClick={() => setType(RequestType.PEQUENOS_REPAROS)}
+                          className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 text-sm font-black transition-all duration-200 active:scale-[0.98] ${
+                            type === RequestType.PEQUENOS_REPAROS
+                              ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 shadow-md shadow-indigo-100/50'
+                              : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600 hover:bg-slate-50/80'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            type === RequestType.PEQUENOS_REPAROS ? 'border-indigo-600' : 'border-gray-300'
+                          }`}>
+                            {type === RequestType.PEQUENOS_REPAROS && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                            )}
+                          </div>
+                          <div className="text-left">
+                            <span className="block font-black text-xs xs:text-sm">Reparo</span>
+                            <span className="block text-[9px] xs:text-[10px] font-semibold text-gray-400 leading-tight mt-0.5">Conserto ou manutenção</span>
+                          </div>
+                        </button>
+                      </div>
+                      {errors.type && <p className="mt-1 px-2 text-[11px] font-bold text-red-500 mb-3">{errors.type}</p>}
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1.5 pl-1">Título <span className="text-red-500">*</span></label>
