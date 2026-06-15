@@ -32,7 +32,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
     const navItems = [
         { id: 'home', label: 'Início', icon: LayoutDashboardIcon },
         { id: 'reservations', label: 'Reservas', icon: CalendarIcon },
-        { id: 'dashboard', label: 'Sugestões/Mant.', icon: LightbulbIcon },
+        { id: 'dashboard', label: 'Melhorias & Rep.', icon: LightbulbIcon },
         { id: 'boletos', label: 'Boletos', icon: BoletoIcon },
     ];
 

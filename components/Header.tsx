@@ -150,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const navItems = [
     { id: "home", label: "Início", icon: LayoutDashboardIcon },
-    { id: "dashboard", label: "Sugestões/Manutenções", icon: LightbulbIcon },
+    { id: "dashboard", label: "Melhorias & Reparos", icon: LightbulbIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Livro de Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
@@ -241,7 +241,7 @@ const Header: React.FC<HeaderProps> = ({
                     >
                       <Icon className={`h-4.5 w-4.5 mr-1 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                       <span className="hidden 2xl:inline whitespace-nowrap">{item.label}</span>
-                      <span className="inline 2xl:hidden whitespace-nowrap">{item.id === 'dashboard' ? 'Sugestões/Mant.' : item.label}</span>
+                      <span className="inline 2xl:hidden whitespace-nowrap">{item.id === 'dashboard' ? 'Melhorias & Rep.' : item.label}</span>
                     </button>
                   );
                 })}

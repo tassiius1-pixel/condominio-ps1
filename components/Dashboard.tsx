@@ -65,10 +65,10 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
           )}
           <div className="min-w-0">
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
-              Sugestões e Manutenções
+              Melhorias & Reparos
             </h1>
             <p className="text-gray-500 text-[10px] md:text-sm mt-1 font-semibold leading-tight">
-              Envie sugestões de melhorias ou relate itens que precisam de manutenção no condomínio.
+              Envie sugestões de melhorias ou relate itens que precisam de reparos no condomínio.
             </p>
           </div>
         </div>

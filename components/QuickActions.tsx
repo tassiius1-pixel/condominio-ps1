@@ -87,7 +87,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ setView, onNewSuggestion })
 
             {!isAdminProfile && (
                 <ActionCard
-                    title="Sugestão / Manutenção"
+                    title="Melhorias & Reparos"
                     subtitle="Ajude a melhorar"
                     icon={<LightbulbIcon className="h-6 w-6 text-white" />}
                     gradient="from-emerald-400 to-teal-600"

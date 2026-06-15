@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems = [
     { id: "home", label: "Início", icon: LayoutDashboardIcon },
-    { id: "dashboard", label: "Sugestões/Manutenções", icon: LightbulbIcon },
+    { id: "dashboard", label: "Melhorias & Reparos", icon: LightbulbIcon },
     { id: "reservations", label: "Reservas", icon: CalendarIcon },
     { id: "occurrences", label: "Livro de Ocorrências", icon: BookIcon },
     { id: "voting", label: "Votação", icon: CheckSquareIcon },
