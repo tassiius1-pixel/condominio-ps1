@@ -16,7 +16,8 @@ import {
     DownloadIcon,
     FileIcon,
     TrashIcon,
-    ChevronLeftIcon
+    ChevronLeftIcon,
+    ChevronDownIcon
 } from './Icons';
 import ConfirmModal from './ConfirmModal';
 
@@ -97,6 +98,27 @@ const Chart: React.FC<{ type: 'pie' | 'bar'; data: Record<string, number>; title
     );
 };
 
+const formatVotingDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const trimmed = dateStr.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return new Date(trimmed + 'T12:00:00').toLocaleDateString('pt-BR');
+    }
+    const date = new Date(trimmed);
+    return isNaN(date.getTime()) ? 'Data Inválida' : date.toLocaleDateString('pt-BR');
+};
+
+const getInitialFilterDates = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return {
+        firstDay: `${y}-${m}-01`,
+        today: `${y}-${m}-${d}`
+    };
+};
+
 type ReportTab = 'sugestoes' | 'reservas' | 'ocorrencias' | 'votacoes';
 
 interface ReportsProps {
@@ -107,10 +129,12 @@ const Reports: React.FC<ReportsProps> = ({ setView }) => {
     const { requests, users, reservations, occurrences, votings, clearLegacyData } = useData();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('sugestoes');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const initialDates = getInitialFilterDates();
+    const [startDate, setStartDate] = useState(initialDates.firstDay);
+    const [endDate, setEndDate] = useState(initialDates.today);
     const [librariesLoaded, setLibrariesLoaded] = useState(false);
     const [loadingError, setLoadingError] = useState(false);
+    const [expandedVotings, setExpandedVotings] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         let isMounted = true;
@@ -541,7 +565,6 @@ const Reports: React.FC<ReportsProps> = ({ setView }) => {
                     </div>
                 </div>
             )}
-            营销
             {activeTab === 'votacoes' && (
                 <div className="space-y-6 animate-fade-in w-full overflow-hidden">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -562,7 +585,7 @@ const Reports: React.FC<ReportsProps> = ({ setView }) => {
                                 <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Nenhuma votação registrada no histórico</p>
                             </div>
                         ) : (
-                            [...votings].map(voting => {
+                            [...votings].map((voting, index) => {
                                 const totalVotes = voting.votes.length;
                                 const results = voting.options.map(opt => {
                                     const count = voting.votes.filter(v => v.optionIds.includes(opt.id)).length;
@@ -573,181 +596,216 @@ const Reports: React.FC<ReportsProps> = ({ setView }) => {
                                     };
                                 });
 
+                                const isExpanded = expandedVotings[voting.id] ?? false;
+
                                 return (
-                                    <div key={voting.id} className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 space-y-10 animate-slide-fade-in hover:shadow-md transition-shadow">
-                                        <div className="flex flex-col sm:flex-row justify-between items-start gap-8 border-b border-gray-50 pb-8">
-                                            <div className="min-w-0">
-                                                <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight truncate font-outfit leading-none mb-3">{voting.title}</h3>
-                                                <p className="text-sm font-medium text-gray-500 line-clamp-2 max-w-2xl">{voting.description}</p>
-                                                <div className="flex items-center gap-2 mt-6 bg-gray-50 px-4 py-2 rounded-2xl w-fit border border-gray-100 shadow-sm">
-                                                    <CalendarIcon className="w-3.5 h-3.5 text-gray-400" />
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                        {new Date(voting.startDate + 'T12:00:00').toLocaleDateString('pt-BR')} <span className="text-gray-300 mx-1">—</span> {new Date(voting.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2 shrink-0">
-                                                <button
-                                                    onClick={() => {
-                                                        const { jsPDF } = (window as any).jspdf;
-                                                        const doc = new jsPDF();
-                                                        doc.setFontSize(18);
-                                                        doc.text('Relatório de Votação (Detalhado)', 14, 22);
-                                                        doc.setFontSize(12);
-                                                        doc.text(`Título: ${voting.title}`, 14, 32);
-                                                        doc.text(`Total de Votos: ${voting.votes.length}`, 14, 38);
-
-                                                        const resultsData = results.map(res => [res.text, res.count.toString(), `${res.percentage}%`]);
-                                                        doc.autoTable({
-                                                            startY: 45,
-                                                            head: [['Opção', 'Votos', '%']],
-                                                            body: resultsData,
-                                                            theme: 'grid',
-                                                            headStyles: { fillColor: [79, 70, 229] }
-                                                        });
-
-                                                        const votesData = voting.votes.map(v => [
-                                                            v.houseNumber.toString(),
-                                                            v.userName,
-                                                            v.optionIds.map(oid => voting.options.find(o => o.id === oid)?.text).join(', '),
-                                                            new Date(v.timestamp).toLocaleString('pt-BR')
-                                                        ]);
-
-                                                        doc.text('Votos Individuais:', 14, doc.lastAutoTable.finalY + 10);
-                                                        doc.autoTable({
-                                                            startY: doc.lastAutoTable.finalY + 15,
-                                                            head: [['Casa', 'Morador', 'Escolha', 'Data/Hora']],
-                                                            body: votesData,
-                                                            theme: 'striped',
-                                                            styles: { fontSize: 8 }
-                                                        });
-                                                        doc.save(`relatorio_votacao_${voting.id}.pdf`);
-                                                    }}
-                                                    className="p-4 bg-red-50 text-red-600 rounded-3xl hover:bg-red-100 transition-all shadow-sm active:scale-95"
-                                                    title="Relatório Detalhado PDF"
-                                                >
-                                                    <FileIcon className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        const headers = ["Casa", "Morador", "Escolha", "Data/Hora"];
-                                                        const rows = voting.votes.map(v => [
-                                                            v.houseNumber,
-                                                            `"${v.userName}"`,
-                                                            `"${v.optionIds.map(oid => voting.options.find(o => o.id === oid)?.text).join(', ')}"`,
-                                                            new Date(v.timestamp).toLocaleString('pt-BR')
-                                                        ]);
-
-                                                        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-                                                        const encodedUri = encodeURI(csvContent);
-                                                        const link = document.createElement("a");
-                                                        link.setAttribute("href", encodedUri);
-                                                        link.setAttribute("download", `relatorio_votacao_${voting.id}.csv`);
-                                                        document.body.appendChild(link);
-                                                        link.click();
-                                                        document.body.removeChild(link);
-                                                    }}
-                                                    className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl hover:bg-emerald-100 transition-all shadow-sm active:scale-95"
-                                                    title="Base de Dados Excel (CSV)"
-                                                >
-                                                    <DownloadIcon className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Results Visuals */}
-                                        <div className="space-y-8">
-                                            <div className="flex items-center justify-between px-1">
-                                                <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Resultados Consolidados</h4>
-                                                <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-full border border-gray-100">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Total: {totalVotes} Moradores</span>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                                <div className="col-span-1 lg:col-span-2 space-y-6">
-                                                    {results.map(res => (
-                                                        <div key={res.id} className="space-y-3 group/opt">
-                                                            <div className="flex justify-between items-end">
-                                                                <span className="text-[10px] font-black text-gray-700 uppercase tracking-tight">{res.text}</span>
-                                                                <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100/50 shadow-sm">{res.count} votos ({res.percentage}%)</span>
-                                                            </div>
-                                                            <div className="w-full bg-gray-50 rounded-2xl h-4 overflow-hidden border border-gray-100 p-0.5">
-                                                                <div
-                                                                    className="bg-gradient-to-r from-indigo-500 via-indigo-400 to-purple-500 h-full rounded-xl transition-all duration-1000 shadow-sm"
-                                                                    style={{ width: `${res.percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                <div className="bg-indigo-600 rounded-[2rem] p-8 flex flex-col items-center justify-center text-white shadow-xl shadow-indigo-100 relative overflow-hidden group">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                    <BarChartIcon className="w-8 h-8 opacity-20 absolute -right-2 -bottom-2 group-hover:scale-125 transition-transform" />
-                                                    <p className="text-5xl font-black tracking-tighter mb-1 relative z-10">{totalVotes}</p>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 relative z-10">Participantes</p>
-                                                    <div className="mt-4 px-3 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest relative z-10 border border-white/10 backdrop-blur-sm">Quórum da Votação</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Individual Votes Table */}
-                                        <div className="space-y-6 pt-10 border-t border-gray-50">
-                                            <div className="flex items-center justify-between px-1">
-                                                <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Auditoria de Transparência</h4>
-                                                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
-                                                    <CheckCircleIcon className="w-2.5 h-2.5 text-emerald-500" />
-                                                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Votos Verificados</span>
-                                                </div>
-                                            </div>
-                                            {totalVotes === 0 ? (
-                                                <div className="bg-gray-50 rounded-3xl p-12 text-center border-2 border-dashed border-gray-100">
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nenhum voto registrado para auditoria</p>
-                                                </div>
-                                            ) : (
-                                                <div className="overflow-hidden rounded-[2rem] border border-gray-100 shadow-sm bg-white">
-                                                    <div className="overflow-x-auto no-scrollbar">
-                                                        <table className="min-w-full divide-y divide-gray-100">
-                                                            <thead className="bg-gray-50/50">
-                                                                <tr>
-                                                                    <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Unidade</th>
-                                                                    <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Morador</th>
-                                                                    <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Escolha Realizada</th>
-                                                                    <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Data / Hora</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-gray-50">
-                                                                {voting.votes.map((vote, idx) => (
-                                                                    <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                                                        <td className="px-8 py-5 whitespace-nowrap">
-                                                                            <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black rounded-full border border-indigo-100">CASA {vote.houseNumber}</span>
-                                                                        </td>
-                                                                        <td className="px-8 py-5">
-                                                                            <p className="text-xs font-black text-gray-800 uppercase tracking-tight">{vote.userName}</p>
-                                                                        </td>
-                                                                        <td className="px-8 py-5">
-                                                                            <div className="flex flex-wrap gap-2">
-                                                                                {vote.optionIds.map(optId => {
-                                                                                    const option = voting.options.find(o => o.id === optId);
-                                                                                    return (
-                                                                                        <span key={optId} className="px-2.5 py-1 rounded-xl bg-white text-[9px] font-black uppercase text-gray-500 border border-gray-200 shadow-xs">
-                                                                                            {option?.text}
-                                                                                        </span>
-                                                                                    );
-                                                                                })}
-                                                                            </div>
-                                                                        </td>
-                                                                        <td className="px-8 py-5 whitespace-nowrap">
-                                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tabular-nums">{new Date(vote.timestamp).toLocaleString('pt-BR')}</p>
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
+                                    <div key={voting.id} className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 animate-slide-fade-in hover:shadow-md transition-shadow">
+                                        {/* Header do Card (Clicável para expandir/colapsar) */}
+                                        <div 
+                                            onClick={() => setExpandedVotings(prev => ({ ...prev, [voting.id]: !isExpanded }))}
+                                            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 cursor-pointer select-none"
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight truncate font-outfit leading-none">{voting.title}</h3>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        {(() => {
+                                                            const now = new Date();
+                                                            const end = new Date(voting.endDate);
+                                                            end.setHours(23, 59, 59, 999);
+                                                            const isActive = now <= end;
+                                                            return (
+                                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                                                    isActive 
+                                                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-100' 
+                                                                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                                                                }`}>
+                                                                    {isActive ? 'Ativa' : 'Concluída'}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100/80 flex items-center gap-1.5 shadow-sm">
+                                                            <CalendarIcon className="w-3 h-3 text-gray-400" />
+                                                            {formatVotingDate(voting.startDate)} <span className="text-gray-300 mx-0.5">—</span> {formatVotingDate(voting.endDate)}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            )}
+                                                <p className={`text-sm font-medium text-gray-500 max-w-2xl ${!isExpanded ? 'line-clamp-1' : 'line-clamp-2'}`}>{voting.description}</p>
+                                            </div>
+                                            <div className="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0">
+                                                {/* Botões de Ação */}
+                                                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        onClick={() => {
+                                                            const { jsPDF } = (window as any).jspdf;
+                                                            const doc = new jsPDF();
+                                                            doc.setFontSize(18);
+                                                            doc.text('Relatório de Votação (Detalhado)', 14, 22);
+                                                            doc.setFontSize(12);
+                                                            doc.text(`Título: ${voting.title}`, 14, 32);
+                                                            doc.text(`Total de Votos: ${voting.votes.length}`, 14, 38);
+
+                                                            const resultsData = results.map(res => [res.text, res.count.toString(), `${res.percentage}%`]);
+                                                            doc.autoTable({
+                                                                startY: 45,
+                                                                head: [['Opção', 'Votos', '%']],
+                                                                body: resultsData,
+                                                                theme: 'grid',
+                                                                headStyles: { fillColor: [79, 70, 229] }
+                                                            });
+
+                                                            const votesData = voting.votes.map(v => [
+                                                                v.houseNumber.toString(),
+                                                                v.userName,
+                                                                v.optionIds.map(oid => voting.options.find(o => o.id === oid)?.text).join(', '),
+                                                                new Date(v.timestamp).toLocaleString('pt-BR')
+                                                            ]);
+
+                                                            doc.text('Votos Individuais:', 14, doc.lastAutoTable.finalY + 10);
+                                                            doc.autoTable({
+                                                                startY: doc.lastAutoTable.finalY + 15,
+                                                                head: [['Casa', 'Morador', 'Escolha', 'Data/Hora']],
+                                                                body: votesData,
+                                                                theme: 'striped',
+                                                                styles: { fontSize: 8 }
+                                                            });
+                                                            doc.save(`relatorio_votacao_${voting.id}.pdf`);
+                                                        }}
+                                                        className="p-4 bg-red-50 text-red-600 rounded-3xl hover:bg-red-100 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                                        title="Relatório Detalhado PDF"
+                                                    >
+                                                        <FileIcon className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            const headers = ["Casa", "Morador", "Escolha", "Data/Hora"];
+                                                            const rows = voting.votes.map(v => [
+                                                                v.houseNumber,
+                                                                `"${v.userName}"`,
+                                                                `"${v.optionIds.map(oid => voting.options.find(o => o.id === oid)?.text).join(', ')}"`,
+                                                                new Date(v.timestamp).toLocaleString('pt-BR')
+                                                            ]);
+
+                                                            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                                                            const encodedUri = encodeURI(csvContent);
+                                                            const link = document.createElement("a");
+                                                            link.setAttribute("href", encodedUri);
+                                                            link.setAttribute("download", `relatorio_votacao_${voting.id}.csv`);
+                                                            document.body.appendChild(link);
+                                                            link.click();
+                                                            document.body.removeChild(link);
+                                                        }}
+                                                        className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl hover:bg-emerald-100 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                                        title="Base de Dados Excel (CSV)"
+                                                    >
+                                                        <DownloadIcon className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                {/* Chevron indicador de expansão */}
+                                                <div className={`p-3 rounded-2xl bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all duration-300 ${isExpanded ? 'rotate-180 bg-indigo-50 text-indigo-600' : ''}`}>
+                                                    <ChevronDownIcon className="w-5 h-5" />
+                                                </div>
+                                            </div>
                                         </div>
+
+                                        {/* Conteúdo Expansível */}
+                                        {isExpanded && (
+                                            <div className="mt-10 pt-10 border-t border-gray-50 space-y-10 animate-fade-in">
+                                                {/* Results Visuals */}
+                                                <div className="space-y-8">
+                                                    <div className="flex items-center justify-between px-1">
+                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Resultados Consolidados</h4>
+                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-full border border-gray-100">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Total: {totalVotes} Moradores</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                                        <div className="col-span-1 lg:col-span-2 space-y-6">
+                                                            {results.map(res => (
+                                                                <div key={res.id} className="space-y-3 group/opt">
+                                                                    <div className="flex justify-between items-end">
+                                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-tight">{res.text}</span>
+                                                                        <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100/50 shadow-sm">{res.count} votos ({res.percentage}%)</span>
+                                                                    </div>
+                                                                    <div className="w-full bg-gray-50 rounded-2xl h-4 overflow-hidden border border-gray-100 p-0.5">
+                                                                        <div
+                                                                            className="bg-gradient-to-r from-indigo-500 via-indigo-400 to-purple-500 h-full rounded-xl transition-all duration-1000 shadow-sm"
+                                                                            style={{ width: `${res.percentage}%` }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="bg-indigo-600 rounded-[2rem] p-8 flex flex-col items-center justify-center text-white shadow-xl shadow-indigo-100 relative overflow-hidden group">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                            <BarChartIcon className="w-8 h-8 opacity-20 absolute -right-2 -bottom-2 group-hover:scale-125 transition-transform" />
+                                                            <p className="text-5xl font-black tracking-tighter mb-1 relative z-10">{totalVotes}</p>
+                                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-80 relative z-10">Participantes</p>
+                                                            <div className="mt-4 px-3 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest relative z-10 border border-white/10 backdrop-blur-sm">Quórum da Votação</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Individual Votes Table */}
+                                                <div className="space-y-6 pt-10 border-t border-gray-100">
+                                                    <div className="flex items-center justify-between px-1">
+                                                        <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Auditoria de Transparência</h4>
+                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
+                                                            <CheckCircleIcon className="w-2.5 h-2.5 text-emerald-500" />
+                                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Votos Verificados</span>
+                                                        </div>
+                                                    </div>
+                                                    {totalVotes === 0 ? (
+                                                        <div className="bg-gray-50 rounded-3xl p-12 text-center border-2 border-dashed border-gray-100">
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nenhum voto registrado para auditoria</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="overflow-hidden rounded-[2rem] border border-gray-100 shadow-sm bg-white">
+                                                            <div className="overflow-x-auto no-scrollbar">
+                                                                <table className="min-w-full divide-y divide-gray-100">
+                                                                    <thead className="bg-gray-50/50">
+                                                                        <tr>
+                                                                            <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Unidade</th>
+                                                                            <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Morador</th>
+                                                                            <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Escolha Realizada</th>
+                                                                            <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Data / Hora</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody className="divide-y divide-gray-50">
+                                                                        {voting.votes.map((vote, idx) => (
+                                                                            <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                                                                <td className="px-8 py-5 whitespace-nowrap">
+                                                                                    <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black rounded-full border border-indigo-100">CASA {vote.houseNumber}</span>
+                                                                                </td>
+                                                                                <td className="px-8 py-5">
+                                                                                    <p className="text-xs font-black text-gray-800 uppercase tracking-tight">{vote.userName}</p>
+                                                                                </td>
+                                                                                <td className="px-8 py-5">
+                                                                                    <div className="flex flex-wrap gap-2">
+                                                                                        {vote.optionIds.map(optId => {
+                                                                                            const option = voting.options.find(o => o.id === optId);
+                                                                                            return (
+                                                                                                <span key={optId} className="px-2.5 py-1 rounded-xl bg-white text-[9px] font-black uppercase text-gray-500 border border-gray-200 shadow-xs">
+                                                                                                    {option?.text}
+                                                                                                </span>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-8 py-5 whitespace-nowrap">
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tabular-nums">{new Date(vote.timestamp).toLocaleString('pt-BR')}</p>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })
