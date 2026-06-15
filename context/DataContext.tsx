@@ -24,6 +24,8 @@ import {
   GalleryMedia
 } from "../types";
 
+const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL || `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+
 interface DataContextType {
   users: User[];
   requests: Request[];
@@ -581,7 +583,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const token = session?.access_token;
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/manage-supabase-user`,
+        `${FUNCTIONS_URL}/manage-supabase-user`,
         {
           method: "POST",
           headers: {
@@ -605,9 +607,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       );
 
-      const resData = await response.json();
+      const text = await response.text();
+      let resData: any = {};
+      try {
+        resData = text ? JSON.parse(text) : {};
+      } catch (err) {
+        console.error("Erro ao converter resposta em JSON no addUser:", err, "Resposta bruta:", text);
+        throw new Error(`Resposta inválida do servidor (Status ${response.status}): ${text.substring(0, 100)}`);
+      }
+
       if (!response.ok) {
-        throw new Error(resData.error || "Erro ao cadastrar no Supabase.");
+        throw new Error(resData.error || `Erro ao cadastrar no Supabase (Status ${response.status}).`);
       }
 
       addToast("Usuário cadastrado com sucesso!", "success");
@@ -651,7 +661,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const token = session?.access_token;
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/manage-supabase-user`,
+        `${FUNCTIONS_URL}/manage-supabase-user`,
         {
           method: "POST",
           headers: {
@@ -666,9 +676,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       );
 
-      const resData = await response.json();
+      const text = await response.text();
+      let resData: any = {};
+      try {
+        resData = text ? JSON.parse(text) : {};
+      } catch (err) {
+        console.error("Erro ao converter resposta em JSON no deleteUser:", err, "Resposta bruta:", text);
+        throw new Error(`Resposta inválida do servidor (Status ${response.status}): ${text.substring(0, 100)}`);
+      }
+
       if (!response.ok) {
-        throw new Error(resData.error || "Erro ao excluir no Supabase.");
+        throw new Error(resData.error || `Erro ao excluir no Supabase (Status ${response.status}).`);
       }
 
       setUsers((prev) => prev.filter((u) => u.id !== userId));

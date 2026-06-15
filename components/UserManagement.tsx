@@ -257,10 +257,26 @@ const UserManagement: React.FC<UserManagementProps> = ({ setView }) => {
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-2.5 text-xs text-gray-555 font-semibold">
                     <div>Casa: <strong className="text-gray-900">{user.houseNumber}</strong></div>
-                    <div>Vínculo: <strong className="text-indigo-650 capitalize font-bold">{user.role}</strong></div>
-                    <div className="col-span-2 font-mono text-gray-500">CPF: {formatCPF(user.cpf)}</div>
+                    <div className="col-span-2 font-mono text-gray-500 mt-1">CPF: {formatCPF(user.cpf)}</div>
                     {user.phone && <div className="col-span-2 text-gray-500">Celular: {user.phone}</div>}
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-100">
+                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                    Vínculo / Perfil de Acesso
+                  </label>
+                  <select
+                    value={user.role}
+                    onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                    className="block w-full px-3.5 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl bg-white text-gray-900 font-bold transition-all shadow-sm"
+                  >
+                    <option value={Role.PROPRIETARIO}>Proprietário</option>
+                    <option value={Role.INQUILINO}>Inquilino</option>
+                    <option value={Role.GESTAO}>Gestão</option>
+                    <option value={Role.SINDICO}>Síndico</option>
+                    <option value={Role.SUBSINDICO}>Subsíndico</option>
+                  </select>
                 </div>
 
                 <div className="flex gap-2 pt-3 border-t border-gray-100">
@@ -353,7 +369,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ setView }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{formatName(user.name)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium tabular-nums">{formatCPF(user.cpf)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">{user.houseNumber}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-bold capitalize">{user.role}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                        className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl bg-white text-gray-900 font-bold transition-all shadow-sm"
+                      >
+                        <option value={Role.PROPRIETARIO}>Proprietário</option>
+                        <option value={Role.INQUILINO}>Inquilino</option>
+                        <option value={Role.GESTAO}>Gestão</option>
+                        <option value={Role.SINDICO}>Síndico</option>
+                        <option value={Role.SUBSINDICO}>Subsíndico</option>
+                      </select>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{user.phone || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                       <button

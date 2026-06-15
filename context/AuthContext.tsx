@@ -194,10 +194,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error("Erro ao registrar no Supabase:", err);
 
       let msg = "Erro ao cadastrar usuário.";
-      if (err.message?.includes("already registered") || err.message?.includes("already exists")) {
+      const errMsg = err?.message?.toLowerCase() || '';
+
+      if (errMsg.includes("already registered") || errMsg.includes("already exists") || errMsg.includes("profiles_username_key")) {
         msg = "Este nome de usuário já está em uso. Tente outro ou faça login.";
-      } else if (err.message?.includes("weak password") || err.message?.includes("should be at least")) {
+      } else if (errMsg.includes("profiles_cpf_key") || (errMsg.includes("duplicate key") && errMsg.includes("cpf"))) {
+        msg = "Este CPF já está cadastrado em outra conta. Caso tenha perdido o acesso, fale com a administração.";
+      } else if (errMsg.includes("weak password") || errMsg.includes("should be at least")) {
         msg = "A senha é muito fraca. Use pelo menos 6 caracteres.";
+      } else if (err.message) {
+        msg = err.message;
       }
 
       return { success: false, message: msg };
