@@ -1525,7 +1525,7 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                           type="month"
                           value={refMonth}
                           onChange={(e) => setRefMonth(e.target.value)}
-                          className="w-full px-4 py-0 h-12 border-2 border-gray-200 hover:border-gray-300 dark:border-gray-750 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-semibold text-base"
+                          className="w-full px-4 py-2.5 min-h-[3rem] border-2 border-gray-200 hover:border-gray-300 dark:border-gray-750 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-semibold text-base"
                         />
                       </div>
 

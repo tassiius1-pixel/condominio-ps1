@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -83,43 +84,30 @@ serve(async (req) => {
         const serviceAccount = JSON.parse(saEnv.trim().replace(/^\uFEFF/, ''));
         const accessToken = await getAccessToken(serviceAccount);
 
-        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents/users`;
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+
         let tokens: string[] = [];
 
         if (userId === "all") {
-            const firestoreRes = await fetch(`${firestoreUrl}?pageSize=1000`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            const firestoreData = await firestoreRes.json();
-            if (firestoreData.error) throw new Error(`Firestore: ${firestoreData.error.message}`);
+            const { data: pushTokens, error: dbError } = await supabaseClient
+                .from("user_push_tokens")
+                .select("token");
 
-            tokens = firestoreData.documents
-                ?.flatMap((doc: any) => {
-                    const single = doc.fields?.fcmToken?.stringValue;
-                    const array = doc.fields?.fcmTokens?.arrayValue?.values?.map((v: any) => v.stringValue);
-                    const all = [];
-                    if (single) all.push(single);
-                    if (array) all.push(...array);
-                    return all;
-                })
-                .filter((t: string | undefined) => !!t) || [];
-            tokens = [...new Set(tokens)]; // unique tokens
+            if (dbError) throw new Error(`Database Error: ${dbError.message}`);
+            tokens = pushTokens?.map((t: any) => t.token) || [];
         } else {
-            const userDocRes = await fetch(`${firestoreUrl}/${userId}`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            const userData = await userDocRes.json();
-            const t = userData.fields?.fcmToken?.stringValue;
-            if (t) tokens.push(t);
-            // Coleta tokens da lista fcmTokens (array)
-            const list = userData.fields?.fcmTokens?.arrayValue?.values;
-            if (list) {
-                list.forEach((v: any) => {
-                    const val = v.stringValue;
-                    if (val && !tokens.includes(val)) tokens.push(val);
-                });
-            }
+            const { data: pushTokens, error: dbError } = await supabaseClient
+                .from("user_push_tokens")
+                .select("token")
+                .eq("user_id", userId);
+
+            if (dbError) throw new Error(`Database Error: ${dbError.message}`);
+            tokens = pushTokens?.map((t: any) => t.token) || [];
         }
+
+        tokens = [...new Set(tokens)].filter((t) => !!t);
 
         if (tokens.length === 0) {
             return new Response(JSON.stringify({
