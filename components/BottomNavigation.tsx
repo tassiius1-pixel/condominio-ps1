@@ -50,16 +50,15 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
                         <button
                             key={item.id}
                             onClick={() => setView(item.id as View)}
-                            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 group touch-active ${isActive ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'
-                                }`}
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 group touch-active ${isActive ? 'text-indigo-600' : 'text-gray-450'}`}
                         >
                             <div className={`
-                                p-1.5 rounded-xl transition-all mb-1
-                                ${isActive ? 'bg-indigo-50 translate-y-[-2px]' : ''}
+                                p-1 rounded-xl transition-all
+                                ${isActive ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'}
                             `}>
                                 <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
                             </div>
-                            <span className={`text-[10px] font-bold leading-none ${isActive ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+                            <span className={`text-[9.5px] font-bold tracking-tight transition-opacity duration-200 mt-0.5 ${isActive ? 'opacity-100' : 'opacity-70'}`}>
                                 {item.label}
                             </span>
                         </button>
@@ -69,16 +68,16 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
                 {/* MENU BUTTON (More) */}
                 <button
                     onClick={onToggleMenu}
-                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 text-gray-400 hover:text-gray-600 relative touch-active"
+                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all w-16 text-gray-450 relative touch-active"
                 >
-                    <div className="p-1.5 rounded-xl mb-1">
+                    <div className="p-1 rounded-xl text-gray-400">
                         <MenuIcon className="w-6 h-6" />
                     </div>
-                    <span className="text-[10px] font-bold leading-none opacity-60">
+                    <span className="text-[9.5px] font-bold tracking-tight opacity-70 mt-0.5">
                         Menu
                     </span>
                     {hasUnreadNotifications && (
-                        <span className="absolute top-2 right-4 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                        <span className="absolute top-2.5 right-4.5 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
                     )}
                 </button>
             </div>

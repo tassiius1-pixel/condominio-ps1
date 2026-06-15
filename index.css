@@ -232,3 +232,29 @@ button:active {
 .animate-bounce-in {
   animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
+
+/* Ocultar barra de rolagem mas manter o scroll ativo */
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari e Chrome */
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Prevenir zoom automático indesejado no iOS/Safari ao focar em inputs de texto e selects */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  input[type="month"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

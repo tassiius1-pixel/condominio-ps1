@@ -45,7 +45,7 @@ const NotificationPrompt: React.FC = () => {
                     </div>
                     <div>
                         <h4 className="text-white font-black text-sm uppercase tracking-tight">Ativar Notificações</h4>
-                        <p className="text-indigo-100 text-xs font-medium">Não perca os alertas de SOS e recados importantes.</p>
+                        <p className="text-indigo-100 text-xs font-medium">Não perca os comunicados, boletos e avisos importantes.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -26,8 +26,8 @@ const JustificationModal: React.FC<JustificationModalProps> = ({ isOpen, onClose
     };
  
     return (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[120] flex justify-center items-center p-4 animate-fade-in">
-            <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[120] flex justify-center items-start sm:items-center p-4 pt-12 sm:pt-4 overflow-y-auto animate-fade-in">
+            <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 my-auto">
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-transparent">
                     <div>
                         <h3 className="text-base font-bold text-gray-900 tracking-tight">{title}</h3>

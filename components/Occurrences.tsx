@@ -414,8 +414,8 @@ const Occurrences: React.FC<OccurrencesProps> = ({ setView }) => {
 
             {/* Modal Overlay Form */}
             {isFormOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in text-left">
-                    <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 max-h-[90vh] flex flex-col">
+                <div className="fixed inset-0 z-[110] flex items-start sm:items-center justify-center p-4 pt-12 sm:pt-4 bg-black/40 backdrop-blur-md animate-fade-in text-left overflow-y-auto">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-scale-in border border-white/50 max-h-[90vh] flex flex-col my-auto">
                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-transparent flex-shrink-0">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 tracking-tight">

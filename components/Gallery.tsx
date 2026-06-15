@@ -649,8 +649,8 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
 
       {/* 4. MODAL: ADICIONAR ÁLBUM */}
       {showAddAlbumModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] w-full max-w-2xl p-5 border border-white/50 shadow-2xl relative animate-fade-in text-left">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-4 pt-12 sm:pt-4 overflow-y-auto">
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] w-full max-w-2xl p-5 border border-white/50 shadow-2xl relative animate-fade-in text-left my-auto">
             <button
               onClick={() => setShowAddAlbumModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50"
@@ -717,8 +717,8 @@ export const Gallery: React.FC<GalleryProps> = ({ setView }) => {
 
       {/* 5. MODAL: UPLOAD DE MÍDIAS (PROGRESS BAR) */}
       {showAddMediaModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] w-full max-w-2xl p-6 border border-white/50 shadow-2xl relative animate-fade-in text-left">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-4 pt-12 sm:pt-4 overflow-y-auto">
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] w-full max-w-2xl p-6 border border-white/50 shadow-2xl relative animate-fade-in text-left my-auto">
             <button
               onClick={() => !isUploading && setShowAddMediaModal(false)}
               className={`absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50 ${isUploading ? 'pointer-events-none opacity-30' : ''}`}
