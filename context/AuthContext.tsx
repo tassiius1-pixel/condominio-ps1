@@ -158,6 +158,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
       await supabase.auth.signOut();
+      if (window.location.search) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
     } catch (err) {
       console.error("Erro ao sair Supabase:", err);
     }

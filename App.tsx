@@ -69,6 +69,20 @@ const App: React.FC = () => {
     window.history.pushState({ view }, "", `?view=${view}`);
   };
 
+  // Proteção de rotas e redirecionamento para a Home (Início) caso o usuário não tenha permissão
+  useEffect(() => {
+    if (currentUser) {
+      const isUserAdmin = currentUser.role === Role.ADMIN;
+      const isMgmt = [Role.ADMIN, Role.GESTAO, Role.SINDICO, Role.SUBSINDICO].includes(currentUser.role);
+
+      if (mainView === "users" && !isUserAdmin) {
+        handleViewChange("home");
+      } else if (mainView === "reports" && !isMgmt) {
+        handleViewChange("home");
+      }
+    }
+  }, [currentUser, mainView]);
+
   useEffect(() => {
     if (condoLogo) {
       localStorage.setItem("condo-logo", condoLogo);
