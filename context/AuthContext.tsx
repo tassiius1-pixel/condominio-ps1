@@ -13,7 +13,7 @@ interface AuthContextType {
   currentUser: User | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (data: Omit<User, "id" | "role">) => Promise<{ success: boolean; message?: string }>;
+  register: (data: Omit<User, "id">) => Promise<{ success: boolean; message?: string }>;
   loadingAuth: boolean;
 }
 
@@ -49,6 +49,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           houseNumber: Number(data.house_number),
           role: data.role.toLowerCase() as any, // Mapeia 'ADMIN'/'MORADOR' para 'admin'/'morador'
           email: data.email,
+          phone: data.phone || "",
+          isApproved: !!data.is_approved
         };
         console.log("🔍 [AuthContext] formattedUser gerado:", formattedUser);
         setCurrentUser(formattedUser);
@@ -106,7 +108,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const email = usernameToEmail(username);
       console.log(`⏳ [AuthContext] Email gerado: ${email}`);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -115,11 +117,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error("❌ [AuthContext] signInWithPassword retornou erro:", error.message);
         throw error;
       }
+
+      // 1) Busca o perfil correspondente no banco para validar se está aprovado
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_approved")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("❌ [AuthContext] Erro ao buscar perfil na validação:", profileError);
+        await supabase.auth.signOut();
+        throw new Error("Erro ao carregar os dados de perfil.");
+      }
+
+      if (profile && !profile.is_approved) {
+        console.warn(`⚠️ [AuthContext] Usuário '${username}' (UID: ${data.user.id}) tentou logar mas não está aprovado.`);
+        await supabase.auth.signOut();
+        throw new Error("Sua conta ainda não foi aprovada pelo síndico. Por favor, aguarde a liberação.");
+      }
+
       console.log("✅ [AuthContext] signInWithPassword resolvido com sucesso!");
       return true;
     } catch (err) {
       console.error("❌ [AuthContext] Erro capturado no login:", err);
-      return false;
+      throw err; // Lança o erro para que o formulário pegue no catch
     }
   };
 
@@ -134,7 +156,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // REGISTRO ------------------------------------------------------
   const register = async (
-    data: Omit<User, "id" | "role">
+    data: Omit<User, "id">
   ): Promise<{ success: boolean; message?: string }> => {
     try {
       const email = usernameToEmail(data.username);
@@ -150,8 +172,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             username: data.username,
             cpf: cleanCpf,
             houseNumber: String(data.houseNumber),
-            phone: (data as any).phone || "",
-            role: "PROPRIETARIO",
+            phone: data.phone || "",
+            role: data.role.toUpperCase(),
+            is_approved: false, // Criado como pendente de aprovação
           },
         },
       });

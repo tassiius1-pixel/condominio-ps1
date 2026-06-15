@@ -28,7 +28,9 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     } catch (err: any) {
       console.error("Login error:", err);
       const msg = err?.message?.toLowerCase() || '';
-      if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
+      if (msg.includes('não foi aprovada') || msg.includes('síndico') || msg.includes('aguarde a liberação')) {
+        setError(err.message);
+      } else if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
         setError("Usuário ou senha incorretos.");
       } else if (msg.includes('email not confirmed')) {
         setError("Conta ainda não confirmada. Verifique com a administração.");

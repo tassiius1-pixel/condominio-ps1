@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { isValidCPF } from "../utils/cpfValidator";
 import { formatCPF, formatName } from "../utils/formatters";
+import { Role } from "../types";
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -14,6 +15,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     username: "",
     cpf: "",
     houseNumber: "",
+    phone: "",
+    role: Role.PROPRIETARIO,
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -21,12 +24,18 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let formattedValue = value;
 
     if (name === 'cpf') {
       formattedValue = formatCPF(value);
+    } else if (name === 'phone') {
+      const digits = value.replace(/\D/g, '');
+      formattedValue = digits
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
     }
 
     setFormData((prev) => ({ ...prev, [name]: formattedValue }));
@@ -59,6 +68,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
     if (!isValidCPF(formData.cpf)) newErrors.cpf = "CPF inválido.";
 
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Informe o telefone celular.";
+    }
+
     if (!formData.houseNumber.trim())
       newErrors.houseNumber = "Informe o número da casa.";
     else if (isNaN(Number(formData.houseNumber)))
@@ -89,13 +102,15 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         houseNumber: parseInt(formData.houseNumber, 10),
         password: formData.password,
         email: "",
+        phone: formData.phone,
+        role: formData.role,
       });
 
       if (result.success) {
-        setMessage("Cadastro realizado com sucesso!");
+        setMessage("Solicitação enviada com sucesso! Aguarde a liberação do síndico para fazer login.");
         setTimeout(() => {
           onSwitchToLogin();
-        }, 1500);
+        }, 4000);
       } else {
         setMessage(result.message || "Erro ao cadastrar. Verifique os dados.");
       }
@@ -108,7 +123,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
   const logoURL = "/favicon.png";
 
-  const inputClass = "w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/50 focus:bg-white outline-none shadow-sm text-sm";
+  const inputClass = "w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white/50 focus:bg-white outline-none shadow-sm text-sm";
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
@@ -117,17 +132,17 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
 
       <div className="w-full max-w-md glass rounded-3xl shadow-2xl overflow-hidden relative z-10 animate-scale-in">
-        <div className="p-8 sm:p-10">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-5 overflow-hidden p-3 hover-lift">
+        <div className="p-6 sm:p-8">
+          <div className="flex flex-col items-center mb-5">
+            <div className="w-14 h-14 bg-white rounded-2xl shadow-md flex items-center justify-center mb-3 overflow-hidden p-2.5 hover-lift">
               <img
                 src={logoURL}
                 alt="Condomínio Porto Seguro 1"
                 className="w-full h-full object-contain"
               />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 text-center tracking-tight">Criar Conta</h2>
-            <p className="text-gray-500 text-center mt-2 font-medium">Condomínio Porto Seguro 1</p>
+            <h2 className="text-2xl font-bold text-gray-900 text-center tracking-tight">Criar Conta</h2>
+            <p className="text-gray-400 text-center mt-1 text-xs font-semibold">Condomínio Porto Seguro 1</p>
           </div>
 
           {message && (
@@ -139,7 +154,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                 Nome Completo
@@ -174,8 +189,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               {errors.username && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.username}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-7">
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                   CPF
                 </label>
@@ -187,10 +202,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   className={inputClass}
                   placeholder="000.000.000-00"
                 />
-                {errors.cpf && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.cpf}</p>}
+                {errors.cpf && <p className="mt-1 text-xs text-red-650 font-semibold ml-1">{errors.cpf}</p>}
               </div>
 
-              <div>
+              <div className="col-span-5">
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
                   Nº Casa
                 </label>
@@ -202,7 +217,39 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   className={inputClass}
                   placeholder="Ex: 101"
                 />
-                {errors.houseNumber && <p className="mt-1 text-xs text-red-600 font-medium ml-1">{errors.houseNumber}</p>}
+                {errors.houseNumber && <p className="mt-1 text-xs text-red-650 font-semibold ml-1">{errors.houseNumber}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-7">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
+                  Telefone Celular
+                </label>
+                <input
+                  name="phone"
+                  type="text"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="(00) 90000-0000"
+                />
+                {errors.phone && <p className="mt-1 text-xs text-red-650 font-semibold ml-1">{errors.phone}</p>}
+              </div>
+
+              <div className="col-span-5">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
+                  Vínculo com Imóvel
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+                  <option value={Role.PROPRIETARIO}>Proprietário</option>
+                  <option value={Role.INQUILINO}>Inquilino</option>
+                </select>
               </div>
             </div>
 
@@ -245,7 +292,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all hover-lift active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+              className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all hover-lift active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-3"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -256,7 +303,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             </button>
           </form>
 
-          <div className="mt-8 text-center">
+          <div className="mt-5 text-center">
             <p className="text-sm text-gray-500 font-medium">
               Já tem uma conta?{" "}
               <button
@@ -268,7 +315,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             </p>
           </div>
         </div>
-        <div className="bg-gray-50/50 px-8 py-5 border-t border-gray-100/50 text-center">
+        <div className="bg-gray-50/50 px-6 py-3.5 border-t border-gray-100/50 text-center">
           <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">
             © {new Date().getFullYear()} Porto Seguro 1 • Todos os direitos reservados
           </p>

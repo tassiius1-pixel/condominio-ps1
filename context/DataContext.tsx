@@ -35,6 +35,7 @@ interface DataContextType {
   addUser: (userData: Omit<User, "id" | "role">, authUid?: string) => Promise<User | null>;
   updateUserRole: (userId: string, role: Role) => void;
   deleteUser: (userId: string) => void;
+  approveUser: (userId: string) => Promise<void>;
   addRequest: (
     requestData: Omit<
       Request,
@@ -138,7 +139,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         houseNumber: Number(d.house_number),
         role: d.role.toLowerCase() as Role,
         email: d.email,
-        phone: d.phone || ""
+        phone: d.phone || "",
+        isApproved: !!d.is_approved
       })));
     }
   }, []);
@@ -674,6 +676,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error: any) {
       console.error("Erro ao excluir usuário:", error);
       addToast("Erro ao excluir usuário: " + error.message, "error");
+    }
+  };
+
+  const approveUser = async (userId: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_approved: true })
+      .eq("id", userId);
+
+    if (!error) {
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, isApproved: true } : u)));
+      addToast("Usuário aprovado com sucesso!", "success");
+    } else {
+      addToast("Erro ao aprovar usuário.", "error");
     }
   };
 
@@ -1944,6 +1960,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addUser,
     updateUserRole,
     deleteUser,
+    approveUser,
     addRequest,
     updateRequest,
     deleteRequest,

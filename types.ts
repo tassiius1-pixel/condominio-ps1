@@ -63,6 +63,8 @@ export interface User {
   password?: string;
   role: Role;
   email: string;
+  phone?: string;
+  isApproved?: boolean;
 }
 
 export interface Comment {
