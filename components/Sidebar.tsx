@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <button
         key={item.id}
         onClick={() => setView(item.id as any)}
-        className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 group active:scale-[0.97] ${
+        className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group active:scale-[0.97] ${
           isActive
             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200/60'
             : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/80'
@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <aside className="hidden lg:flex flex-col w-72 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 shadow-[4px_0_32px_rgba(0,0,0,0.04)] z-40">
 
       {/* CABEÇALHO: LOGO */}
-      <div className="px-6 pt-7 pb-6 border-b border-slate-100">
+      <div className="px-5 py-4 border-b border-slate-100">
         <div className="flex items-center gap-3.5">
           <div className="relative group w-11 h-11 flex-shrink-0 rounded-2xl overflow-hidden bg-white shadow-md border border-slate-100">
             <img
@@ -151,11 +151,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* MENU DE NAVEGAÇÃO */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 no-scrollbar flex flex-col gap-6">
+      <div className="flex-1 overflow-y-auto px-4 py-4 no-scrollbar flex flex-col gap-5">
 
         {/* GRUPO GERAL */}
         <div>
-          <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 block mb-3">
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 block mb-2.5">
             Geral
           </span>
           <div className="space-y-1.5">
@@ -167,8 +167,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* GRUPO ADMINISTRAÇÃO */}
         {isManagement && managementMenuItems.length > 0 && (
-          <div className="pt-5 border-t border-slate-100">
-            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 block mb-3">
+          <div className="pt-4 border-t border-slate-100">
+            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] px-4 block mb-2.5">
               Administração
             </span>
             <div className="space-y-1.5">
@@ -181,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* RODAPÉ: PERFIL + AÇÕES */}
-      <div className="border-t border-slate-100 flex-shrink-0 px-4 py-4">
+      <div className="border-t border-slate-100 flex-shrink-0 px-4 py-3.5">
         <div className="flex items-center gap-2.5 bg-slate-50 rounded-2xl px-3 py-2.5">
           {/* Avatar */}
           <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-indigo-200/50">
