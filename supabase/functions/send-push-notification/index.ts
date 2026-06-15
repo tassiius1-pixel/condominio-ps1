@@ -77,7 +77,7 @@ serve(async (req) => {
             throw new Error(`Corpo inválido: ${e.message}`);
         }
 
-        const { userId, title, body, data: extraData } = bodyData;
+        const { userId, userIds, title, body, data: extraData } = bodyData;
         const saEnv = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
         if (!saEnv) throw new Error("FIREBASE_SERVICE_ACCOUNT não configurada.");
 
@@ -94,6 +94,14 @@ serve(async (req) => {
             const { data: pushTokens, error: dbError } = await supabaseClient
                 .from("user_push_tokens")
                 .select("token");
+
+            if (dbError) throw new Error(`Database Error: ${dbError.message}`);
+            tokens = pushTokens?.map((t: any) => t.token) || [];
+        } else if (userIds && Array.isArray(userIds)) {
+            const { data: pushTokens, error: dbError } = await supabaseClient
+                .from("user_push_tokens")
+                .select("token")
+                .in("user_id", userIds);
 
             if (dbError) throw new Error(`Database Error: ${dbError.message}`);
             tokens = pushTokens?.map((t: any) => t.token) || [];

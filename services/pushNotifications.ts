@@ -117,7 +117,7 @@ export const requestPushPermission = async (
  * Envia uma notificação push via Supabase Edge Function
  */
 export const sendPushNotification = async (
-    targetUserId: string | "all",
+    targetUserId: string | string[] | "all",
     title: string,
     body: string,
     data: any = {}
@@ -127,6 +127,18 @@ export const sendPushNotification = async (
         const functionsUrl = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL ||
             "https://hjrhipbzuzkxrzlffwlb.supabase.co/functions/v1";
 
+        const bodyPayload: any = {
+            title,
+            body,
+            data: { ...data, url: window.location.origin },
+        };
+
+        if (Array.isArray(targetUserId)) {
+            bodyPayload.userIds = targetUserId;
+        } else {
+            bodyPayload.userId = targetUserId;
+        }
+
         const response = await fetch(
             `${functionsUrl}/send-push-notification`,
             {
@@ -135,12 +147,7 @@ export const sendPushNotification = async (
                     "Content-Type": "application/json",
                     apikey: import.meta.env.VITE_SUPABASE_ANON_KEY!,
                 },
-                body: JSON.stringify({
-                    userId: targetUserId,
-                    title,
-                    body,
-                    data: { ...data, url: window.location.origin },
-                }),
+                body: JSON.stringify(bodyPayload),
             }
         );
         const result = await response.json();

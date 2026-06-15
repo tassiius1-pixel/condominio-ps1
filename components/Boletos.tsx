@@ -452,26 +452,32 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         completedSteps++;
         setUploadProgress(Math.round((completedSteps / totalSteps) * 100));
       }
-
-      // 4. Enviar notificações Push para moradores cadastrados
+      // 4. Enviar notificações Push para moradores cadastrados (em lote com uma única chamada)
       setUploadStatusText('Enviando notificações push para moradores...');
-      for (const item of usersToNotify) {
+      const userIdsToNotify = usersToNotify.map(item => item.user.id).filter(id => !!id);
+      
+      if (userIdsToNotify.length > 0) {
         try {
-          // Envia push notification
-          sendPushNotification(
-            item.user.id,
+          // Envia push notification para todos de uma vez
+          await sendPushNotification(
+            userIdsToNotify,
             'Novo Boleto Disponível',
             `O boleto de ${formatMonthName(refMonth)} da sua casa já está disponível no app.`
           );
+        } catch (pushErr) {
+          console.error('Erro ao disparar lote de Push Notifications:', pushErr);
+        }
 
-          // Também cria notificação local no banco (via Supabase diretamente)
-          await supabase.from('notifications').insert({
+        // Também cria notificações locais no banco de dados (em lote com um único insert)
+        try {
+          const notificationsToInsert = usersToNotify.map(item => ({
             user_id: item.user.id,
             message: `O boleto do mês ${formatMonthName(refMonth)} já está disponível para download.`,
             request_id: null
-          });
-        } catch (pushErr) {
-          console.error(`Erro ao notificar morador casa ${item.user.houseNumber}:`, pushErr);
+          }));
+          await supabase.from('notifications').insert(notificationsToInsert);
+        } catch (dbErr) {
+          console.error('Erro ao registrar notificações locais no banco:', dbErr);
         }
       }
 
