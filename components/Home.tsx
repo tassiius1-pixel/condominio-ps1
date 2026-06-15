@@ -443,7 +443,7 @@ const Home: React.FC<HomeProps> = ({ setView }) => {
                             <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
                                 <div className="flex items-center gap-2">
                                     <ClockIcon className="h-5 w-5 text-indigo-600" />
-                                    <h2 className="text-lg font-black text-slate-800 tracking-tight">Demandas Urgentes</h2>
+                                    <h2 className="text-lg font-black text-slate-800 tracking-tight">Ações Pendentes</h2>
                                 </div>
                                 <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-black">
                                     {pendingTasks.length}
