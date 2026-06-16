@@ -94,7 +94,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // LOGOUT
     const logout = async () => {
-        await signOut(auth);
+        try {
+            console.log("🔌 [AuthContext Mobile] Efetuando logout no Firebase...");
+            await signOut(auth);
+        } catch (err) {
+            console.error("❌ [AuthContext Mobile] Erro ao sair Firebase:", err);
+        } finally {
+            // Sempre limpa o estado do usuário local
+            setCurrentUser(null);
+            console.log("🔌 [AuthContext Mobile] Logout concluído e estado local do usuário limpo.");
+        }
     };
 
     return (

@@ -157,12 +157,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // LOGOUT --------------------------------------------------------
   const logout = async () => {
     try {
+      console.log("🔌 [AuthContext] Efetuando logout no Supabase...");
       await supabase.auth.signOut();
-      if (window.location.search) {
+    } catch (err) {
+      console.error("❌ [AuthContext] Erro ao sair Supabase:", err);
+    } finally {
+      // Sempre define o usuário atual como null para garantir que a interface atualize e limpa a URL se necessário
+      setCurrentUser(null);
+      if (typeof window !== "undefined" && window.location.search) {
         window.history.replaceState({}, "", window.location.pathname);
       }
-    } catch (err) {
-      console.error("Erro ao sair Supabase:", err);
+      console.log("🔌 [AuthContext] Logout concluído e estado local do usuário limpo.");
     }
   };
 
