@@ -210,7 +210,8 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         if (file.dir || !relativePath.toLowerCase().endsWith('.pdf')) return;
 
         const promise = (async () => {
-          const contentBlob = await file.async('blob');
+          const contentBlobRaw = await file.async('blob');
+          const contentBlob = new Blob([contentBlobRaw], { type: 'application/pdf' });
           const fileName = file.name;
           const fileSize = contentBlob.size;
 
@@ -740,37 +741,50 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         return;
       }
 
-      if (downloadDirectly) {
-        addToast('Iniciando download do boleto...', 'info');
-        try {
-          const response = await fetch(signedUrl);
-          if (response.ok) {
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = boleto.fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-            addToast('Download concluído!', 'success');
-            return;
-          }
-        } catch (fetchError) {
-          console.warn("Falha ao baixar via Blob, tentando download direto do link:", fetchError);
-        }
+      const isNative = Capacitor.isNativePlatform();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-        // Fallback: Abertura direta do link em nova aba para download/visualização nativa
-        const a = document.createElement('a');
-        a.href = signedUrl;
-        a.download = boleto.fileName;
-        a.target = "_blank";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      if (downloadDirectly) {
+        if (isNative || isMobile) {
+          // No celular (app ou navegador mobile), forçar download via Blob não funciona.
+          // Abrimos a URL assinada em nova aba (ou navegador do sistema) para visualização e salvamento nativo.
+          if (isNative) {
+            window.open(signedUrl, '_system');
+          } else {
+            window.open(signedUrl, '_blank');
+          }
+        } else {
+          // No desktop, força o download direto via Blob
+          addToast('Iniciando download do boleto...', 'info');
+          try {
+            const response = await fetch(signedUrl);
+            if (response.ok) {
+              const blob = await response.blob();
+              const blobUrl = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = blobUrl;
+              a.download = boleto.fileName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(blobUrl);
+              addToast('Download concluído!', 'success');
+              return;
+            }
+          } catch (fetchError) {
+            console.warn("Falha ao baixar via Blob, tentando download direto do link:", fetchError);
+          }
+
+          // Fallback desktop
+          const a = document.createElement('a');
+          a.href = signedUrl;
+          a.download = boleto.fileName;
+          a.target = "_blank";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
       } else {
-        const isNative = Capacitor.isNativePlatform();
         if (isNative) {
           // No app nativo (Capacitor), abre no navegador/leitor do sistema
           window.open(signedUrl, '_system');
