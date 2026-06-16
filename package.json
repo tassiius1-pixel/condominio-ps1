@@ -19,6 +19,7 @@
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
     "@types/node": "^22.14.0",
