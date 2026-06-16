@@ -1190,20 +1190,13 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                               </div>
                             ) : boleto ? (
                               <>
-                                {/* Ações de visualizar e baixar */}
+                                {/* Ação de acessar boleto */}
                                 <button
                                   onClick={() => handleOpenBoleto(boleto, false)}
-                                  className="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors shrink-0"
-                                  title="Visualizar boleto"
+                                  className="p-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors shrink-0"
+                                  title="Acessar boleto"
                                 >
                                   <EyeIcon className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleOpenBoleto(boleto, true)}
-                                  className="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors shrink-0"
-                                  title="Baixar boleto"
-                                >
-                                  <DownloadIcon className="w-4 h-4" />
                                 </button>
 
                                 {/* Notificar */}
@@ -1508,20 +1501,13 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-5 border-t border-gray-100 dark:border-gray-800/80 pt-3">
+                    <div className="mt-5 border-t border-gray-100 dark:border-gray-800/80 pt-3">
                       <button
                         onClick={() => handleOpenBoleto(boleto, false)}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-lg transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-[0.98] touch-active"
                       >
-                        <EyeIcon className="w-4 h-4" />
-                        Visualizar
-                      </button>
-                      <button
-                        onClick={() => handleOpenBoleto(boleto, true)}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-lg transition-colors"
-                      >
-                        <DownloadIcon className="w-4 h-4" />
-                        Download
+                        <EyeIcon className="w-4.5 h-4.5" />
+                        Acessar Boleto
                       </button>
                     </div>
                   </div>
