@@ -93,10 +93,8 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
     storedList: { house: number; name: string; fileName: string }[];
   } | null>(null);
 
-  // Estados para Visualização / Preview de Boleto (LightBox/Modal)
-  const [previewBoleto, setPreviewBoleto] = useState<Boleto | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
+  // Cache de URLs pré-assinadas dos boletos para abertura instantânea e direta
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   // Formata o mês de referência de YYYY-MM para "Mês de YYYY"
   const formatMonthName = (monthStr: string) => {
@@ -115,6 +113,43 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
     if (!currentUser) return [];
     return boletos.filter(b => b.houseNumber === currentUser.houseNumber);
   }, [boletos, currentUser]);
+
+  // Pré-assinar boletos em segundo plano para abertura instantânea e direta
+  useEffect(() => {
+    const preSignBoletos = async () => {
+      // Determina quais boletos devem ser pré-assinados (os do morador ou os da gestão atual)
+      const targetBoletos = isManagement 
+        ? boletos.filter(b => b.referenceMonth === activeManagementMonth)
+        : myBoletos;
+
+      const newUrls: Record<string, string> = {};
+      
+      // Filtra apenas os que ainda não foram pré-assinados
+      const boletosToSign = targetBoletos.filter(b => !signedUrls[b.id]);
+      
+      if (boletosToSign.length === 0) return;
+
+      // Executa sequencialmente para evitar gargalos de requisição no Supabase
+      for (const boleto of boletosToSign) {
+        try {
+          const url = await getBoletoSignedUrl(boleto.fileUrl);
+          if (url) {
+            newUrls[boleto.id] = url;
+          }
+        } catch (e) {
+          console.error("Erro ao pré-assinar boleto:", e);
+        }
+      }
+
+      if (Object.keys(newUrls).length > 0) {
+        setSignedUrls(prev => ({ ...prev, ...newUrls }));
+      }
+    };
+
+    if (getBoletoSignedUrl) {
+      preSignBoletos();
+    }
+  }, [myBoletos, boletos, activeManagementMonth, isManagement, getBoletoSignedUrl]);
 
 
 
@@ -698,44 +733,55 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
   // Download ou Visualização do Boleto do Morador
   const handleOpenBoleto = async (boleto: Boleto, downloadDirectly = false) => {
-    if (downloadDirectly) {
-      try {
-        const signedUrl = await getBoletoSignedUrl(boleto.fileUrl);
-        if (!signedUrl) {
-          addToast('Não foi possível gerar o link seguro do boleto.', 'error');
-          return;
+    try {
+      const signedUrl = signedUrls[boleto.id] || await getBoletoSignedUrl(boleto.fileUrl);
+      if (!signedUrl) {
+        addToast('Não foi possível gerar o link seguro do boleto.', 'error');
+        return;
+      }
+
+      if (downloadDirectly) {
+        addToast('Iniciando download do boleto...', 'info');
+        try {
+          const response = await fetch(signedUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = boleto.fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+            addToast('Download concluído!', 'success');
+            return;
+          }
+        } catch (fetchError) {
+          console.warn("Falha ao baixar via Blob, tentando download direto do link:", fetchError);
         }
-        // Forçar download via trigger de link
+
+        // Fallback: Abertura direta do link em nova aba para download/visualização nativa
         const a = document.createElement('a');
         a.href = signedUrl;
         a.download = boleto.fileName;
+        a.target = "_blank";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-      } catch (error) {
-        console.error('Erro ao baixar boleto:', error);
-        addToast('Erro ao baixar o boleto.', 'error');
-      }
-    } else {
-      // Abre o modal de Preview (semelhante ao de Documentos)
-      setPreviewBoleto(boleto);
-      setPreviewUrl('');
-      setIsPreviewLoading(true);
-      try {
-        const signedUrl = await getBoletoSignedUrl(boleto.fileUrl);
-        if (!signedUrl) {
-          setPreviewBoleto(null);
-          addToast('Não foi possível gerar o link seguro do boleto.', 'error');
-          return;
+      } else {
+        const isNative = Capacitor.isNativePlatform();
+        if (isNative) {
+          // No app nativo (Capacitor), abre no navegador/leitor do sistema
+          window.open(signedUrl, '_system');
+        } else {
+          // No navegador, abre em nova aba diretamente
+          window.open(signedUrl, '_blank');
         }
-        setPreviewUrl(signedUrl);
-      } catch (error) {
-        setPreviewBoleto(null);
-        console.error('Erro ao gerar link do boleto:', error);
-        addToast('Erro ao acessar o boleto.', 'error');
-      } finally {
-        setIsPreviewLoading(false);
       }
+    } catch (error) {
+      console.error('Erro ao acessar boleto:', error);
+      addToast('Erro ao acessar o boleto.', 'error');
     }
   };
 
@@ -1963,115 +2009,6 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
             )}
 
           </div>
-        </div>
-      )}
-
-      {/* Preview Modal para Visualização do Boleto */}
-      {previewBoleto && (
-        <div className="fixed inset-0 z-[110] flex flex-col bg-white dark:bg-gray-950 animate-in zoom-in-95 duration-300 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-gray-900 shadow-sm z-10 pt-[calc(env(safe-area-inset-top,0rem)+1rem)]">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  setPreviewBoleto(null);
-                  setPreviewUrl('');
-                }}
-                className="p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-full transition-all active:scale-95 touch-active"
-              >
-                <ChevronLeftIcon className="w-6 h-6" />
-              </button>
-              <div className="min-w-0">
-                <h3 className="font-black text-gray-900 dark:text-white truncate pr-4">{previewBoleto.fileName}</h3>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-tight">
-                  Referência: {formatMonthName(previewBoleto.referenceMonth)}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {previewUrl && (
-                <a
-                  href={previewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
-                >
-                  <DownloadIcon className="w-4 h-4" />
-                  Download
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Viewer */}
-          <div className="flex-1 bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center relative overflow-hidden p-6 w-full">
-            {isPreviewLoading ? (
-              <div className="flex flex-col items-center justify-center gap-3">
-                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold">Carregando visualização segura...</p>
-              </div>
-            ) : previewUrl ? (
-              /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
-                <div className="text-center max-w-sm p-8 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-md animate-in fade-in duration-300">
-                  <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3 shadow-inner">
-                    <FileIcon className="w-10 h-10" />
-                  </div>
-                  <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">Visualização no Celular</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-8">
-                    Para garantir a melhor leitura do boleto em seu celular, abra-o no leitor nativo do sistema.
-                  </p>
-                  <a
-                    href={previewUrl}
-                    target={Capacitor.isNativePlatform() ? undefined : "_blank"}
-                    rel="noopener noreferrer"
-                    onClick={(e) => {
-                      if (Capacitor.isNativePlatform()) {
-                        e.preventDefault();
-                        window.open(previewUrl, '_system');
-                      }
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 mb-3"
-                  >
-                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
-                    </svg>
-                    Abrir Boleto
-                  </a>
-                </div>
-              ) : (
-                <iframe
-                  src={`${previewUrl}#toolbar=0`}
-                  className="w-full h-full border-none bg-white dark:bg-gray-900 shadow-inner"
-                  title={previewBoleto.fileName}
-                />
-              )
-            ) : (
-              <div className="text-center p-6 text-gray-500">
-                Erro ao gerar link de visualização.
-              </div>
-            )}
-          </div>
-
-          {/* Footer Mobile */}
-          {previewUrl && (
-            <div className="sm:hidden p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 pb-[calc(env(safe-area-inset-bottom,0rem)+1rem)]">
-              <a
-                href={previewUrl}
-                target={Capacitor.isNativePlatform() ? undefined : "_blank"}
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  if (Capacitor.isNativePlatform()) {
-                    e.preventDefault();
-                    window.open(previewUrl, '_system');
-                  }
-                }}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-95 touch-active"
-              >
-                <DownloadIcon className="w-5 h-5" />
-                Visualizar PDF
-              </a>
-            </div>
-          )}
         </div>
       )}
 
