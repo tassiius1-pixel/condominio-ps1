@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
 import { Role, View, Boleto, User } from '../types';
+import { Capacitor } from '@capacitor/core';
 import {
   BoletoIcon,
   DownloadIcon,
@@ -692,11 +693,13 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
 
   // Download ou Visualização do Boleto do Morador
   const handleOpenBoleto = async (boleto: Boleto, downloadDirectly = false) => {
+    const isNative = Capacitor.isNativePlatform();
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     let newWindow: Window | null = null;
     
-    // Abre a janela em branco de forma síncrona se não for download direto
+    // Abre a janela em branco de forma síncrona apenas no desktop
     // para evitar que bloqueadores de pop-up impeçam a visualização após a Promise
-    if (!downloadDirectly) {
+    if (!downloadDirectly && !isNative && !isMobile) {
       newWindow = window.open('', '_blank');
     }
 
@@ -717,11 +720,19 @@ export const Boletos: React.FC<BoletosProps> = ({ setView }) => {
         a.click();
         document.body.removeChild(a);
       } else {
-        // Direcionar a janela já aberta para a URL assinada do boleto
-        if (newWindow) {
-          newWindow.location.href = signedUrl;
-        } else {
+        if (isNative) {
+          // No app nativo (Capacitor), abre no navegador/leitor do sistema
+          window.open(signedUrl, '_system');
+        } else if (isMobile) {
+          // No navegador de celular, abre em nova aba diretamente
           window.open(signedUrl, '_blank');
+        } else {
+          // No desktop, direciona a janela já aberta para a URL assinada do boleto
+          if (newWindow) {
+            newWindow.location.href = signedUrl;
+          } else {
+            window.open(signedUrl, '_blank');
+          }
         }
       }
     } catch (error) {
