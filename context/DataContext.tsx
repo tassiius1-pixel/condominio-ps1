@@ -67,7 +67,7 @@ interface DataContextType {
   addVoting: (voting: Omit<Voting, 'id' | 'votes' | 'createdAt'>) => void;
   vote: (votingId: string, optionIds: string[], currentUser: User) => Promise<void>;
   notices: Notice[];
-  addNotice: (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => Promise<void>;
+  addNotice: (notice: Pick<Notice, 'title' | 'content'>) => Promise<void>;
   deleteNotice: (noticeId: string) => Promise<void>;
   toggleNoticeReaction: (noticeId: string, userId: string, type: 'like' | 'dislike') => Promise<void>;
   updateOccurrence: (id: string, data: Partial<Occurrence>) => Promise<void>;
@@ -1419,7 +1419,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const addNotice = async (notice: Omit<Notice, 'id' | 'createdAt' | 'likes' | 'dislikes'>) => {
+  const addNotice = async (notice: Pick<Notice, 'title' | 'content'>) => {
     const tempId = `temp-${Date.now()}`;
     const newNotice: Notice = {
       id: tempId,
