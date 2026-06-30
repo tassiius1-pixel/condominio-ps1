@@ -46,8 +46,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     };
 
     const isDateDisabled = (date: Date, type: 'churrasco' | 'salao') => {
-        // Admin and Sindico bypass all date restrictions
-        if (currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO) return false;
+        // Admin, Sindico and Subsindico bypass all date restrictions
+        if (currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO || currentUser?.role === Role.SUBSINDICO) return false;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -77,18 +77,21 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
         const dateString = selectedDate.toISOString().split('T')[0];
         const existingReservations = getReservationsForDate(selectedDate);
 
-        // Regra de Exclusividade (Por Casa)
+        // Regra de Exclusividade (Por Casa) - Desabilitada para perfis administrativos
+        const isAdminOrSindicoOrSub = currentUser.role === Role.ADMIN || currentUser.role === Role.SINDICO || currentUser.role === Role.SUBSINDICO;
         const myHouseReservations = existingReservations.filter(r => r.houseNumber === houseNumber);
 
-        if (area === 'salao_festas') {
-            if (myHouseReservations.some(r => r.area.includes('churrasco'))) {
-                addToast('Esta unidade já reservou uma churrasqueira para este dia.', 'error');
-                return;
-            }
-        } else {
-            if (myHouseReservations.some(r => r.area === 'salao_festas')) {
-                addToast('Esta unidade já reservou o Salão de Festas para este dia.', 'error');
-                return;
+        if (!isAdminOrSindicoOrSub) {
+            if (area === 'salao_festas') {
+                if (myHouseReservations.some(r => r.area.includes('churrasco'))) {
+                    addToast('Esta unidade já reservou uma churrasqueira para este dia.', 'error');
+                    return;
+                }
+            } else {
+                if (myHouseReservations.some(r => r.area === 'salao_festas')) {
+                    addToast('Esta unidade já reservou o Salão de Festas para este dia.', 'error');
+                    return;
+                }
             }
         }
 
@@ -114,8 +117,8 @@ const Reservations: React.FC<ReservationsProps> = ({ setView }) => {
     const handleReserve = async (area: 'churrasco1' | 'churrasco2' | 'salao_festas') => {
         if (!selectedDate || !currentUser) return;
 
-        // Admin and Sindico logic
-        if (currentUser.role === Role.ADMIN || currentUser.role === Role.SINDICO) {
+        // Admin, Sindico and Subsindico logic
+        if (currentUser.role === Role.ADMIN || currentUser.role === Role.SINDICO || currentUser.role === Role.SUBSINDICO) {
             setPendingArea(area);
             setIsAdminModalOpen(true);
             return;

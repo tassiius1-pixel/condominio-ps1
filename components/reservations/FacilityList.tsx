@@ -76,8 +76,9 @@ const FacilityList: React.FC<FacilityListProps> = ({
 }) => {
     // Helper to check if current user has booked specific types for this date
     // Note: This logic was inside FacilityCard calls in Reservations.tsx
-    const userHasSalao = dateReservations.some(r => r.houseNumber === currentUser?.houseNumber && r.area === 'salao_festas');
-    const userHasChurrasco = dateReservations.some(r => r.houseNumber === currentUser?.houseNumber && r.area.includes('churrasco'));
+    const isAdminOrSindico = currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO || currentUser?.role === Role.SUBSINDICO;
+    const userHasSalao = !isAdminOrSindico && dateReservations.some(r => r.houseNumber === currentUser?.houseNumber && r.area === 'salao_festas');
+    const userHasChurrasco = !isAdminOrSindico && dateReservations.some(r => r.houseNumber === currentUser?.houseNumber && r.area.includes('churrasco'));
 
     return (
         <div className="space-y-6">
@@ -204,10 +205,10 @@ const FacilityList: React.FC<FacilityListProps> = ({
                         <span className="font-bold">•</span>
                         <span><strong>Exclusividade:</strong> Não é permitido reservar Salão e Churrasqueira no mesmo dia.</span>
                     </li>
-                    {(currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO) && (
+                    {(currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO || currentUser?.role === Role.SUBSINDICO) && (
                         <li className="flex gap-2 text-red-600 font-bold mt-2 pt-2 border-t border-blue-200">
                             <span>•</span>
-                            <span>ADMIN/SÍNDICO: Acesso irrestrito a datas e casas.</span>
+                            <span>ADMIN/SÍNDICO/SUBSÍNDICO: Acesso irrestrito a datas e casas.</span>
                         </li>
                     )}
                 </ul>

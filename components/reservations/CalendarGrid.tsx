@@ -63,7 +63,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
             const isSelected = selectedDate?.toDateString() === date.toDateString();
             const isToday = new Date().toDateString() === date.toDateString();
             const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
-            const isAdminOrSindico = currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO;
+            const isAdminOrSindico = currentUser?.role === Role.ADMIN || currentUser?.role === Role.SINDICO || currentUser?.role === Role.SUBSINDICO;
             const isClickable = !isPast || isAdminOrSindico;
 
             // Indicators

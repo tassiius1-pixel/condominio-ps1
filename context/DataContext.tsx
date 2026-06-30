@@ -206,8 +206,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setReservations(data.map(d => ({
         id: d.id,
         userId: d.user_id,
-        userName: d.profiles?.name || "Desconhecido",
-        houseNumber: Number(d.profiles?.house_number || 0),
+        userName: d.user_name || d.profiles?.name || "Desconhecido",
+        houseNumber: d.house_number !== null && d.house_number !== undefined ? Number(d.house_number) : Number(d.profiles?.house_number || 0),
         area: d.area as any,
         date: d.date,
         createdAt: d.created_at
@@ -1142,8 +1142,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newRes: Reservation = {
       id: tempId,
       userId: reservation.userId,
-      userName: user?.name || "Desconhecido",
-      houseNumber: Number(user?.houseNumber || 0),
+      userName: reservation.userName || user?.name || "Desconhecido",
+      houseNumber: reservation.houseNumber !== undefined ? Number(reservation.houseNumber) : Number(user?.houseNumber || 0),
       area: reservation.area,
       date: reservation.date,
       createdAt: new Date().toISOString()
@@ -1155,7 +1155,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { data, error } = await supabase.from("reservations").insert({
       user_id: reservation.userId,
       area: reservation.area,
-      date: reservation.date
+      date: reservation.date,
+      user_name: reservation.userName || null,
+      house_number: reservation.houseNumber !== undefined ? Number(reservation.houseNumber) : null
     }).select().single();
 
     if (!error && data) {
@@ -1163,6 +1165,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setReservations(prev => prev.map(r => r.id === tempId ? {
         ...r,
         id: data.id,
+        user_name: data.user_name,
+        house_number: data.house_number,
         createdAt: data.created_at
       } : r));
       addToast("Reserva realizada com sucesso!", "success");
